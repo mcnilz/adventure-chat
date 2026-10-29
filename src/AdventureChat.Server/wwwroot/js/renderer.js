@@ -14,6 +14,7 @@ export class RoomRenderer {
             throw new Error('Canvas 2D context is not supported');
         }
         this.ctx = context;
+        this.ctx.imageSmoothingEnabled = false;
         this.backgroundImage = new Image();
         this.backgroundImage.src = this.room.backgroundUrl;
         this.backgroundImage.onload = () => {
