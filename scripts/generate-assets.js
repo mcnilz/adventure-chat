@@ -464,189 +464,497 @@ const loungePng = createPng(640, 360, (x, y) => {
   }
 });
 
-// 2. Generate Iconic Lucasfilm Adventure Protagonist Sprite Sheet (Guybrush Threepwood inspired)
-// 4 frames of 32x48: Total 128x48
-// Frame 0: Idle / Stand
-// Frame 1: Walk Step 1 (Left forward, right back)
-// Frame 2: Walk Stand (Passing pose with slight vertical bob)
-// Frame 3: Walk Step 2 (Right forward, left back)
-const charWidth = 128;
-const charHeight = 48;
+// 2. Generate Iconic Lucasfilm Adventure Big-Head Character Sprite Sheet
+// Inspired by Maniac Mansion & Zak McKracken (classic oversized head proportion, distinct features)
+// Dimensions: 4 frames of 48x64 per row, 3 rows (Side, Back, Front): Total 192x192
+// Row 0 (y: 0..63): Side View (facing Right; flipped horizontally for Left)
+// Row 1 (y: 64..127): Back View (facing Up / towards back of room, Rückenansicht)
+// Row 2 (y: 128..191): Front View (facing Down / towards front of room / camera)
+const charWidth = 192;
+const charHeight = 192;
+const frameWidth = 48;
+const frameHeight = 64;
 
 const charPng = createPng(charWidth, charHeight, (x, y) => {
-  const frame = Math.floor(x / 32);
-  const fx = x % 32; // 0..31
-  let fy = y;        // 0..47
+  const row = Math.floor(y / frameHeight); // 0: Side, 1: Back, 2: Front
+  const frame = Math.floor(x / frameWidth); // 0..3: Idle, Walk1, Pass, Walk2
+  const fx = x % frameWidth; // 0..47 (center at fx = 24)
+  let fy = y % frameHeight; // 0..63 (feet at fy = 63)
 
-  // Slight 1px vertical bob on passing frame (frame 2) for authentic bouncy SCUMM walk cycle
-  if (frame === 2 && fy >= 2) {
+  // Subtle 1px vertical bob on passing frame (frame 2) for authentic bouncy SCUMM walk cycle
+  if (frame === 2 && fy >= 4) {
     fy = fy + 1;
   }
 
-  // -----------------------------------------------------------------
-  // HAIR: Blonde / Golden with ponytail (Guybrush signature)
-  // y in 3..14, x in 10..22
-  // -----------------------------------------------------------------
-  // Ponytail tied behind (x: 8..11, y: 8..15)
-  if (fx >= 8 && fx <= 11 && fy >= 8 && fy <= 15) {
-    if (fy >= 9 && fy <= 10 && fx === 11) return [40, 20, 20, 255]; // Ponytail band
-    return (fy % 2 === 0) ? [235, 195, 65, 255] : [195, 150, 40, 255]; // Blonde hair
-  }
+  // Helper distance
+  const dist = (x1, y1, x2, y2) => Math.hypot(x1 - x2, y1 - y2);
 
-  // Top hair volume & bangs (y: 3..8, x: 11..22)
-  if (fy >= 3 && fy <= 8 && fx >= 11 && fx <= 22) {
-    if (fy === 3 && (fx < 13 || fx > 20)) return [0, 0, 0, 0]; // Rounded top
-    // Blonde highlight
-    if (fy <= 5 && fx >= 14 && fx <= 19) return [255, 225, 95, 255]; // Bright blonde
-    return [220, 180, 50, 255]; // Golden blonde
-  }
+  // =================================================================
+  // ROW 0: SIDE VIEW (Facing Right)
+  // =================================================================
+  if (row === 0) {
+    // ---------------------------------------------------------------
+    // 1. BIG HEAD & HAIR (y in 4..32, x in 12..38) - Maniac Mansion / Zak Proportion
+    // ---------------------------------------------------------------
+    // Top & Back Hair Volume (fx: 12..34, fy: 4..16)
+    const isTopHair = (fy >= 4 && fy <= 13 && fx >= 14 && fx <= 34);
+    const isBackHair = (fy >= 10 && fy <= 26 && fx >= 12 && fx <= 18);
+    const isSideburn = (fy >= 17 && fy <= 23 && fx >= 18 && fx <= 21);
 
-  // Back hair & sideburns (y: 9..14, x: 10..13)
-  if (fy >= 9 && fy <= 14 && fx >= 10 && fx <= 13) {
-    return [180, 140, 35, 255];
-  }
-
-  // -----------------------------------------------------------------
-  // FACE & SKIN (y in 8..16, x in 13..22)
-  // -----------------------------------------------------------------
-  if (fy >= 8 && fy <= 16 && fx >= 13 && fx <= 22) {
-    // Expressive Eye (y=11, fx=18..19)
-    if (fy === 11 && fx === 19) return [20, 20, 20, 255]; // Dark pupil
-    if (fy === 11 && fx === 18) return [255, 255, 255, 255]; // White eye catchlight
-    // Eyebrow (y=10, fx=18..20)
-    if (fy === 10 && fx >= 18 && fx <= 20) return [140, 100, 30, 255]; // Blonde eyebrow
-
-    // Pirate Smirk / Mouth (y=14, fx=18..19)
-    if (fy === 14 && (fx === 18 || fx === 19)) return [180, 85, 75, 255];
-
-    // Nose bridge (y=12, fx=21)
-    if (fy === 12 && fx === 21) return [240, 175, 140, 255];
-
-    // Peach Skin Tone with shading
-    if (fx <= 14 || fy === 16) return [235, 180, 145, 255]; // Shadow
-    return [255, 212, 178, 255]; // Warm skin highlight
-  }
-
-  // -----------------------------------------------------------------
-  // RUFFLED PIRATE SHIRT & ROYAL BLUE VEST (y in 17..30, x in 8..24)
-  // -----------------------------------------------------------------
-  if (fy >= 17 && fy <= 30 && fx >= 8 && fx <= 24) {
-    // Open Vest & Puffy White Shirt Layout:
-    // Center chest: White linen pirate shirt (fx in 14..18)
-    // Left/Right: Royal blue / dark navy vest (fx in 10..13 and fx in 19..22)
-
-    // Center Ruffled Pirate Shirt
-    const isShirtChest = (fx >= 14 && fx <= 18 && fy <= 28);
-    if (isShirtChest) {
-      if (fy === 17 || fy === 18) return [255, 255, 255, 255]; // Ruffled collar
-      const shirtFold = (fy % 3 === 0);
-      return shirtFold ? [225, 222, 215, 255] : [250, 248, 242, 255]; // Pure linen white
+    if (isTopHair || isBackHair || isSideburn) {
+      if (fy === 4 && (fx < 18 || fx > 30)) return [0, 0, 0, 0]; // Rounded top
+      if (fy <= 7 && fx >= 20 && fx <= 28) return [75, 45, 30, 255]; // Hair highlight (Classic brown)
+      return [42, 24, 16, 255]; // Rich dark brown hair
     }
 
-    // Arm animation per frame (Puffy white sleeves)
-    if (frame === 1) {
-      // Walk 1: Left arm forward (fx > 20), Right arm back (fx < 11)
-      if (fx >= 20 && fy >= 19 && fy <= 27) return [245, 240, 235, 255]; // Front puffy sleeve
-      if (fx <= 11 && fy >= 19 && fy <= 26) return [210, 205, 195, 255]; // Back sleeve shadow
-      // Hands
-      if (fx >= 21 && fy >= 28 && fy <= 29) return [255, 212, 178, 255];
-    } else if (frame === 3) {
-      // Walk 2: Right arm forward (fx < 12), Left arm back (fx > 19)
-      if (fx <= 12 && fy >= 19 && fy <= 27) return [245, 240, 235, 255]; // Front sleeve
-      if (fx >= 20 && fy >= 19 && fy <= 26) return [210, 205, 195, 255]; // Back sleeve
-      // Hands
-      if (fx <= 11 && fy >= 28 && fy <= 29) return [255, 212, 178, 255];
-    } else {
-      // Stand / Passing arms at sides
-      if ((fx === 9 || fx === 23) && fy >= 20 && fy <= 27) return [240, 235, 230, 255];
-      // Hands
-      if ((fx === 9 || fx === 23) && fy >= 28 && fy <= 29) return [255, 212, 178, 255];
+    // Ear (Side view: fx: 18..21, fy: 18..22)
+    if (fx >= 18 && fx <= 21 && fy >= 18 && fy <= 22) {
+      if (fx === 20 && fy === 20) return [215, 145, 115, 255]; // Ear inner shadow
+      return [255, 205, 170, 255]; // Ear lobe
     }
 
-    // Vest Body (Royal Blue with gold trim buttons)
-    if (fx >= 10 && fx <= 22) {
-      // Gold button / trim along vest edge
-      if ((fx === 13 || fx === 19) && (fy === 21 || fy === 25)) {
-        return [235, 195, 50, 255]; // Gold button
+    // Face / Skin area (fx: 18..36, fy: 12..31)
+    const isFace = (fy >= 12 && fy <= 31 && fx >= 18 && fx <= 36);
+    if (isFace) {
+      // Rounded jaw/chin boundary
+      if (fy >= 28 && fx < 22) return [0, 0, 0, 0];
+      if (fy >= 30 && (fx < 24 || fx > 32)) return [0, 0, 0, 0];
+
+      // Large Expressive Maniac Mansion / Zak Eye (fx: 27..32, fy: 14..18)
+      // Eyebrow (fy: 13..14, fx: 26..33)
+      if (fy <= 14 && fx >= 26 && fx <= 33) return [30, 18, 12, 255]; // Thick expressive eyebrow
+
+      if (fy >= 15 && fy <= 18 && fx >= 27 && fx <= 32) {
+        if (fx >= 30 && fx <= 31 && fy >= 16 && fy <= 17) return [15, 15, 20, 255]; // Pupil
+        if (fx === 30 && fy === 15) return [255, 255, 255, 255]; // Eye catchlight
+        return [245, 245, 248, 255]; // Large white sclera
       }
-      // Vest shading
-      if (fx <= 11 || fx >= 21) return [20, 45, 85, 255]; // Dark blue shadow
-      return [35, 75, 140, 255]; // Classic Lucasfilm Royal Blue vest
+
+      // Iconic Prominent Nose (fx: 33..37, fy: 19..22)
+      if (fy >= 19 && fy <= 22 && fx >= 33 && fx <= 37) {
+        if (fy === 22 && fx >= 35) return [220, 150, 120, 255]; // Nose bottom shadow
+        return [255, 208, 175, 255]; // Nose tip
+      }
+
+      // Mouth / Smile (fx: 28..33, fy: 24..26)
+      if (fy >= 24 && fy <= 26 && fx >= 28 && fx <= 33) {
+        if (fy === 25 && fx >= 29 && fx <= 32) return [150, 50, 45, 255]; // Smile line
+        if (fy === 24 && fx >= 29 && fx <= 31) return [255, 255, 255, 255]; // Teeth grin
+      }
+
+      // Shading / Skin Tone
+      if (fx <= 22 || fy >= 29) return [230, 175, 140, 255]; // Jaw/neck shadow
+      return [255, 212, 180, 255]; // Main warm peach skin
     }
+
+    // ---------------------------------------------------------------
+    // 2. TORSO & CLOTHING (fy in 32..47, fx in 14..34)
+    // ---------------------------------------------------------------
+    if (fy >= 32 && fy <= 47 && fx >= 14 && fx <= 34) {
+      // White Collar / Neckline (fy: 32..34, fx: 22..28)
+      if (fy <= 34 && fx >= 22 && fx <= 28) {
+        return [250, 250, 255, 255]; // Clean white collar
+      }
+
+      // Tie / Center Placket (fy: 34..42, fx: 25..27)
+      if (fy >= 34 && fy <= 42 && fx >= 25 && fx <= 27) {
+        return (fy % 2 === 0) ? [195, 30, 35, 255] : [155, 20, 25, 255]; // Crimson red tie
+      }
+
+      // Arms & Swing animation
+      if (frame === 1) {
+        // Walk 1: Front arm swinging forward (fx: 29..34, fy: 35..45)
+        if (fx >= 29 && fx <= 34 && fy >= 35 && fy <= 45) {
+          if (fy >= 43) return [255, 212, 180, 255]; // Hand
+          return [30, 65, 120, 255]; // Front blue sleeve
+        }
+        // Back arm swinging backward (fx: 14..18, fy: 35..44)
+        if (fx >= 14 && fx <= 18 && fy >= 35 && fy <= 44) {
+          if (fy >= 42) return [225, 175, 140, 255]; // Hand shadow
+          return [18, 40, 80, 255]; // Back sleeve shadow
+        }
+      } else if (frame === 3) {
+        // Walk 2: Front arm swinging backward (fx: 15..20, fy: 35..45)
+        if (fx >= 15 && fx <= 20 && fy >= 35 && fy <= 45) {
+          if (fy >= 43) return [255, 212, 180, 255]; // Hand
+          return [30, 65, 120, 255];
+        }
+        // Back arm swinging forward (fx: 28..33, fy: 35..44)
+        if (fx >= 28 && fx <= 33 && fy >= 35 && fy <= 44) {
+          if (fy >= 42) return [225, 175, 140, 255];
+          return [18, 40, 80, 255];
+        }
+      } else {
+        // Stand / Passing arms at sides
+        if ((fx <= 17 || fx >= 31) && fy >= 35 && fy <= 45) {
+          if (fy >= 43) return [255, 212, 180, 255]; // Hand
+          return (fx >= 31) ? [30, 65, 120, 255] : [18, 40, 80, 255];
+        }
+      }
+
+      // Torso Vest / Jacket Body (Royal Blue)
+      if (fx >= 18 && fx <= 30) {
+        if (fx <= 19 || fx >= 29) return [20, 45, 85, 255]; // Jacket shadow
+        return [35, 75, 140, 255]; // Classic Royal Blue Jacket
+      }
+    }
+
+    // ---------------------------------------------------------------
+    // 3. BELT & WAIST (fy in 47..49, fx in 18..30)
+    // ---------------------------------------------------------------
+    if (fy >= 47 && fy <= 49 && fx >= 18 && fx <= 30) {
+      if (fx >= 25 && fx <= 28 && fy === 48) return [255, 215, 0, 255]; // Gold buckle
+      return [35, 20, 15, 255]; // Dark leather belt
+    }
+
+    // ---------------------------------------------------------------
+    // 4. PANTS / LEGS (fy in 50..57)
+    // ---------------------------------------------------------------
+    if (fy >= 50 && fy <= 57) {
+      if (frame === 0 || frame === 2) {
+        // Standing legs
+        if (fx >= 18 && fx <= 30 && fx !== 24) {
+          return (fx <= 20 || fx >= 28) ? [30, 36, 48, 255] : [45, 55, 72, 255]; // Slate pants
+        }
+      } else if (frame === 1) {
+        // Walk 1: Front leg forward (fx: 23..32), Back leg back (fx: 16..22)
+        if (fx >= 23 && fx <= 32 && (fy - 50) <= (fx - 22) * 1.2) return [48, 58, 76, 255];
+        if (fx >= 16 && fx <= 22 && (fy - 50) <= (23 - fx) * 1.2) return [28, 34, 45, 255];
+      } else if (frame === 3) {
+        // Walk 2: Back leg forward (fx: 24..33), Front leg back (fx: 15..21)
+        if (fx >= 24 && fx <= 33 && (fy - 50) <= (fx - 23) * 1.2) return [48, 58, 76, 255];
+        if (fx >= 15 && fx <= 21 && (fy - 50) <= (22 - fx) * 1.2) return [28, 34, 45, 255];
+      }
+    }
+
+    // ---------------------------------------------------------------
+    // 5. SHOES (fy in 58..63)
+    // ---------------------------------------------------------------
+    if (fy >= 58 && fy <= 63) {
+      if (frame === 0 || frame === 2) {
+        if (fx >= 17 && fx <= 31 && fx !== 24) {
+          if (fy === 63) return [20, 12, 8, 255]; // Sole
+          return [75, 45, 25, 255]; // Brown shoes
+        }
+      } else if (frame === 1) {
+        if (fx >= 25 && fx <= 35) return (fy === 63) ? [20, 12, 8, 255] : [80, 48, 28, 255];
+        if (fx >= 13 && fx <= 20) return (fy === 63) ? [20, 12, 8, 255] : [55, 32, 18, 255];
+      } else if (frame === 3) {
+        if (fx >= 26 && fx <= 36) return (fy === 63) ? [20, 12, 8, 255] : [80, 48, 28, 255];
+        if (fx >= 12 && fx <= 19) return (fy === 63) ? [20, 12, 8, 255] : [55, 32, 18, 255];
+      }
+    }
+
+    return [0, 0, 0, 0];
   }
 
-  // -----------------------------------------------------------------
-  // PIRATE SASH & BELT (y in 29..32, x in 10..22)
-  // -----------------------------------------------------------------
-  if (fy >= 29 && fy <= 32 && fx >= 10 && fx <= 22) {
-    // Golden Belt Buckle (center: fx in 15..17, fy in 30..31)
-    if (fx >= 15 && fx <= 17 && fy >= 30 && fy <= 31) {
-      return [255, 215, 0, 255]; // Bright Gold buckle
-    }
-    // Crimson Pirate Sash
-    const sashFold = (fx % 2 === 0);
-    return sashFold ? [220, 35, 35, 255] : [175, 20, 20, 255]; // Red pirate sash
-  }
+  // =================================================================
+  // ROW 1: BACK VIEW (Facing Up / Towards Back Wall - Rückenansicht)
+  // =================================================================
+  if (row === 1) {
+    // ---------------------------------------------------------------
+    // 1. BIG HEAD FROM BEHIND (y in 4..32, x in 12..36)
+    // ---------------------------------------------------------------
+    const isHeadBack = (fy >= 4 && fy <= 31 && fx >= 13 && fx <= 35);
+    if (isHeadBack) {
+      // Rounded top and bottom head shape
+      if (fy === 4 && (fx < 18 || fx > 30)) return [0, 0, 0, 0];
+      if (fy === 5 && (fx < 16 || fx > 32)) return [0, 0, 0, 0];
+      if (fy >= 30 && (fx < 18 || fx > 30)) return [0, 0, 0, 0];
 
-  // -----------------------------------------------------------------
-  // PANTS / BREECHES (y in 33..40)
-  // -----------------------------------------------------------------
-  if (fy >= 33 && fy <= 40) {
-    if (frame === 0 || frame === 2) {
-      // Standing legs
-      if (fx >= 12 && fx <= 20 && fx !== 16) {
-        return (fx === 12 || fx === 20) ? [25, 30, 42, 255] : [38, 48, 65, 255]; // Navy breeches
+      // Ears on left and right sides (fx: 12..14 and fx: 34..36, fy: 18..23)
+      if ((fx <= 14 || fx >= 34) && fy >= 18 && fy <= 23) {
+        return [235, 180, 145, 255]; // Back of ear lobes
       }
-    } else if (frame === 1) {
-      // Walk 1: Left leg forward (fx: 16..22), Right leg back (fx: 10..15)
-      const legFwd = (fx >= 15 && fx <= 22 && (fy - 33) * 0.8 <= (fx - 14));
-      const legBwd = (fx >= 10 && fx <= 15 && (fy - 33) * 0.8 <= (16 - fx));
-      if (legFwd || legBwd) {
-        return (legBwd) ? [25, 30, 42, 255] : [42, 52, 70, 255];
-      }
-    } else if (frame === 3) {
-      // Walk 2: Right leg forward (fx: 16..23), Left leg back (fx: 9..14)
-      const legFwd = (fx >= 16 && fx <= 23 && (fy - 33) * 0.8 <= (fx - 15));
-      const legBwd = (fx >= 9 && fx <= 14 && (fy - 33) * 0.8 <= (15 - fx));
-      if (legFwd || legBwd) {
-        return (legBwd) ? [25, 30, 42, 255] : [42, 52, 70, 255];
-      }
-    }
-  }
 
-  // -----------------------------------------------------------------
-  // TALL PIRATE LEATHER BOOTS WITH CUFFS (y in 41..47)
-  // -----------------------------------------------------------------
-  if (fy >= 41 && fy <= 47) {
-    if (frame === 0 || frame === 2) {
-      // Standing boots
-      if (fx >= 11 && fx <= 21 && fx !== 16) {
-        if (fy === 41 || fy === 42) return [110, 68, 35, 255]; // Turned-down leather boot cuff
-        if (fy >= 46) return [30, 18, 10, 255]; // Sole / Heel
-        return [70, 42, 22, 255]; // Dark leather boot
+      // Neck nape (fy: 28..31, fx: 20..28)
+      if (fy >= 28 && fx >= 20 && fx <= 28) {
+        return [225, 170, 135, 255]; // Skin nape
       }
-    } else if (frame === 1) {
-      // Walk 1 Stride Boots
-      const bootFwd = (fx >= 17 && fx <= 24);
-      const bootBwd = (fx >= 8 && fx <= 13);
-      if (bootFwd || bootBwd) {
-        if (fy <= 42) return [110, 68, 35, 255]; // Boot cuff
-        if (fy >= 46) return [30, 18, 10, 255]; // Boot sole
-        return bootBwd ? [50, 30, 15, 255] : [75, 45, 24, 255];
-      }
-    } else if (frame === 3) {
-      // Walk 2 Stride Boots
-      const bootFwd = (fx >= 18 && fx <= 25);
-      const bootBwd = (fx >= 7 && fx <= 12);
-      if (bootFwd || bootBwd) {
-        if (fy <= 42) return [110, 68, 35, 255]; // Boot cuff
-        if (fy >= 46) return [30, 18, 10, 255]; // Boot sole
-        return bootBwd ? [50, 30, 15, 255] : [75, 45, 24, 255];
+
+      // Full Volume of Textured Hair from Behind
+      if (fy <= 28) {
+        // Hair highlights on top crown (fy: 6..10, fx: 20..28)
+        if (fy >= 6 && fy <= 10 && fx >= 20 && fx <= 28) {
+          return [75, 45, 30, 255]; // Hair highlight
+        }
+        // Hair strands texture
+        if ((fx % 4 === 0) && fy >= 12 && fy <= 26) {
+          return [35, 20, 14, 255]; // Dark strand seam
+        }
+        return [42, 24, 16, 255]; // Dark brown hair
       }
     }
+
+    // ---------------------------------------------------------------
+    // 2. TORSO FROM BEHIND (fy in 32..47, fx in 14..34)
+    // ---------------------------------------------------------------
+    if (fy >= 32 && fy <= 47 && fx >= 14 && fx <= 34) {
+      // White Shirt Collar from behind (fy: 32..34, fx: 20..28)
+      if (fy <= 34 && fx >= 20 && fx <= 28) {
+        return [245, 245, 250, 255];
+      }
+
+      // Arm swing in walk cycle
+      if (frame === 1) {
+        // Left arm forward (fx: 12..16, fy: 35..44)
+        if (fx >= 12 && fx <= 16 && fy >= 35 && fy <= 44) {
+          if (fy >= 42) return [235, 180, 145, 255];
+          return [30, 65, 120, 255];
+        }
+        // Right arm back (fx: 32..36, fy: 35..44)
+        if (fx >= 32 && fx <= 36 && fy >= 35 && fy <= 44) {
+          if (fy >= 42) return [235, 180, 145, 255];
+          return [20, 45, 85, 255];
+        }
+      } else if (frame === 3) {
+        // Right arm forward (fx: 32..36, fy: 35..44)
+        if (fx >= 32 && fx <= 36 && fy >= 35 && fy <= 44) {
+          if (fy >= 42) return [235, 180, 145, 255];
+          return [30, 65, 120, 255];
+        }
+        // Left arm back (fx: 12..16, fy: 35..44)
+        if (fx >= 12 && fx <= 16 && fy >= 35 && fy <= 44) {
+          if (fy >= 42) return [235, 180, 145, 255];
+          return [20, 45, 85, 255];
+        }
+      } else {
+        // Standing arms at sides
+        if ((fx <= 16 || fx >= 32) && fy >= 35 && fy <= 44) {
+          if (fy >= 42) return [235, 180, 145, 255];
+          return [25, 55, 100, 255];
+        }
+      }
+
+      // Back of Jacket (Royal Blue with center back seam)
+      if (fx >= 16 && fx <= 32) {
+        if (fx === 24) return [22, 48, 90, 255]; // Center back seam
+        if (fx <= 17 || fx >= 31) return [20, 45, 85, 255]; // Side shadows
+        return [35, 75, 140, 255]; // Royal Blue jacket back
+      }
+    }
+
+    // ---------------------------------------------------------------
+    // 3. BELT (BACK) (fy in 47..49, fx in 17..31)
+    // ---------------------------------------------------------------
+    if (fy >= 47 && fy <= 49 && fx >= 17 && fx <= 31) {
+      return [35, 20, 15, 255]; // Leather belt
+    }
+
+    // ---------------------------------------------------------------
+    // 4. PANTS / LEGS (BACK) (fy in 50..57)
+    // ---------------------------------------------------------------
+    if (fy >= 50 && fy <= 57) {
+      if (frame === 0 || frame === 2) {
+        // Standing legs from behind
+        if (fx >= 17 && fx <= 31 && fx !== 24) {
+          return (fx === 17 || fx === 31) ? [28, 34, 45, 255] : [45, 55, 72, 255];
+        }
+      } else if (frame === 1) {
+        // Walk 1: Left leg step forward (higher), Right leg push (lower)
+        if (fx >= 16 && fx <= 23 && (fy <= 55)) return [48, 58, 76, 255];
+        if (fx >= 25 && fx <= 32) return [38, 48, 65, 255];
+      } else if (frame === 3) {
+        // Walk 2: Right leg step forward, Left leg push
+        if (fx >= 25 && fx <= 32 && (fy <= 55)) return [48, 58, 76, 255];
+        if (fx >= 16 && fx <= 23) return [38, 48, 65, 255];
+      }
+    }
+
+    // ---------------------------------------------------------------
+    // 5. SHOES / HEELS FROM BEHIND (fy in 58..63)
+    // ---------------------------------------------------------------
+    if (fy >= 58 && fy <= 63) {
+      if (frame === 0 || frame === 2) {
+        if (fx >= 17 && fx <= 31 && fx !== 24) {
+          if (fy === 63) return [20, 12, 8, 255]; // Shoe heel bottom
+          return [70, 42, 24, 255]; // Back of brown leather shoe
+        }
+      } else if (frame === 1) {
+        if (fx >= 16 && fx <= 23 && fy >= 58 && fy <= 61) return [75, 45, 26, 255];
+        if (fx >= 25 && fx <= 32) return (fy === 63) ? [20, 12, 8, 255] : [65, 38, 22, 255];
+      } else if (frame === 3) {
+        if (fx >= 25 && fx <= 32 && fy >= 58 && fy <= 61) return [75, 45, 26, 255];
+        if (fx >= 16 && fx <= 23) return (fy === 63) ? [20, 12, 8, 255] : [65, 38, 22, 255];
+      }
+    }
+
+    return [0, 0, 0, 0];
   }
 
-  return [0, 0, 0, 0]; // Transparent
+  // =================================================================
+  // ROW 2: FRONT VIEW (Facing Down / Towards Camera)
+  // =================================================================
+  if (row === 2) {
+    // ---------------------------------------------------------------
+    // 1. BIG HEAD FROM FRONT (y in 4..32, x in 12..36)
+    // ---------------------------------------------------------------
+    const isHeadFront = (fy >= 4 && fy <= 31 && fx >= 12 && fx <= 36);
+    if (isHeadFront) {
+      // Rounded top head and chin shape
+      if (fy === 4 && (fx < 18 || fx > 30)) return [0, 0, 0, 0];
+      if (fy === 5 && (fx < 16 || fx > 32)) return [0, 0, 0, 0];
+      if (fy >= 30 && (fx < 18 || fx > 30)) return [0, 0, 0, 0];
+
+      // Hair volume on top and sides (fy: 4..14)
+      if (fy <= 12 && fx >= 14 && fx <= 34) {
+        if (fy <= 8 && fx >= 20 && fx <= 28) return [75, 45, 30, 255]; // Hair highlight
+        return [42, 24, 16, 255]; // Dark brown hair
+      }
+      // Side hair covering temples (fx: 13..16 or fx: 32..35, fy: 13..18)
+      if ((fx <= 16 || fx >= 32) && fy >= 13 && fy <= 18) {
+        return [42, 24, 16, 255];
+      }
+
+      // Ears on sides (fx: 12..14 and fx: 34..36, fy: 18..23)
+      if ((fx <= 14 || fx >= 34) && fy >= 18 && fy <= 23) {
+        return [245, 195, 160, 255];
+      }
+
+      // Two Large Expressive Eyes (Left: fx in 18..22, Right: fx in 26..30, fy in 15..18)
+      // Eyebrows (fy: 13..14, Left: fx 17..23, Right: fx 25..31)
+      if (fy <= 14 && ((fx >= 17 && fx <= 23) || (fx >= 25 && fx <= 31))) {
+        return [30, 18, 12, 255]; // Thick eyebrows
+      }
+
+      // Left Eye
+      if (fy >= 15 && fy <= 18 && fx >= 18 && fx <= 22) {
+        if (fx === 20 && fy >= 16 && fy <= 17) return [15, 15, 20, 255]; // Pupil
+        if (fx === 20 && fy === 15) return [255, 255, 255, 255]; // Catchlight
+        return [245, 245, 248, 255]; // White sclera
+      }
+
+      // Right Eye
+      if (fy >= 15 && fy <= 18 && fx >= 26 && fx <= 30) {
+        if (fx === 28 && fy >= 16 && fy <= 17) return [15, 15, 20, 255]; // Pupil
+        if (fx === 28 && fy === 15) return [255, 255, 255, 255]; // Catchlight
+        return [245, 245, 248, 255]; // White sclera
+      }
+
+      // Nose in center (fx: 23..25, fy: 19..22)
+      if (fy >= 19 && fy <= 22 && fx >= 23 && fx <= 25) {
+        if (fy === 22) return [220, 150, 120, 255]; // Nose bottom shadow
+        return [255, 205, 170, 255]; // Nose bridge
+      }
+
+      // Mouth / Big Smile (fx: 20..28, fy: 24..26)
+      if (fy >= 24 && fy <= 26 && fx >= 20 && fx <= 28) {
+        if (fy === 25 && fx >= 21 && fx <= 27) return [150, 50, 45, 255]; // Smile line
+        if (fy === 24 && fx >= 22 && fx <= 26) return [255, 255, 255, 255]; // Teeth
+      }
+
+      // Peach Skin tone
+      if (fx <= 17 || fx >= 31 || fy >= 29) return [230, 175, 140, 255]; // Shadow
+      return [255, 212, 180, 255]; // Main skin
+    }
+
+    // ---------------------------------------------------------------
+    // 2. TORSO FROM FRONT (fy in 32..47, fx in 14..34)
+    // ---------------------------------------------------------------
+    if (fy >= 32 && fy <= 47 && fx >= 14 && fx <= 34) {
+      // White Collar (fy: 32..34, fx: 21..27)
+      if (fy <= 34 && fx >= 21 && fx <= 27) {
+        return [250, 250, 255, 255];
+      }
+
+      // Red Tie (fy: 34..42, fx: 23..25)
+      if (fy >= 34 && fy <= 42 && fx >= 23 && fx <= 25) {
+        return (fy % 2 === 0) ? [195, 30, 35, 255] : [155, 20, 25, 255];
+      }
+
+      // Arms swinging in walk cycle
+      if (frame === 1) {
+        // Left arm forward (fx: 12..16, fy: 35..45)
+        if (fx >= 12 && fx <= 16 && fy >= 35 && fy <= 45) {
+          if (fy >= 43) return [255, 212, 180, 255]; // Hand
+          return [30, 65, 120, 255];
+        }
+        // Right arm back (fx: 32..36, fy: 35..45)
+        if (fx >= 32 && fx <= 36 && fy >= 35 && fy <= 45) {
+          if (fy >= 43) return [225, 175, 140, 255];
+          return [20, 45, 85, 255];
+        }
+      } else if (frame === 3) {
+        // Right arm forward (fx: 32..36, fy: 35..45)
+        if (fx >= 32 && fx <= 36 && fy >= 35 && fy <= 45) {
+          if (fy >= 43) return [255, 212, 180, 255];
+          return [30, 65, 120, 255];
+        }
+        // Left arm back (fx: 12..16, fy: 35..45)
+        if (fx >= 12 && fx <= 16 && fy >= 35 && fy <= 45) {
+          if (fy >= 43) return [225, 175, 140, 255];
+          return [20, 45, 85, 255];
+        }
+      } else {
+        // Standing arms
+        if ((fx <= 16 || fx >= 32) && fy >= 35 && fy <= 45) {
+          if (fy >= 43) return [255, 212, 180, 255];
+          return [30, 65, 120, 255];
+        }
+      }
+
+      // Open Jacket over White Shirt
+      if (fx >= 17 && fx <= 31) {
+        // Center white shirt placket (fx: 21..27)
+        if (fx >= 21 && fx <= 27 && fy >= 35 && fy <= 44) {
+          return [245, 245, 250, 255];
+        }
+        // Gold buttons on jacket lapels
+        if ((fx === 19 || fx === 29) && (fy === 37 || fy === 41)) {
+          return [255, 215, 0, 255];
+        }
+        if (fx <= 18 || fx >= 30) return [20, 45, 85, 255];
+        return [35, 75, 140, 255];
+      }
+    }
+
+    // ---------------------------------------------------------------
+    // 3. BELT & GOLD BUCKLE (fy in 47..49, fx in 17..31)
+    // ---------------------------------------------------------------
+    if (fy >= 47 && fy <= 49 && fx >= 17 && fx <= 31) {
+      if (fx >= 22 && fx <= 26 && fy === 48) return [255, 215, 0, 255]; // Center Gold Buckle
+      return [35, 20, 15, 255];
+    }
+
+    // ---------------------------------------------------------------
+    // 4. PANTS / LEGS (FRONT) (fy in 50..57)
+    // ---------------------------------------------------------------
+    if (fy >= 50 && fy <= 57) {
+      if (frame === 0 || frame === 2) {
+        if (fx >= 17 && fx <= 31 && fx !== 24) {
+          return (fx === 17 || fx === 31) ? [28, 34, 45, 255] : [45, 55, 72, 255];
+        }
+      } else if (frame === 1) {
+        if (fx >= 16 && fx <= 23) return [48, 58, 76, 255];
+        if (fx >= 25 && fx <= 32) return [38, 48, 65, 255];
+      } else if (frame === 3) {
+        if (fx >= 25 && fx <= 32) return [48, 58, 76, 255];
+        if (fx >= 16 && fx <= 23) return [38, 48, 65, 255];
+      }
+    }
+
+    // ---------------------------------------------------------------
+    // 5. SHOES (FRONT) (fy in 58..63)
+    // ---------------------------------------------------------------
+    if (fy >= 58 && fy <= 63) {
+      if (frame === 0 || frame === 2) {
+        if (fx >= 16 && fx <= 32 && fx !== 24) {
+          if (fy === 63) return [20, 12, 8, 255];
+          return [75, 45, 25, 255];
+        }
+      } else if (frame === 1) {
+        if (fx >= 15 && fx <= 23) return (fy === 63) ? [20, 12, 8, 255] : [80, 48, 28, 255];
+        if (fx >= 25 && fx <= 32) return (fy === 63) ? [20, 12, 8, 255] : [65, 38, 22, 255];
+      } else if (frame === 3) {
+        if (fx >= 25 && fx <= 33) return (fy === 63) ? [20, 12, 8, 255] : [80, 48, 28, 255];
+        if (fx >= 16 && fx <= 23) return (fy === 63) ? [20, 12, 8, 255] : [65, 38, 22, 255];
+      }
+    }
+
+    return [0, 0, 0, 0];
+  }
+
+  return [0, 0, 0, 0];
 });
 
 const targetDir = path.join('src', 'AdventureChat.Server', 'wwwroot', 'assets', 'images');

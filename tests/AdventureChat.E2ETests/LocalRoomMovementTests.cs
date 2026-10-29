@@ -219,4 +219,58 @@ public class LocalRoomMovementTests
 
         await context.DisposeAsync();
     }
+
+    [Test]
+    public async Task MovingUpAndDown_ChangesFacingToBackAndFrontView()
+    {
+        var context = await _browser.NewContextAsync(new BrowserNewContextOptions
+        {
+            ViewportSize = new ViewportSize { Width = 1280, Height = 720 }
+        });
+        var page = await context.NewPageAsync();
+
+        await page.GotoAsync(_server.BaseUrl);
+        await page.WaitForSelectorAsync("#game-canvas");
+
+        // 1. Walk straight up towards back wall (from spawn at 120, 300 to 120, 250)
+        await page.EvaluateAsync("() => window.__ADVENTURE_GAME__.setTarget({ x: 120, y: 250 })");
+
+        var facingUp = await page.EvaluateAsync<string>("() => window.__ADVENTURE_GAME__.character.facing");
+        var stateUp = await page.EvaluateAsync<string>("() => window.__ADVENTURE_GAME__.character.state");
+
+        Assert.That(facingUp, Is.EqualTo("up"));
+        Assert.That(stateUp, Is.EqualTo("walk"));
+
+        // Wait until reached back of the room
+        await page.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.character.state === 'idle'", null, new PageWaitForFunctionOptions
+        {
+            Timeout = 5000
+        });
+
+        var finalFacingAfterUp = await page.EvaluateAsync<string>("() => window.__ADVENTURE_GAME__.character.facing");
+        var finalYAfterUp = await page.EvaluateAsync<double>("() => window.__ADVENTURE_GAME__.character.position.y");
+
+        Assert.That(finalFacingAfterUp, Is.EqualTo("up"), "Character should remain facing up (back view / Rücken) when standing at back wall.");
+        Assert.That(finalYAfterUp, Is.EqualTo(250).Within(1.0));
+
+        // 2. Walk straight down towards front (from 120, 250 to 120, 330)
+        await page.EvaluateAsync("() => window.__ADVENTURE_GAME__.setTarget({ x: 120, y: 330 })");
+
+        var facingDown = await page.EvaluateAsync<string>("() => window.__ADVENTURE_GAME__.character.facing");
+        Assert.That(facingDown, Is.EqualTo("down"));
+
+        // Wait until reached front
+        await page.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.character.state === 'idle'", null, new PageWaitForFunctionOptions
+        {
+            Timeout = 5000
+        });
+
+        var finalFacingAfterDown = await page.EvaluateAsync<string>("() => window.__ADVENTURE_GAME__.character.facing");
+        var finalYAfterDown = await page.EvaluateAsync<double>("() => window.__ADVENTURE_GAME__.character.position.y");
+
+        Assert.That(finalFacingAfterDown, Is.EqualTo("down"));
+        Assert.That(finalYAfterDown, Is.EqualTo(330).Within(1.0));
+
+        await context.DisposeAsync();
+    }
 }

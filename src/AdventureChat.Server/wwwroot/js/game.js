@@ -77,11 +77,23 @@ export class AdventureGame {
     setTarget(target) {
         this.character.target = { x: target.x, y: target.y };
         this.character.state = 'walk';
-        if (target.x < this.character.position.x - 1) {
-            this.character.facing = 'left';
+        const dx = target.x - this.character.position.x;
+        const dy = target.y - this.character.position.y;
+        if (Math.abs(dx) >= Math.abs(dy)) {
+            if (dx < -1) {
+                this.character.facing = 'left';
+            }
+            else if (dx > 1) {
+                this.character.facing = 'right';
+            }
         }
-        else if (target.x > this.character.position.x + 1) {
-            this.character.facing = 'right';
+        else {
+            if (dy < -1) {
+                this.character.facing = 'up';
+            }
+            else if (dy > 1) {
+                this.character.facing = 'down';
+            }
         }
     }
     update(deltaSeconds) {

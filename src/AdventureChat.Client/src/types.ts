@@ -10,7 +10,7 @@ export interface Rect {
   readonly height: number;
 }
 
-export type FacingDirection = 'left' | 'right';
+export type FacingDirection = 'left' | 'right' | 'up' | 'down';
 export type CharacterState = 'idle' | 'walk';
 
 export interface Character {

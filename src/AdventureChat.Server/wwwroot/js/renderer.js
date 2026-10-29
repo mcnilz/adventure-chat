@@ -61,8 +61,8 @@ export class RoomRenderer {
     drawCharacter(character) {
         const { ctx } = this;
         const { position, facing, state, walkFrame, name } = character;
-        const frameWidth = 32;
-        const frameHeight = 48;
+        const frameWidth = 48;
+        const frameHeight = 64;
         const footX = Math.round(position.x);
         const footY = Math.round(position.y);
         // Frame calculation
@@ -71,21 +71,37 @@ export class RoomRenderer {
             // frames 0, 1, 2, 3 cycle
             frameIndex = walkFrame % 4;
         }
+        let sourceY = 0;
+        let flipX = false;
+        if (facing === 'up') {
+            sourceY = frameHeight; // Row 1: Back view (Rückenansicht)
+        }
+        else if (facing === 'down') {
+            sourceY = frameHeight * 2; // Row 2: Front view
+        }
+        else if (facing === 'left') {
+            sourceY = 0; // Row 0: Side view
+            flipX = true;
+        }
+        else {
+            sourceY = 0; // Row 0: Side view
+            flipX = false;
+        }
         ctx.save();
         if (this.spriteLoaded) {
-            if (facing === 'left') {
+            if (flipX) {
                 ctx.translate(footX, footY);
                 ctx.scale(-1, 1);
-                ctx.drawImage(this.characterSprite, frameIndex * frameWidth, 0, frameWidth, frameHeight, -frameWidth / 2, -frameHeight, frameWidth, frameHeight);
+                ctx.drawImage(this.characterSprite, frameIndex * frameWidth, sourceY, frameWidth, frameHeight, -frameWidth / 2, -frameHeight, frameWidth, frameHeight);
             }
             else {
-                ctx.drawImage(this.characterSprite, frameIndex * frameWidth, 0, frameWidth, frameHeight, footX - frameWidth / 2, footY - frameHeight, frameWidth, frameHeight);
+                ctx.drawImage(this.characterSprite, frameIndex * frameWidth, sourceY, frameWidth, frameHeight, footX - frameWidth / 2, footY - frameHeight, frameWidth, frameHeight);
             }
         }
         else {
             // Fallback rectangle if sprite is still loading
             ctx.fillStyle = '#3182ce';
-            ctx.fillRect(footX - 12, footY - 44, 24, 44);
+            ctx.fillRect(footX - 16, footY - 58, 32, 58);
         }
         ctx.restore();
         // Draw Name Tag
@@ -95,7 +111,7 @@ export class RoomRenderer {
         ctx.textBaseline = 'bottom';
         const textY = footY - frameHeight - 4;
         ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
-        ctx.fillRect(footX - 24, textY - 11, 48, 13);
+        ctx.fillRect(footX - 28, textY - 11, 56, 13);
         ctx.fillStyle = '#ffffff';
         ctx.fillText(name, footX, textY);
         ctx.restore();
