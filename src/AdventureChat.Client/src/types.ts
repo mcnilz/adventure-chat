@@ -3,11 +3,9 @@ export interface Point {
   readonly y: number;
 }
 
-export interface Rect {
-  readonly x: number;
-  readonly y: number;
-  readonly width: number;
-  readonly height: number;
+export interface RoomGeometry {
+  readonly outerBoundary: ReadonlyArray<Point>;
+  readonly obstacles: ReadonlyArray<ReadonlyArray<Point>>;
 }
 
 export type FacingDirection = 'left' | 'right' | 'up' | 'down';
@@ -18,6 +16,7 @@ export interface Character {
   name: string;
   position: Point;
   target: Point | null;
+  waypoints: Point[];
   state: CharacterState;
   facing: FacingDirection;
   speed: number; // logical pixels per second
@@ -31,6 +30,6 @@ export interface RoomDefinition {
   readonly width: number;
   readonly height: number;
   readonly backgroundUrl: string;
-  readonly walkableFloor: Rect;
+  readonly geometry: RoomGeometry;
   readonly spawnPoint: Point;
 }

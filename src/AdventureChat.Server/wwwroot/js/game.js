@@ -1,4 +1,4 @@
-import { isInsideRect, moveTowards } from './math.js';
+import { moveTowards } from './math.js';
 import { RoomRenderer } from './renderer.js';
 export const DEFAULT_ROOM = {
     id: 'lounge',
@@ -6,15 +6,26 @@ export const DEFAULT_ROOM = {
     width: 640,
     height: 360,
     backgroundUrl: 'assets/images/lounge.png',
-    walkableFloor: {
-        x: 40,
-        y: 245,
-        width: 560,
-        height: 100,
-    },
     spawnPoint: {
         x: 120,
         y: 300,
+    },
+    geometry: {
+        outerBoundary: [
+            { x: 40, y: 240 },
+            { x: 300, y: 220 },
+            { x: 600, y: 240 },
+            { x: 600, y: 345 },
+            { x: 40, y: 345 },
+        ],
+        obstacles: [
+            [
+                { x: 250, y: 255 },
+                { x: 390, y: 255 },
+                { x: 390, y: 310 },
+                { x: 250, y: 310 },
+            ],
+        ],
     },
 };
 export class AdventureGame {
@@ -25,6 +36,7 @@ export class AdventureGame {
     lastTimestamp = 0;
     isRunning = false;
     animationFrameId = null;
+    currentRequestId = 0;
     constructor(canvas, room = DEFAULT_ROOM) {
         this.canvas = canvas;
         this.room = room;
@@ -33,6 +45,7 @@ export class AdventureGame {
             name: 'Player',
             position: { ...this.room.spawnPoint },
             target: null,
+            waypoints: [],
             state: 'idle',
             facing: 'right',
             speed: 130, // logical pixels per second
@@ -66,19 +79,72 @@ export class AdventureGame {
             y: (clientY - rect.top) * scaleY,
         };
     }
-    handleCanvasClick(clientX, clientY) {
+    async handleCanvasClick(clientX, clientY) {
         const logical = this.screenToLogical(clientX, clientY);
-        if (isInsideRect(logical, this.room.walkableFloor)) {
-            this.setTarget(logical);
-            return { accepted: true, point: logical };
+        const result = await this.setTarget(logical);
+        if (result.waypoints) {
+            return { accepted: result.accepted, point: logical, waypoints: result.waypoints };
         }
-        return { accepted: false, point: logical };
+        return { accepted: result.accepted, point: logical };
     }
-    setTarget(target) {
-        this.character.target = { x: target.x, y: target.y };
+    async setTarget(target) {
+        const requestId = ++this.currentRequestId;
+        const startPos = { ...this.character.position };
+        try {
+            const response = await fetch(`/api/rooms/${this.room.id}/path`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    start: startPos,
+                    target: { x: target.x, y: target.y },
+                }),
+            });
+            if (!response.ok) {
+                const errData = await response.json().catch(() => ({}));
+                return { accepted: false, error: errData.error || 'Server rejected target' };
+            }
+            const data = await response.json();
+            if (!data.success || !Array.isArray(data.waypoints) || data.waypoints.length === 0) {
+                return { accepted: false, error: data.error || 'No path found' };
+            }
+            // Ignore stale request if a newer target was initiated
+            if (requestId !== this.currentRequestId) {
+                return { accepted: false, error: 'Superseded by newer target' };
+            }
+            const waypoints = data.waypoints;
+            this.applyPath(waypoints);
+            return { accepted: true, waypoints };
+        }
+        catch (e) {
+            return { accepted: false, error: String(e) };
+        }
+    }
+    applyPath(waypoints) {
+        if (waypoints.length <= 1) {
+            this.character.waypoints = [];
+            this.character.target = null;
+            this.character.state = 'idle';
+            return;
+        }
+        // Skip the first waypoint (current position) and queue remaining waypoints
+        this.character.waypoints = waypoints.slice(1);
+        this.moveToNextWaypoint();
+    }
+    moveToNextWaypoint() {
+        if (this.character.waypoints.length === 0) {
+            this.character.target = null;
+            this.character.state = 'idle';
+            this.character.walkFrame = 0;
+            this.character.frameTimer = 0;
+            return;
+        }
+        const nextTarget = this.character.waypoints.shift();
+        this.character.target = nextTarget;
         this.character.state = 'walk';
-        const dx = target.x - this.character.position.x;
-        const dy = target.y - this.character.position.y;
+        const dx = nextTarget.x - this.character.position.x;
+        const dy = nextTarget.y - this.character.position.y;
         if (Math.abs(dx) >= Math.abs(dy)) {
             if (dx < -1) {
                 this.character.facing = 'left';
@@ -99,20 +165,23 @@ export class AdventureGame {
     update(deltaSeconds) {
         if (deltaSeconds <= 0)
             return;
-        // Cap delta to prevent huge jumps on tab switch
         const dt = Math.min(deltaSeconds, 0.1);
         if (this.character.target && this.character.state === 'walk') {
             const maxDistance = this.character.speed * dt;
             const { position, reached } = moveTowards(this.character.position, this.character.target, maxDistance);
             this.character.position = position;
             if (reached) {
-                this.character.target = null;
-                this.character.state = 'idle';
-                this.character.walkFrame = 0;
-                this.character.frameTimer = 0;
+                if (this.character.waypoints.length > 0) {
+                    this.moveToNextWaypoint();
+                }
+                else {
+                    this.character.target = null;
+                    this.character.state = 'idle';
+                    this.character.walkFrame = 0;
+                    this.character.frameTimer = 0;
+                }
             }
             else {
-                // Update walking animation
                 this.character.frameTimer += dt;
                 if (this.character.frameTimer >= 0.12) {
                     this.character.frameTimer = 0;

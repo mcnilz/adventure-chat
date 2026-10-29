@@ -1,12 +1,52 @@
-import type { Point, Rect } from './types.js';
+import type { Point } from './types.js';
 
-export function isInsideRect(point: Point, rect: Rect): boolean {
-  return (
-    point.x >= rect.x &&
-    point.x <= rect.x + rect.width &&
-    point.y >= rect.y &&
-    point.y <= rect.y + rect.height
-  );
+export function isPointInPolygon(point: Point, polygon: ReadonlyArray<Point>): boolean {
+  if (!Number.isFinite(point.x) || !Number.isFinite(point.y) || polygon.length < 3) {
+    return false;
+  }
+
+  let inside = false;
+  const count = polygon.length;
+
+  for (let i = 0, j = count - 1; i < count; j = i++) {
+    const pi = polygon[i];
+    const pj = polygon[j];
+    if (!pi || !pj) {
+      continue;
+    }
+
+    const intersects =
+      pi.y > point.y !== pj.y > point.y &&
+      point.x < ((pj.x - pi.x) * (point.y - pi.y)) / (pj.y - pi.y + Number.EPSILON) + pi.x;
+
+    if (intersects) {
+      inside = !inside;
+    }
+  }
+
+  return inside;
+}
+
+export function isPointWalkable(
+  point: Point,
+  outerBoundary: ReadonlyArray<Point>,
+  obstacles: ReadonlyArray<ReadonlyArray<Point>>
+): boolean {
+  if (!Number.isFinite(point.x) || !Number.isFinite(point.y)) {
+    return false;
+  }
+
+  if (!isPointInPolygon(point, outerBoundary)) {
+    return false;
+  }
+
+  for (const obstacle of obstacles) {
+    if (isPointInPolygon(point, obstacle)) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 export function distance(a: Point, b: Point): number {

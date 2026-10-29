@@ -1,10 +1,6 @@
-var builder = WebApplication.CreateBuilder(args);
+using AdventureChat.Server;
 
-var app = builder.Build();
-
-app.UseDefaultFiles();
-app.UseStaticFiles();
-
+var app = AppFactory.CreateApp(args);
 app.Run();
 
 public partial class Program { }

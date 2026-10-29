@@ -115,8 +115,8 @@ public class LocalRoomMovementTests
         var intermediateX = await page.EvaluateAsync<double>("() => window.__ADVENTURE_GAME__.character.position.x");
         Assert.That(intermediateX, Is.GreaterThan(120));
 
-        // Second click: change mind, move left to (150, 270)
-        await page.EvaluateAsync("() => window.__ADVENTURE_GAME__.setTarget({ x: 150, y: 270 })");
+        // Second click: change mind, move left to (100, 300)
+        await page.EvaluateAsync("async () => await window.__ADVENTURE_GAME__.setTarget({ x: 100, y: 300 })");
 
         var facing = await page.EvaluateAsync<string>("() => window.__ADVENTURE_GAME__.character.facing");
         Assert.That(facing, Is.EqualTo("left"));
@@ -130,8 +130,8 @@ public class LocalRoomMovementTests
         var finalX = await page.EvaluateAsync<double>("() => window.__ADVENTURE_GAME__.character.position.x");
         var finalY = await page.EvaluateAsync<double>("() => window.__ADVENTURE_GAME__.character.position.y");
 
-        Assert.That(finalX, Is.EqualTo(150).Within(1.0));
-        Assert.That(finalY, Is.EqualTo(270).Within(1.0));
+        Assert.That(finalX, Is.EqualTo(100).Within(1.0));
+        Assert.That(finalY, Is.EqualTo(300).Within(1.0));
 
         await context.DisposeAsync();
     }
@@ -270,6 +270,90 @@ public class LocalRoomMovementTests
 
         Assert.That(finalFacingAfterDown, Is.EqualTo("down"));
         Assert.That(finalYAfterDown, Is.EqualTo(330).Within(1.0));
+
+        await context.DisposeAsync();
+    }
+
+    [Test]
+    public async Task Pathfinding_NavigatesAroundObstacle_AndNeverEntersObstacle()
+    {
+        var context = await _browser.NewContextAsync(new BrowserNewContextOptions
+        {
+            ViewportSize = new ViewportSize { Width = 1280, Height = 720 }
+        });
+        var page = await context.NewPageAsync();
+
+        await page.GotoAsync(_server.BaseUrl);
+        await page.WaitForSelectorAsync("#game-canvas");
+
+        // Target: behind obstacle at (500, 300)
+        await page.EvaluateAsync("() => window.__ADVENTURE_GAME__.setTarget({ x: 500, y: 300 })");
+
+        // While moving, collect sampled positions
+        var sampledPoints = new List<(double X, double Y)>();
+        for (int i = 0; i < 40; i++)
+        {
+            var isIdle = await page.EvaluateAsync<bool>("() => window.__ADVENTURE_GAME__.character.state === 'idle'");
+            var x = await page.EvaluateAsync<double>("() => window.__ADVENTURE_GAME__.character.position.x");
+            var y = await page.EvaluateAsync<double>("() => window.__ADVENTURE_GAME__.character.position.y");
+            sampledPoints.Add((x, y));
+
+            if (isIdle) break;
+            await page.WaitForTimeoutAsync(100);
+        }
+
+        // Final position check
+        var finalX = await page.EvaluateAsync<double>("() => window.__ADVENTURE_GAME__.character.position.x");
+        var finalY = await page.EvaluateAsync<double>("() => window.__ADVENTURE_GAME__.character.position.y");
+
+        Assert.That(finalX, Is.EqualTo(500).Within(1.0));
+        Assert.That(finalY, Is.EqualTo(300).Within(1.0));
+
+        // Obstacle rectangle is [250..390, 255..310]
+        // Verify that none of the sampled points ever fell strictly inside the obstacle!
+        foreach (var (x, y) in sampledPoints)
+        {
+            var isInsideObstacle = x > 252 && x < 388 && y > 257 && y < 308;
+            Assert.That(isInsideObstacle, Is.False, $"Footpoint ({x:F1}, {y:F1}) penetrated obstacle interior!");
+        }
+
+        await context.DisposeAsync();
+    }
+
+    [Test]
+    public async Task ClickInsideObstacle_IsRejected_AndCharacterDoesNotMove()
+    {
+        var context = await _browser.NewContextAsync(new BrowserNewContextOptions
+        {
+            ViewportSize = new ViewportSize { Width = 1280, Height = 720 }
+        });
+        var page = await context.NewPageAsync();
+
+        await page.GotoAsync(_server.BaseUrl);
+        await page.WaitForSelectorAsync("#game-canvas");
+
+        var startX = await page.EvaluateAsync<double>("() => window.__ADVENTURE_GAME__.character.position.x");
+        var startY = await page.EvaluateAsync<double>("() => window.__ADVENTURE_GAME__.character.position.y");
+
+        // Target: center of tavern table (320, 280)
+        var result = await page.EvaluateAsync<bool>("""
+            async () => {
+                const res = await window.__ADVENTURE_GAME__.setTarget({ x: 320, y: 280 });
+                return res.accepted;
+            }
+        """);
+
+        Assert.That(result, Is.False, "Click inside obstacle should be rejected by server.");
+
+        var posX = await page.EvaluateAsync<double>("() => window.__ADVENTURE_GAME__.character.position.x");
+        var posY = await page.EvaluateAsync<double>("() => window.__ADVENTURE_GAME__.character.position.y");
+        var state = await page.EvaluateAsync<string>("() => window.__ADVENTURE_GAME__.character.state");
+        var target = await page.EvaluateAsync<object?>("() => window.__ADVENTURE_GAME__.character.target");
+
+        Assert.That(posX, Is.EqualTo(startX).Within(0.1));
+        Assert.That(posY, Is.EqualTo(startY).Within(0.1));
+        Assert.That(state, Is.EqualTo("idle"));
+        Assert.That(target, Is.Null);
 
         await context.DisposeAsync();
     }

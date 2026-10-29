@@ -1,5 +1,5 @@
 # Aktueller Stand
-Revision 4 · 29.10.2026.
+Revision 5 · 29.10.2026.
 
 ## Vorhanden
 - [x] Gespräch in Spezifikation, Architektur, Autorenformat und Tickets überführt.
@@ -8,23 +8,22 @@ Revision 4 · 29.10.2026.
 - [x] Implementierung von Ticket 01 abgeschlossen und menschlich abgenommen (Status: `done`).
 - [x] Git LFS für Bild- und Binärdateien konfiguriert.
 - [x] SCUMM / Lucasfilm Grafikstil (Maniac Mansion / Zak McKracken Big-Head Proportionen 48x64, Rücken-/Front-/Seitenansicht, Tavernen-Hintergrund 640x360) umgesetzt.
-- [ ] Paketumfang und Testgrenzen für Ticket 02 bestätigt / gestartet.
+- [x] Paketumfang und Testgrenzen für Ticket 02 bestätigt.
+- [x] Ticket 02 vollständig umgesetzt und getestet (Status: `ready-for-human`).
 - [ ] Skills installiert oder im Zielprojekt geprüft.
 - [ ] Git-Repository und endgültiger Projektname festgelegt.
 - [ ] MVP abgenommen.
 
 ## Aktives Ticket
 - **Ticket:** `02-pathfinding.md` (Ein Hindernis mit servergeprüfter Bewegung umgehen)
-- **Status:** `ready-to-start`
-- **Letzter Stand:** Ticket 01 vollständig umgesetzt, abgenommen und im lokalen Git eingecheckt. Alle 6 Playwright-E2E-Tests laufen fehlerfrei durch.
-- **Ausgeführte Checks:** `tsc --noEmit` (0 Fehler), `dotnet build` (0 Warnungen/Fehler), `dotnet test` (6/6 Playwright-Tests erfolgreich).
+- **Status:** `ready-for-human`
+- **Letzter Stand:** Servervalidierte Wegfindung mit Visibility Graph + A* in C# implementiert, ASP.NET Core Endpunkte bereitgestellt, TypeScript-Client integriert und mit 15 Server-Unit-Tests sowie 8 Playwright-E2E-Tests vollständig abgesichert.
+- **Ausgeführte Checks:** `tsc --noEmit` (0 Fehler), `dotnet build` (0 Warnungen/Fehler), `dotnet test` (23/23 Tests erfolgreich: 15 ServerTests + 8 E2ETests).
 
 ## Nächste Aktion
-Ticket 02 (`02-pathfinding.md`) im neuen Kontext starten:
-1. Begehbare Raumgeometrie mit Hindernis definieren (z. B. Tavernentisch / Theke im begehbaren Bereich).
-2. Wegfindung implementieren (empfohlen: Visibility Graph mit euklidischem A* um Polygonecken).
-3. Servervalidierung / Pfadprüfung in ASP.NET Core einbinden (Vorbereitung für SignalR in Ticket 03).
-4. Automatisierte Tests erweitern (Unit-Tests für Pfadfindung + Playwright-E2E-Test für Hindernisumrundung und Klickablehnung).
+Menschliche Abnahme von Ticket 02 einholen. Nach Bestätigung:
+1. Status von `02-pathfinding.md` auf `done` setzen.
+2. Ticket 03 (`03-multiplayer.md` - SignalR Echtzeit-Multiplayer) vorschlagen und vorbereiten.
 
 ## Offene Annahmen
 Privater Testbetrieb, ca. zehn Personen, Desktop-Mausbedienung; keine kollidierenden Figuren; Reconnect als frischer Eintritt. Exakte Chatlimits, Schemaentwurf und Bibliotheksversionen vor betroffenen Paketen festlegen.
@@ -32,8 +31,7 @@ Privater Testbetrieb, ca. zehn Personen, Desktop-Mausbedienung; keine kollidiere
 ## Checks
 - `npm run typecheck` in `src/AdventureChat.Client`: 0 Fehler.
 - `dotnet build`: 0 Fehler, 0 Warnungen.
-- `dotnet test`: 6 Tests erfolgreich bestanden.
+- `dotnet test`: 23 Tests erfolgreich bestanden (15 ServerTests, 8 E2ETests).
 
 ## Übergabeformat für spätere Änderungen
 Aktives Ticket, letzter nachgewiesener Stand, ausgeführte Checks und Ergebnisse, konkrete Blocker, nächster Schritt sowie Referenz auf Benutzerabnahme hier knapp festhalten. Erledigte Detailhistorie gehört ins jeweilige Ticket.
-

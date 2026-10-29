@@ -4,5 +4,6 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/AdventureChat.E2ETests/AdventureChat.E2ETests.csproj" />
+    <Project Path="tests/AdventureChat.ServerTests/AdventureChat.ServerTests.csproj" />
   </Folder>
 </Solution>
