@@ -59,6 +59,11 @@ public record MoveResultDto(
     string? Error
 );
 
+public record RequestMoveDto(
+    PointDto? Start,
+    PointDto Target
+);
+
 public record PlayerMovedDto(
     string SessionId,
     PointDto Target,

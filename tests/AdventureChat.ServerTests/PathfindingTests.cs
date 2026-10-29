@@ -108,6 +108,33 @@ public class PathfindingTests
     }
 
     [Test]
+    public void PathAroundObstacle_MaintainsCornerSafetyClearance()
+    {
+        var start = new Point2D(120, 300);
+        var target = new Point2D(500, 300);
+
+        var result = _pathfinder.CalculatePath(_geometry, start, target);
+
+        Assert.That(result.Success, Is.True);
+        Assert.That(result.Waypoints, Is.Not.Null);
+
+        // Check each segment for clearance from obstacle corners
+        var obstacleVerts = _geometry.Obstacles[0].Vertices;
+        for (int i = 0; i < result.Waypoints!.Count - 1; i++)
+        {
+            var p1 = result.Waypoints[i];
+            var p2 = result.Waypoints[i + 1];
+
+            foreach (var corner in obstacleVerts)
+            {
+                var dist = RoomGeometry.DistanceToSegment(corner, p1, p2);
+                Assert.That(dist, Is.GreaterThanOrEqualTo(3.5),
+                    $"Path segment ({p1.X},{p1.Y})->({p2.X},{p2.Y}) must not cut closer than 3.5px to corner ({corner.X},{corner.Y}).");
+            }
+        }
+    }
+
+    [Test]
     public void SameInput_ProducesDeterministicResults()
     {
         var start = new Point2D(120, 300);

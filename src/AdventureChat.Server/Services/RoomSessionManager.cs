@@ -88,7 +88,7 @@ public partial class RoomSessionManager : IRoomSessionManager
             .ToList();
     }
 
-    public MoveResult RequestMove(string connectionId, Point2D target)
+    public MoveResult RequestMove(string connectionId, Point2D target, Point2D? currentPosition = null)
     {
         if (!_sessionsByConnection.TryGetValue(connectionId, out var session))
         {
@@ -106,7 +106,16 @@ public partial class RoomSessionManager : IRoomSessionManager
             return new MoveResult(false, "Target coordinates must be finite numbers.", null, null, null);
         }
 
-        var pathResult = _pathfinder.CalculatePath(room.Geometry, session.Position, target);
+        var start = session.Position;
+        if (currentPosition.HasValue && currentPosition.Value.IsFinite())
+        {
+            if (room.Geometry.IsWalkable(currentPosition.Value))
+            {
+                start = currentPosition.Value;
+            }
+        }
+
+        var pathResult = _pathfinder.CalculatePath(room.Geometry, start, target);
         if (!pathResult.Success)
         {
             return new MoveResult(false, pathResult.Error ?? "Path calculation failed.", null, null, null);
@@ -115,14 +124,15 @@ public partial class RoomSessionManager : IRoomSessionManager
         var waypoints = pathResult.Waypoints!;
         lock (_lock)
         {
+            session.Position = start;
             session.Target = target;
             session.Waypoints = waypoints.ToList();
             session.State = "walk";
             session.LastActivity = DateTime.UtcNow;
 
-            if (waypoints.Count > 0)
+            if (waypoints.Count > 1)
             {
-                var next = waypoints[0];
+                var next = waypoints[1];
                 var dx = next.X - session.Position.X;
                 var dy = next.Y - session.Position.Y;
                 if (Math.Abs(dx) > Math.Abs(dy))

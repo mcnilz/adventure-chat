@@ -80,3 +80,8 @@ export interface MoveResultDto {
   readonly success: boolean;
   readonly error: string | null;
 }
+
+export interface RequestMoveDto {
+  readonly start?: Point | null;
+  readonly target: Point;
+}

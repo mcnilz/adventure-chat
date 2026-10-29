@@ -121,6 +121,26 @@ public class RoomSessionManagerTests
     }
 
     [Test]
+    public void RequestMove_WithDynamicCurrentPosition_CalculatesPathFromProvidedPosition()
+    {
+        _manager.JoinRoom("conn-1", "lounge", "Guybrush");
+        // Intermediate position while walking
+        var intermediatePos = new Point2D(200, 300);
+        var target = new Point2D(500, 300);
+
+        var result = _manager.RequestMove("conn-1", target, intermediatePos);
+
+        Assert.That(result.Success, Is.True);
+        Assert.That(result.Waypoints, Is.Not.Null);
+        var waypoints = result.Waypoints!;
+        Assert.That(waypoints[0].X, Is.EqualTo(200));
+        Assert.That(waypoints[0].Y, Is.EqualTo(300));
+
+        var player = _manager.GetPlayer("conn-1");
+        Assert.That(player!.Position, Is.EqualTo(intermediatePos));
+    }
+
+    [Test]
     public void RequestMove_UnknownConnection_Fails()
     {
         var result = _manager.RequestMove("unknown-conn", new Point2D(500, 300));

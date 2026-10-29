@@ -267,8 +267,8 @@ export class AdventureGame {
     if (this.hubConnection && this.connectionStatus === 'connected') {
       try {
         const result: MoveResultDto = await this.hubConnection.invoke('RequestMove', {
-          x: target.x,
-          y: target.y,
+          start: { x: startPos.x, y: startPos.y },
+          target: { x: target.x, y: target.y },
         });
 
         if (result.success) {

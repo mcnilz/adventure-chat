@@ -29,7 +29,7 @@ public class RoomHub : Hub
         return new JoinRoomResultDto(true, null, result.Snapshot);
     }
 
-    public async Task<MoveResultDto> RequestMove(PointDto target)
+    public async Task<MoveResultDto> RequestMove(RequestMoveDto request)
     {
         var session = _sessionManager.GetPlayer(Context.ConnectionId);
         if (session is null)
@@ -37,7 +37,8 @@ public class RoomHub : Hub
             return new MoveResultDto(false, "Session not found. Please join room first.");
         }
 
-        var moveResult = _sessionManager.RequestMove(Context.ConnectionId, new Point2D(target.X, target.Y));
+        Point2D? start = request.Start is not null ? new Point2D(request.Start.X, request.Start.Y) : null;
+        var moveResult = _sessionManager.RequestMove(Context.ConnectionId, new Point2D(request.Target.X, request.Target.Y), start);
         if (!moveResult.Success || moveResult.Waypoints is null || moveResult.Target is null)
         {
             return new MoveResultDto(false, moveResult.Error ?? "Move request rejected.");

@@ -59,7 +59,8 @@ public sealed record Polygon(IReadOnlyList<Point2D> Vertices)
         if (count < 3) return Vertices;
 
         var result = new List<Point2D>(count);
-        var isClockwise = GetSignedArea() < 0;
+        // In screen coordinates (Y down), a clockwise polygon has a positive signed area
+        var isClockwise = GetSignedArea() > 0;
 
         for (int i = 0; i < count; i++)
         {
@@ -77,14 +78,12 @@ public sealed record Polygon(IReadOnlyList<Point2D> Vertices)
             var len2 = Math.Sqrt(v2x * v2x + v2y * v2y);
             if (len2 > 0) { v2x /= len2; v2y /= len2; }
 
-            // Normal vectors pointing outwards
-            // For counter-clockwise polygon: outward normal to (dx, dy) is (dy, -dx)
-            // For clockwise polygon: outward normal is (-dy, dx)
-            double n1x = isClockwise ? -v1y : v1y;
-            double n1y = isClockwise ? v1x : -v1x;
+            // Outward normal vectors
+            double n1x = isClockwise ? v1y : -v1y;
+            double n1y = isClockwise ? -v1x : v1x;
 
-            double n2x = isClockwise ? -v2y : v2y;
-            double n2y = isClockwise ? v2x : -v2x;
+            double n2x = isClockwise ? v2y : -v2y;
+            double n2y = isClockwise ? -v2x : v2x;
 
             var bisectorX = n1x + n2x;
             var bisectorY = n1y + n2y;
@@ -94,7 +93,12 @@ public sealed record Polygon(IReadOnlyList<Point2D> Vertices)
             {
                 bisectorX /= bisectorLen;
                 bisectorY /= bisectorLen;
-                result.Add(new Point2D(curr.X + bisectorX * offset, curr.Y + bisectorY * offset));
+
+                // Scale by 1 / cos(theta) to maintain exact perpendicular offset along both edges
+                var cosHalf = n1x * bisectorX + n1y * bisectorY;
+                var scale = offset / Math.Clamp(cosHalf, 0.5, 2.0);
+
+                result.Add(new Point2D(curr.X + bisectorX * scale, curr.Y + bisectorY * scale));
             }
             else
             {

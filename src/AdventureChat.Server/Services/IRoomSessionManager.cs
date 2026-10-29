@@ -11,6 +11,6 @@ public interface IRoomSessionManager
     PlayerSession? Leave(string connectionId);
     PlayerSession? GetPlayer(string connectionId);
     IReadOnlyList<PlayerSession> GetPlayersInRoom(string roomId);
-    MoveResult RequestMove(string connectionId, Point2D target);
+    MoveResult RequestMove(string connectionId, Point2D target, Point2D? currentPosition = null);
     void UpdatePlayerProgress(string connectionId, Point2D position, string direction, string state);
 }
