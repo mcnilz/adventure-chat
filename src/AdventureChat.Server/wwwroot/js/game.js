@@ -32,17 +32,25 @@ export class AdventureGame {
     canvas;
     room;
     character;
+    remotePlayers = new Map();
     renderer;
+    connectionStatus = 'disconnected';
+    sessionId = 'local-player';
+    playerName;
     lastTimestamp = 0;
     isRunning = false;
     animationFrameId = null;
     currentRequestId = 0;
-    constructor(canvas, room = DEFAULT_ROOM) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    hubConnection = null;
+    constructor(canvas, room = DEFAULT_ROOM, playerName) {
         this.canvas = canvas;
         this.room = room;
+        const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+        this.playerName = playerName || urlParams?.get('name') || `Player-${Math.floor(1000 + Math.random() * 9000)}`;
         this.character = {
-            id: 'local-player',
-            name: 'Player',
+            id: this.sessionId,
+            name: this.playerName,
             position: { ...this.room.spawnPoint },
             target: null,
             waypoints: [],
@@ -55,19 +63,141 @@ export class AdventureGame {
         this.renderer = new RoomRenderer(this.canvas, this.room);
         this.setupEvents();
     }
-    start() {
+    async start() {
         if (this.isRunning)
             return;
         this.isRunning = true;
         this.lastTimestamp = performance.now();
         this.loop = this.loop.bind(this);
         this.animationFrameId = requestAnimationFrame(this.loop);
+        await this.initSignalR();
     }
     stop() {
         this.isRunning = false;
         if (this.animationFrameId !== null) {
             cancelAnimationFrame(this.animationFrameId);
             this.animationFrameId = null;
+        }
+        if (this.hubConnection) {
+            try {
+                this.hubConnection.stop();
+            }
+            catch {
+                // ignore disconnect errors
+            }
+        }
+    }
+    async initSignalR() {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const signalR = typeof window !== 'undefined' ? window.signalR : null;
+        if (!signalR) {
+            console.warn('SignalR library not found on window. Running in standalone mode.');
+            return;
+        }
+        try {
+            this.connectionStatus = 'connecting';
+            this.hubConnection = new signalR.HubConnectionBuilder()
+                .withUrl('/hub/room')
+                .withAutomaticReconnect()
+                .build();
+            this.hubConnection.on('UserJoined', (dto) => {
+                this.handleUserJoined(dto.player);
+            });
+            this.hubConnection.on('UserLeft', (dto) => {
+                this.handleUserLeft(dto.sessionId);
+            });
+            this.hubConnection.on('PlayerMoved', (dto) => {
+                this.handlePlayerMoved(dto);
+            });
+            this.hubConnection.onreconnecting(() => {
+                this.connectionStatus = 'connecting';
+            });
+            this.hubConnection.onreconnected(async () => {
+                await this.joinRoom();
+            });
+            this.hubConnection.onclose(() => {
+                this.connectionStatus = 'disconnected';
+            });
+            await this.hubConnection.start();
+            await this.joinRoom();
+        }
+        catch (e) {
+            console.error('Failed to initialize SignalR connection:', e);
+            this.connectionStatus = 'disconnected';
+        }
+    }
+    async joinRoom() {
+        if (!this.hubConnection)
+            return;
+        try {
+            const result = await this.hubConnection.invoke('JoinRoom', {
+                roomId: this.room.id,
+                displayName: this.playerName,
+            });
+            if (result.success && result.snapshot) {
+                this.sessionId = result.snapshot.yourSessionId;
+                this.character.id = this.sessionId;
+                this.remotePlayers.clear();
+                for (const p of result.snapshot.players) {
+                    if (p.sessionId === this.sessionId) {
+                        this.character.name = p.displayName;
+                        this.playerName = p.displayName;
+                        this.character.position = { ...p.position };
+                        this.character.facing = p.direction;
+                        this.character.state = p.state;
+                        if (p.waypoints && p.waypoints.length > 0) {
+                            this.applyPath(p.waypoints);
+                        }
+                    }
+                    else {
+                        this.handleUserJoined(p);
+                    }
+                }
+                this.connectionStatus = 'connected';
+            }
+            else {
+                console.error('JoinRoom rejected:', result.error);
+                this.connectionStatus = 'disconnected';
+            }
+        }
+        catch (e) {
+            console.error('Error invoking JoinRoom:', e);
+            this.connectionStatus = 'disconnected';
+        }
+    }
+    handleUserJoined(player) {
+        if (player.sessionId === this.sessionId)
+            return;
+        const char = {
+            id: player.sessionId,
+            name: player.displayName,
+            position: { ...player.position },
+            target: player.target ? { ...player.target } : null,
+            waypoints: [],
+            state: player.state,
+            facing: player.direction,
+            speed: 130,
+            walkFrame: 0,
+            frameTimer: 0,
+        };
+        if (player.waypoints && player.waypoints.length > 0) {
+            this.applyPathToCharacter(char, player.waypoints);
+        }
+        this.remotePlayers.set(player.sessionId, char);
+    }
+    handleUserLeft(sessionId) {
+        this.remotePlayers.delete(sessionId);
+    }
+    handlePlayerMoved(dto) {
+        const waypoints = dto.waypoints;
+        if (dto.sessionId === this.sessionId) {
+            this.applyPath(waypoints);
+        }
+        else {
+            const remote = this.remotePlayers.get(dto.sessionId);
+            if (remote) {
+                this.applyPathToCharacter(remote, waypoints);
+            }
         }
     }
     screenToLogical(clientX, clientY) {
@@ -90,6 +220,28 @@ export class AdventureGame {
     async setTarget(target) {
         const requestId = ++this.currentRequestId;
         const startPos = { ...this.character.position };
+        // 1. Try real-time SignalR movement if connected
+        if (this.hubConnection && this.connectionStatus === 'connected') {
+            try {
+                const result = await this.hubConnection.invoke('RequestMove', {
+                    x: target.x,
+                    y: target.y,
+                });
+                if (result.success) {
+                    this.renderer.addClickMarker(target.x, target.y, 'valid');
+                    return { accepted: true };
+                }
+                else {
+                    this.renderer.addClickMarker(target.x, target.y, 'invalid');
+                    return { accepted: false, error: result.error || 'Server rejected target' };
+                }
+            }
+            catch (e) {
+                this.renderer.addClickMarker(target.x, target.y, 'invalid');
+                return { accepted: false, error: String(e) };
+            }
+        }
+        // 2. Fallback to HTTP endpoint
         try {
             const response = await fetch(`/api/rooms/${this.room.id}/path`, {
                 method: 'POST',
@@ -111,7 +263,6 @@ export class AdventureGame {
                 this.renderer.addClickMarker(target.x, target.y, 'invalid');
                 return { accepted: false, error: data.error || 'No path found' };
             }
-            // Ignore stale request if a newer target was initiated
             if (requestId !== this.currentRequestId) {
                 return { accepted: false, error: 'Superseded by newer target' };
             }
@@ -126,43 +277,45 @@ export class AdventureGame {
         }
     }
     applyPath(waypoints) {
-        if (waypoints.length <= 1) {
-            this.character.waypoints = [];
-            this.character.target = null;
-            this.character.state = 'idle';
-            return;
-        }
-        // Skip the first waypoint (current position) and queue remaining waypoints
-        this.character.waypoints = waypoints.slice(1);
-        this.moveToNextWaypoint();
+        this.applyPathToCharacter(this.character, waypoints);
     }
-    moveToNextWaypoint() {
-        if (this.character.waypoints.length === 0) {
-            this.character.target = null;
-            this.character.state = 'idle';
-            this.character.walkFrame = 0;
-            this.character.frameTimer = 0;
+    applyPathToCharacter(char, waypoints) {
+        if (waypoints.length <= 1) {
+            char.waypoints = [];
+            char.target = null;
+            char.state = 'idle';
             return;
         }
-        const nextTarget = this.character.waypoints.shift();
-        this.character.target = nextTarget;
-        this.character.state = 'walk';
-        const dx = nextTarget.x - this.character.position.x;
-        const dy = nextTarget.y - this.character.position.y;
+        char.waypoints = waypoints.slice(1);
+        this.moveToNextWaypoint(char);
+    }
+    moveToNextWaypoint(char) {
+        if (char.waypoints.length === 0) {
+            char.target = null;
+            char.state = 'idle';
+            char.walkFrame = 0;
+            char.frameTimer = 0;
+            return;
+        }
+        const nextTarget = char.waypoints.shift();
+        char.target = nextTarget;
+        char.state = 'walk';
+        const dx = nextTarget.x - char.position.x;
+        const dy = nextTarget.y - char.position.y;
         if (Math.abs(dx) >= Math.abs(dy)) {
             if (dx < -1) {
-                this.character.facing = 'left';
+                char.facing = 'left';
             }
             else if (dx > 1) {
-                this.character.facing = 'right';
+                char.facing = 'right';
             }
         }
         else {
             if (dy < -1) {
-                this.character.facing = 'up';
+                char.facing = 'up';
             }
             else if (dy > 1) {
-                this.character.facing = 'down';
+                char.facing = 'down';
             }
         }
     }
@@ -170,32 +323,38 @@ export class AdventureGame {
         if (deltaSeconds <= 0)
             return;
         const dt = Math.min(deltaSeconds, 0.1);
-        if (this.character.target && this.character.state === 'walk') {
-            const maxDistance = this.character.speed * dt;
-            const { position, reached } = moveTowards(this.character.position, this.character.target, maxDistance);
-            this.character.position = position;
+        this.updateCharacter(this.character, dt);
+        for (const remote of this.remotePlayers.values()) {
+            this.updateCharacter(remote, dt);
+        }
+    }
+    updateCharacter(char, dt) {
+        if (char.target && char.state === 'walk') {
+            const maxDistance = char.speed * dt;
+            const { position, reached } = moveTowards(char.position, char.target, maxDistance);
+            char.position = position;
             if (reached) {
-                if (this.character.waypoints.length > 0) {
-                    this.moveToNextWaypoint();
+                if (char.waypoints.length > 0) {
+                    this.moveToNextWaypoint(char);
                 }
                 else {
-                    this.character.target = null;
-                    this.character.state = 'idle';
-                    this.character.walkFrame = 0;
-                    this.character.frameTimer = 0;
+                    char.target = null;
+                    char.state = 'idle';
+                    char.walkFrame = 0;
+                    char.frameTimer = 0;
                 }
             }
             else {
-                this.character.frameTimer += dt;
-                if (this.character.frameTimer >= 0.12) {
-                    this.character.frameTimer = 0;
-                    this.character.walkFrame = (this.character.walkFrame + 1) % 4;
+                char.frameTimer += dt;
+                if (char.frameTimer >= 0.12) {
+                    char.frameTimer = 0;
+                    char.walkFrame = (char.walkFrame + 1) % 4;
                 }
             }
         }
         else {
-            this.character.state = 'idle';
-            this.character.walkFrame = 0;
+            char.state = 'idle';
+            char.walkFrame = 0;
         }
     }
     loop(timestamp) {
@@ -204,7 +363,7 @@ export class AdventureGame {
         const deltaSeconds = (timestamp - this.lastTimestamp) / 1000;
         this.lastTimestamp = timestamp;
         this.update(deltaSeconds);
-        this.renderer.render(this.character);
+        this.renderer.render(this.character, Array.from(this.remotePlayers.values()), this.connectionStatus);
         this.animationFrameId = requestAnimationFrame(this.loop);
     }
     setupEvents() {

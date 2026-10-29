@@ -4,11 +4,14 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && node scripts/copy-libs.js",
     "typecheck": "tsc --noEmit",
     "watch": "tsc --watch"
   },
   "devDependencies": {
     "typescript": "5.8.2"
+  },
+  "dependencies": {
+    "@microsoft/signalr": "9.0.6"
   }
 }

@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using AdventureChat.Server.Hubs;
 using AdventureChat.Server.Models;
 using AdventureChat.Server.Services;
 
@@ -17,13 +18,17 @@ public static class AppFactory
             opt.SerializerOptions.NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals;
         });
 
+        builder.Services.AddSignalR();
         builder.Services.AddSingleton<IPathfindingService, PathfindingService>();
         builder.Services.AddSingleton<IRoomService, RoomService>();
+        builder.Services.AddSingleton<IRoomSessionManager, RoomSessionManager>();
 
         var app = builder.Build();
 
         app.UseDefaultFiles();
         app.UseStaticFiles();
+
+        app.MapHub<RoomHub>("/hub/room");
 
         app.MapGet("/api/rooms/{id}", (string id, IRoomService roomService) =>
         {
@@ -81,6 +86,3 @@ public static class AppFactory
         return app;
     }
 }
-
-public record PointDto(double X, double Y);
-public record PathRequestDto(PointDto Start, PointDto Target);

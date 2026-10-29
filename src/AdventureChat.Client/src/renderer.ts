@@ -56,7 +56,7 @@ export class RoomRenderer {
     return this.showDebugOverlay;
   }
 
-  public render(character: Character): void {
+  public render(localCharacter: Character, remoteCharacters: Character[] = [], connectionStatus: 'connected' | 'connecting' | 'disconnected' = 'connected'): void {
     const { ctx, canvas, room } = this;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -69,24 +69,35 @@ export class RoomRenderer {
       ctx.fillRect(0, 0, room.width, room.height);
     }
 
-    // 2. Debug Overlay (Polygons, Obstacles, Waypoint path)
+    const allCharacters = [localCharacter, ...remoteCharacters];
+
+    // 2. Debug Overlay (Polygons, Obstacles, Waypoint paths)
     if (this.showDebugOverlay) {
-      this.drawDebugOverlay(character);
+      this.drawDebugOverlay(allCharacters);
     }
 
-    // 3. Target indicator (if moving)
-    if (character.target && character.state === 'walk') {
-      this.drawTargetMarker(character.target.x, character.target.y);
+    // 3. Target indicator (if local character is moving)
+    if (localCharacter.target && localCharacter.state === 'walk') {
+      this.drawTargetMarker(localCharacter.target.x, localCharacter.target.y);
     }
 
     // 4. Click Markers (Valid / Invalid feedback animations)
     this.drawClickMarkers();
 
-    // 5. Draw Character
-    this.drawCharacter(character);
+    // 5. Draw All Characters sorted by Y position (painter's algorithm)
+    allCharacters.sort((a, b) => a.position.y - b.position.y);
+    for (const char of allCharacters) {
+      const isLocal = char.id === localCharacter.id;
+      this.drawCharacter(char, isLocal);
+    }
+
+    // 6. Connection Status Indicator (if not connected)
+    if (connectionStatus !== 'connected') {
+      this.drawConnectionStatus(connectionStatus);
+    }
   }
 
-  private drawDebugOverlay(character: Character): void {
+  private drawDebugOverlay(characters: Character[]): void {
     const { ctx, room } = this;
     ctx.save();
 
@@ -133,33 +144,37 @@ export class RoomRenderer {
       }
     }
 
-    // C. Active Movement Path
-    if (character.target && character.state === 'walk') {
-      ctx.strokeStyle = 'rgba(236, 201, 75, 0.85)';
-      ctx.lineWidth = 1.5;
-      ctx.setLineDash([4, 4]);
+    // C. Active Movement Paths for all moving characters
+    for (const character of characters) {
+      if (character.target && character.state === 'walk') {
+        ctx.strokeStyle = character.id.startsWith('local') || character.id === characters[0]?.id
+          ? 'rgba(236, 201, 75, 0.85)'
+          : 'rgba(99, 179, 237, 0.85)';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([4, 4]);
 
-      ctx.beginPath();
-      ctx.moveTo(character.position.x, character.position.y);
-      ctx.lineTo(character.target.x, character.target.y);
-      for (const wp of character.waypoints) {
-        ctx.lineTo(wp.x, wp.y);
+        ctx.beginPath();
+        ctx.moveTo(character.position.x, character.position.y);
+        ctx.lineTo(character.target.x, character.target.y);
+        for (const wp of character.waypoints) {
+          ctx.lineTo(wp.x, wp.y);
+        }
+        ctx.stroke();
+        ctx.setLineDash([]);
       }
-      ctx.stroke();
-      ctx.setLineDash([]);
-    }
 
-    // D. Character Footpoint Indicator
-    ctx.strokeStyle = '#ecc94b';
-    ctx.lineWidth = 1;
-    const fx = Math.round(character.position.x);
-    const fy = Math.round(character.position.y);
-    ctx.beginPath();
-    ctx.moveTo(fx - 4, fy);
-    ctx.lineTo(fx + 4, fy);
-    ctx.moveTo(fx, fy - 4);
-    ctx.lineTo(fx, fy + 4);
-    ctx.stroke();
+      // Footpoint Indicator
+      ctx.strokeStyle = '#ecc94b';
+      ctx.lineWidth = 1;
+      const fx = Math.round(character.position.x);
+      const fy = Math.round(character.position.y);
+      ctx.beginPath();
+      ctx.moveTo(fx - 4, fy);
+      ctx.lineTo(fx + 4, fy);
+      ctx.moveTo(fx, fy - 4);
+      ctx.lineTo(fx, fy + 4);
+      ctx.stroke();
+    }
 
     // E. Debug Badge
     ctx.font = '10px monospace';
@@ -170,6 +185,28 @@ export class RoomRenderer {
     ctx.textBaseline = 'middle';
     ctx.fillText('Debug: AN [D = Umschalten]', 14, 17);
 
+    ctx.restore();
+  }
+
+  private drawConnectionStatus(status: 'connecting' | 'disconnected'): void {
+    const { ctx } = this;
+    ctx.save();
+    ctx.font = '11px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    const text = status === 'connecting' ? 'Verbindung wird hergestellt...' : 'Verbindung getrennt. Wiederverbindung...';
+    const textWidth = ctx.measureText(text).width;
+    const badgeWidth = textWidth + 24;
+    const badgeHeight = 22;
+    const x = 320;
+    const y = 20;
+
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+    ctx.fillRect(x - badgeWidth / 2, y - badgeHeight / 2, badgeWidth, badgeHeight);
+
+    ctx.fillStyle = status === 'connecting' ? '#ecc94b' : '#fc8181';
+    ctx.fillText(text, x, y);
     ctx.restore();
   }
 
@@ -239,7 +276,7 @@ export class RoomRenderer {
     ctx.restore();
   }
 
-  private drawCharacter(character: Character): void {
+  private drawCharacter(character: Character, isLocal: boolean): void {
     const { ctx } = this;
     const { position, facing, state, walkFrame, name } = character;
 
@@ -302,7 +339,7 @@ export class RoomRenderer {
       }
     } else {
       // Fallback rectangle if sprite is still loading
-      ctx.fillStyle = '#3182ce';
+      ctx.fillStyle = isLocal ? '#3182ce' : '#38a169';
       ctx.fillRect(footX - 16, footY - 58, 32, 58);
     }
 
@@ -314,11 +351,26 @@ export class RoomRenderer {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'bottom';
 
+    const textWidth = ctx.measureText(name).width;
+    const badgeWidth = Math.max(textWidth + 10, 36);
+    const badgeHeight = 14;
     const textY = footY - frameHeight - 4;
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
-    ctx.fillRect(footX - 28, textY - 11, 56, 13);
 
-    ctx.fillStyle = '#ffffff';
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+    ctx.fillRect(footX - badgeWidth / 2, textY - badgeHeight + 2, badgeWidth, badgeHeight);
+
+    if (isLocal) {
+      ctx.strokeStyle = 'rgba(236, 201, 75, 0.8)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(footX - badgeWidth / 2, textY - badgeHeight + 2, badgeWidth, badgeHeight);
+      ctx.fillStyle = '#ecc94b';
+    } else {
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(footX - badgeWidth / 2, textY - badgeHeight + 2, badgeWidth, badgeHeight);
+      ctx.fillStyle = '#ffffff';
+    }
+
     ctx.fillText(name, footX, textY);
     ctx.restore();
   }

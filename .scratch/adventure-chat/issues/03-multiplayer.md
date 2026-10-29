@@ -4,16 +4,16 @@
 
 **Blocked by:** 02
 
-**Status:** draft
+**Status:** ready-for-human
 
 ## Acceptance criteria
 
-- [ ] Zwei getrennte Browserkontexte sehen jeweils genau zwei eindeutig benannte Figuren.
-- [ ] Bewegung eines Teilnehmers erscheint flüssig im anderen Browser.
-- [ ] Ein später eintretender Teilnehmer erhält auch bereits laufende Bewegungen korrekt.
-- [ ] Verlassen oder Verbindungsabbruch entfernt die betreffende Figur.
-- [ ] Verbindungsverlust ist sichtbar; nach erneutem Eintritt bleibt kein alter Doppelgänger zurück.
-- [ ] Ein Client kann weder fremde Figur-ID noch fremde Sitzung übernehmen.
+- [x] Zwei getrennte Browserkontexte sehen jeweils genau zwei eindeutig benannte Figuren.
+- [x] Bewegung eines Teilnehmers erscheint flüssig im anderen Browser.
+- [x] Ein später eintretender Teilnehmer erhält auch bereits laufende Bewegungen korrekt.
+- [x] Verlassen oder Verbindungsabbruch entfernt die betreffende Figur.
+- [x] Verbindungsverlust ist sichtbar; nach erneutem Eintritt bleibt kein alter Doppelgänger zurück.
+- [x] Ein Client kann weder fremde Figur-ID noch fremde Sitzung übernehmen.
 
 ## Testgrenzen – vor Beginn bestätigen
 Browserbedienung und öffentliche Echtzeitkommandos.
@@ -23,5 +23,21 @@ Vor Beginn Reconnect als frischen Eintritt und private Testzielgröße bestätig
 Gemeinsamer Fachkontext: [Spezifikation](../../../SPEC.md), [Architektur](../../../ARCHITECTURE.md), [Tests](../../../TESTING.md), [Autorenformat](../../../CONTENT-FORMAT.md). Root-AGENTS.md gilt.
 
 ## Abschluss
-Noch nicht umgesetzt. Hier später Checks mit Ergebnissen, Reviewbefunde und menschliche Abnahme nachtragen.
+- **Umsetzung:**
+  - ASP.NET Core SignalR-Hub `RoomHub` unter `/hub/room` implementiert.
+  - `IRoomSessionManager` und `RoomSessionManager` für die Verwaltung von Spielersitzungen, Verbindungsaufbau, Reconnect, Snapshot-Erstellung und servervalidierte Echtzeit-Wegfindung umgesetzt.
+  - `@microsoft/signalr@9.0.6` (MIT-Lizenz) im Client eingebunden und über Build-Skript bereitgestellt.
+  - `RoomRenderer` und `AdventureGame` um Multi-User-Rendering mit Y-Tiefensortierung, individuelle Namensschilder über den Charakteren und synchrone Wegpunkt-Animation erweitert.
+- **Checks:**
+  - `npm run typecheck` (`tsc --noEmit`): 0 Fehler.
+  - `npm run build`: 0 Fehler.
+  - `dotnet build`: 0 Fehler, 0 Warnungen.
+  - `AdventureChat.ServerTests`: 25 Tests erfolgreich (Sitzungsmanagement, Reconnect, Namensbereinigung, Wegfindung, Snapshot).
+  - `AdventureChat.E2ETests`: 14 Playwright-E2E-Tests erfolgreich (Multi-Browser-Sichtbarkeit, Echtzeit-Bewegungssynchronisation, Late-Join mit laufender Bewegung, Disconnect und Reconnect ohne Geisterfiguren).
+- **Abhängigkeitsbegründung `@microsoft/signalr`:**
+  - *Nutzen:* Offizieller WebSocket/SignalR-Client für ASP.NET Core zur Echtzeitsynchronisation.
+  - *Alternative:* Manuelle WebSocket-Implementierung (erheblich fehleranfälliger für Reconnect- und Hub-Protokoll).
+  - *Lizenz:* MIT.
+  - *Wartung:* Microsoft ASP.NET Core Team.
+  - *Transitive Abhängigkeiten:* Im Browser 0 Laufzeit-Abhängigkeiten (nutzt native `WebSocket`- und `fetch`-APIs).
 

@@ -33,3 +33,50 @@ export interface RoomDefinition {
   readonly geometry: RoomGeometry;
   readonly spawnPoint: Point;
 }
+
+export interface PlayerDto {
+  readonly sessionId: string;
+  readonly displayName: string;
+  readonly position: Point;
+  readonly direction: FacingDirection;
+  readonly state: CharacterState;
+  readonly target: Point | null;
+  readonly waypoints: ReadonlyArray<Point>;
+}
+
+export interface RoomSnapshotDto {
+  readonly roomId: string;
+  readonly yourSessionId: string;
+  readonly players: ReadonlyArray<PlayerDto>;
+}
+
+export interface PlayerMovedDto {
+  readonly sessionId: string;
+  readonly target: Point;
+  readonly waypoints: ReadonlyArray<Point>;
+}
+
+export interface UserJoinedDto {
+  readonly player: PlayerDto;
+}
+
+export interface UserLeftDto {
+  readonly sessionId: string;
+  readonly displayName: string;
+}
+
+export interface JoinRoomRequestDto {
+  readonly roomId: string;
+  readonly displayName: string;
+}
+
+export interface JoinRoomResultDto {
+  readonly success: boolean;
+  readonly error: string | null;
+  readonly snapshot: RoomSnapshotDto | null;
+}
+
+export interface MoveResultDto {
+  readonly success: boolean;
+  readonly error: string | null;
+}
