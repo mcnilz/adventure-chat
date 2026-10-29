@@ -4,7 +4,7 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-human
+**Status:** done
 
 ## Acceptance criteria
 
@@ -25,12 +25,12 @@ Gemeinsamer Fachkontext: [Spezifikation](../../../SPEC.md), [Architektur](../../
 ## Abschluss
 - **Umsetzung:**
   - ASP.NET Core (.NET 10) Serverprojekt unter `src/AdventureChat.Server`.
-  - TypeScript-Client mit Canvas-2D-Renderer, zeitbasierter Bewegung und Aspect-Ratio-Erhaltung unter `src/AdventureChat.Client`.
-  - PNG-Ressourcen für Raumhintergrund (`lounge.png`, 640x360) und animierte Spielfigur (`character.png`) mit Stand- und Laufphasen.
+  - TypeScript-Client mit Canvas-2D-Renderer, zeitbasierter Bewegung, 48x64 Lucasfilm-Big-Head-Charakter (Maniac Mansion / Zak McKracken Stil) mit Rücken-/Front-/Seitenansicht und Aspect-Ratio-Erhaltung unter `src/AdventureChat.Client`.
+  - PNG-Ressourcen für Raumhintergrund (`lounge.png`, 640x360) und animierte Spielfigur (`character.png`) mit Stand- und Laufphasen für alle 4 Richtungen.
   - Automatisierte E2E-Playwright/NUnit-Tests unter `tests/AdventureChat.E2ETests`.
 - **Checks:**
   - `npm run typecheck` (`tsc --noEmit`): 0 Fehler.
   - `dotnet build`: 0 Warnungen, 0 Fehler.
-  - `dotnet test`: 5/5 Playwright-E2E-Tests erfolgreich (Initialisierung, Bewegung & Stopp, Zielüberschreibung bei Klick im Laufen, Klickfilterung auf Chat & Wänden, Fenstergrößenänderung).
-- **Status:** ready-for-human. Menschliche Abnahme ausstehend.
+  - `dotnet test`: 6/6 Playwright-E2E-Tests erfolgreich (Initialisierung, Bewegung & Stopp, Zielüberschreibung bei Klick im Laufen, Klickfilterung auf Chat & Wänden, Fenstergrößenänderung, Mehrdirektionale Bewegung & Rückenansicht).
+- **Status:** done (Menschliche Abnahme am 29.10.2026 erfolgt).
 
