@@ -120,11 +120,13 @@ export class AdventureGame {
 
       if (!response.ok) {
         const errData = await response.json().catch(() => ({}));
+        this.renderer.addClickMarker(target.x, target.y, 'invalid');
         return { accepted: false, error: errData.error || 'Server rejected target' };
       }
 
       const data = await response.json();
       if (!data.success || !Array.isArray(data.waypoints) || data.waypoints.length === 0) {
+        this.renderer.addClickMarker(target.x, target.y, 'invalid');
         return { accepted: false, error: data.error || 'No path found' };
       }
 
@@ -134,9 +136,11 @@ export class AdventureGame {
       }
 
       const waypoints: Point[] = data.waypoints;
+      this.renderer.addClickMarker(target.x, target.y, 'valid');
       this.applyPath(waypoints);
       return { accepted: true, waypoints };
     } catch (e) {
+      this.renderer.addClickMarker(target.x, target.y, 'invalid');
       return { accepted: false, error: String(e) };
     }
   }
@@ -237,6 +241,12 @@ export class AdventureGame {
   private setupEvents(): void {
     this.canvas.addEventListener('click', (e: MouseEvent) => {
       this.handleCanvasClick(e.clientX, e.clientY);
+    });
+
+    window.addEventListener('keydown', (e: KeyboardEvent) => {
+      if (e.key === 'd' || e.key === 'D') {
+        this.renderer.toggleDebugOverlay();
+      }
     });
   }
 }

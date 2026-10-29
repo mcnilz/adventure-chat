@@ -1,11 +1,21 @@
 import type { Character, RoomDefinition } from './types.js';
 
+export interface ClickMarker {
+  x: number;
+  y: number;
+  type: 'valid' | 'invalid';
+  startTime: number;
+  duration: number;
+}
+
 export class RoomRenderer {
   private readonly ctx: CanvasRenderingContext2D;
   private readonly backgroundImage: HTMLImageElement;
   private readonly characterSprite: HTMLImageElement;
   private backgroundLoaded = false;
   private spriteLoaded = false;
+  private clickMarkers: ClickMarker[] = [];
+  public showDebugOverlay = false;
 
   public constructor(
     private readonly canvas: HTMLCanvasElement,
@@ -31,6 +41,21 @@ export class RoomRenderer {
     };
   }
 
+  public addClickMarker(x: number, y: number, type: 'valid' | 'invalid'): void {
+    this.clickMarkers.push({
+      x,
+      y,
+      type,
+      startTime: performance.now(),
+      duration: 600,
+    });
+  }
+
+  public toggleDebugOverlay(): boolean {
+    this.showDebugOverlay = !this.showDebugOverlay;
+    return this.showDebugOverlay;
+  }
+
   public render(character: Character): void {
     const { ctx, canvas, room } = this;
 
@@ -44,13 +69,158 @@ export class RoomRenderer {
       ctx.fillRect(0, 0, room.width, room.height);
     }
 
-    // 2. Target indicator (if moving)
+    // 2. Debug Overlay (Polygons, Obstacles, Waypoint path)
+    if (this.showDebugOverlay) {
+      this.drawDebugOverlay(character);
+    }
+
+    // 3. Target indicator (if moving)
     if (character.target && character.state === 'walk') {
       this.drawTargetMarker(character.target.x, character.target.y);
     }
 
-    // 3. Draw Character
+    // 4. Click Markers (Valid / Invalid feedback animations)
+    this.drawClickMarkers();
+
+    // 5. Draw Character
     this.drawCharacter(character);
+  }
+
+  private drawDebugOverlay(character: Character): void {
+    const { ctx, room } = this;
+    ctx.save();
+
+    // A. Outer Boundary
+    const outer = room.geometry?.outerBoundary;
+    if (outer && outer.length >= 3 && outer[0]) {
+      ctx.fillStyle = 'rgba(72, 187, 120, 0.18)';
+      ctx.strokeStyle = 'rgba(72, 187, 120, 0.85)';
+      ctx.lineWidth = 1.5;
+
+      ctx.beginPath();
+      ctx.moveTo(outer[0].x, outer[0].y);
+      for (let i = 1; i < outer.length; i++) {
+        const pt = outer[i];
+        if (pt) {
+          ctx.lineTo(pt.x, pt.y);
+        }
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    }
+
+    // B. Obstacles
+    if (room.geometry?.obstacles) {
+      for (const obstacle of room.geometry.obstacles) {
+        if (!obstacle || obstacle.length < 3 || !obstacle[0]) continue;
+
+        ctx.fillStyle = 'rgba(245, 101, 101, 0.35)';
+        ctx.strokeStyle = 'rgba(245, 101, 101, 0.9)';
+        ctx.lineWidth = 1.5;
+
+        ctx.beginPath();
+        ctx.moveTo(obstacle[0].x, obstacle[0].y);
+        for (let i = 1; i < obstacle.length; i++) {
+          const pt = obstacle[i];
+          if (pt) {
+            ctx.lineTo(pt.x, pt.y);
+          }
+        }
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+      }
+    }
+
+    // C. Active Movement Path
+    if (character.target && character.state === 'walk') {
+      ctx.strokeStyle = 'rgba(236, 201, 75, 0.85)';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([4, 4]);
+
+      ctx.beginPath();
+      ctx.moveTo(character.position.x, character.position.y);
+      ctx.lineTo(character.target.x, character.target.y);
+      for (const wp of character.waypoints) {
+        ctx.lineTo(wp.x, wp.y);
+      }
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // D. Character Footpoint Indicator
+    ctx.strokeStyle = '#ecc94b';
+    ctx.lineWidth = 1;
+    const fx = Math.round(character.position.x);
+    const fy = Math.round(character.position.y);
+    ctx.beginPath();
+    ctx.moveTo(fx - 4, fy);
+    ctx.lineTo(fx + 4, fy);
+    ctx.moveTo(fx, fy - 4);
+    ctx.lineTo(fx, fy + 4);
+    ctx.stroke();
+
+    // E. Debug Badge
+    ctx.font = '10px monospace';
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    ctx.fillRect(8, 8, 205, 18);
+    ctx.fillStyle = '#68d391';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('Debug: AN [D = Umschalten]', 14, 17);
+
+    ctx.restore();
+  }
+
+  private drawClickMarkers(): void {
+    const now = performance.now();
+    this.clickMarkers = this.clickMarkers.filter((m) => now - m.startTime < m.duration);
+
+    const { ctx } = this;
+    ctx.save();
+
+    for (const marker of this.clickMarkers) {
+      const progress = (now - marker.startTime) / marker.duration;
+      const alpha = Math.max(0, 1 - progress);
+
+      if (marker.type === 'valid') {
+        // Green / Gold walk indicator
+        const radius = 3 + progress * 6;
+        ctx.strokeStyle = `rgba(72, 187, 120, ${alpha * 0.9})`;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(marker.x, marker.y, radius, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.fillStyle = `rgba(72, 187, 120, ${alpha})`;
+        ctx.beginPath();
+        ctx.arc(marker.x, marker.y, 2, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        // Red 'X' invalid / blocked indicator
+        const size = 5 + progress * 2;
+        ctx.strokeStyle = `rgba(245, 101, 101, ${alpha})`;
+        ctx.lineWidth = 2;
+
+        ctx.beginPath();
+        ctx.moveTo(marker.x - size, marker.y - size);
+        ctx.lineTo(marker.x + size, marker.y + size);
+        ctx.moveTo(marker.x + size, marker.y - size);
+        ctx.lineTo(marker.x - size, marker.y + size);
+        ctx.stroke();
+
+        // Subtle pulsing ring around X
+        const ringRadius = 4 + progress * 8;
+        ctx.strokeStyle = `rgba(245, 101, 101, ${alpha * 0.6})`;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(marker.x, marker.y, ringRadius, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    }
+
+    ctx.restore();
   }
 
   private drawTargetMarker(x: number, y: number): void {

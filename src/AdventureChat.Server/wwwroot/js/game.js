@@ -103,10 +103,12 @@ export class AdventureGame {
             });
             if (!response.ok) {
                 const errData = await response.json().catch(() => ({}));
+                this.renderer.addClickMarker(target.x, target.y, 'invalid');
                 return { accepted: false, error: errData.error || 'Server rejected target' };
             }
             const data = await response.json();
             if (!data.success || !Array.isArray(data.waypoints) || data.waypoints.length === 0) {
+                this.renderer.addClickMarker(target.x, target.y, 'invalid');
                 return { accepted: false, error: data.error || 'No path found' };
             }
             // Ignore stale request if a newer target was initiated
@@ -114,10 +116,12 @@ export class AdventureGame {
                 return { accepted: false, error: 'Superseded by newer target' };
             }
             const waypoints = data.waypoints;
+            this.renderer.addClickMarker(target.x, target.y, 'valid');
             this.applyPath(waypoints);
             return { accepted: true, waypoints };
         }
         catch (e) {
+            this.renderer.addClickMarker(target.x, target.y, 'invalid');
             return { accepted: false, error: String(e) };
         }
     }
@@ -206,6 +210,11 @@ export class AdventureGame {
     setupEvents() {
         this.canvas.addEventListener('click', (e) => {
             this.handleCanvasClick(e.clientX, e.clientY);
+        });
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'd' || e.key === 'D') {
+                this.renderer.toggleDebugOverlay();
+            }
         });
     }
 }

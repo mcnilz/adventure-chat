@@ -357,4 +357,31 @@ public class LocalRoomMovementTests
 
         await context.DisposeAsync();
     }
+
+    [Test]
+    public async Task DebugOverlay_CanBeToggledWithDKey()
+    {
+        var context = await _browser.NewContextAsync();
+        var page = await context.NewPageAsync();
+
+        await page.GotoAsync(_server.BaseUrl);
+        await page.WaitForSelectorAsync("#game-canvas");
+
+        var initialOverlay = await page.EvaluateAsync<bool>("() => window.__ADVENTURE_GAME__.renderer.showDebugOverlay");
+        Assert.That(initialOverlay, Is.False, "Debug overlay should be off by default.");
+
+        // Press 'd'
+        await page.Keyboard.PressAsync("d");
+
+        var overlayAfterD = await page.EvaluateAsync<bool>("() => window.__ADVENTURE_GAME__.renderer.showDebugOverlay");
+        Assert.That(overlayAfterD, Is.True, "Debug overlay should be turned on after pressing 'd'.");
+
+        // Press 'd' again
+        await page.Keyboard.PressAsync("d");
+
+        var overlayAfterSecondD = await page.EvaluateAsync<bool>("() => window.__ADVENTURE_GAME__.renderer.showDebugOverlay");
+        Assert.That(overlayAfterSecondD, Is.False, "Debug overlay should be turned off after pressing 'd' again.");
+
+        await context.DisposeAsync();
+    }
 }
