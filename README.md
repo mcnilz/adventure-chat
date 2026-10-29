@@ -20,8 +20,37 @@ Paket in einen eigenen Projektordner entpacken. Noch kein Projektname, Remote od
 
 Alle Tickets sind Vorschläge, keine bereits abgenommenen Implementierungsaufträge. Zunächst Paket 01 mit vorgeschlagenen Testgrenzen bestätigen lassen. Danach jeweils ein Paket implementieren, prüfen und vorführen. Für spätere Sitzungen reichen AGENTS.md, active-state.md, das konkrete Ticket und dessen verlinkter Fachkontext.
 
+## Lokaler Start und Entwicklung (PowerShell 7)
+
+### Voraussetzungen
+- .NET 10 SDK
+- Node.js (>= 20) und npm
+
+### 1. Client kompilieren
+```powershell
+cd src\AdventureChat.Client
+npm install
+npm run build
+npm run typecheck
+cd ..\..
+```
+
+### 2. Projekt bauen und automatisierte Tests ausführen
+```powershell
+# Vollständigen Build durchführen
+dotnet build
+
+# Browser-Verhaltenstests (Playwright / NUnit) ausführen
+dotnet test
+```
+
+### 3. Server starten
+```powershell
+dotnet run --project src\AdventureChat.Server\AdventureChat.Server.csproj
+```
+Anschließend die Anwendung im Browser unter der in der Konsolenausgabe angezeigten URL (z. B. `http://localhost:5000`) öffnen.
+
 ## Festgelegt und noch offen
-Festgelegt: Browser; TypeScript; wenige npm-Abhängigkeiten; .NET-Backend; neue Engine mit Adventure-Konzepten; YAML mit Schema; einfache Bilddateien; Browsereditor; MVP mit Bewegung, Räumen und Chat; Inventar und Skripting später.
 
 Planungsannahmen: private Tests statt öffentlichem Dienst, ungefähr zehn gleichzeitige Besucher, Desktopbrowser mit Maus, Punktfigur für Wegfindung ohne Spielerkollision, flüchtige Sitzungen und Nachrichten. Diese Annahmen werden vor dem jeweiligen betroffenen Paket bestätigt. GitHub-Veröffentlichung ist eine spätere Option.
 

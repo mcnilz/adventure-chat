@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/AdventureChat.Server/AdventureChat.Server.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/AdventureChat.E2ETests/AdventureChat.E2ETests.csproj" />
+  </Folder>
+</Solution>

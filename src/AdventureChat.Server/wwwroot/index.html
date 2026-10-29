@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Adventure Chat</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="app">
+    <div id="game-container">
+      <canvas id="game-canvas" width="640" height="360"></canvas>
+      <div id="chat-container">
+        <div id="chat-messages" class="chat-placeholder">
+          <div class="chat-system-message">Willkommen im Adventure Chat. Klicke auf den Boden, um dich zu bewegen.</div>
+        </div>
+        <div id="chat-input-bar">
+          <input type="text" id="chat-input" placeholder="Nachricht eingeben... (Chat folgt in Ticket 04)" disabled>
+          <button id="chat-send" disabled>Senden</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
