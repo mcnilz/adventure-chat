@@ -4,7 +4,7 @@
 
 **Blocked by:** 01
 
-**Status:** ready-for-human
+**Status:** done
 
 ## Acceptance criteria
 
@@ -32,4 +32,5 @@ Gemeinsamer Fachkontext: [Spezifikation](../../../SPEC.md), [Architektur](../../
   - `npm run typecheck` (`tsc --noEmit`): 0 Fehler.
   - `dotnet build`: 0 Warnungen, 0 Fehler.
   - `AdventureChat.ServerTests`: 15 NUnit-Tests erfolgreich (Geometrie, Kollision, Visibility Graph, A*, API-Endpunkte).
-  - `AdventureChat.E2ETests`: 8 Playwright-E2E-Tests erfolgreich (Hindernisumrundung, Ablehnung von Hindernisklicks, nahtloser Richtungswechsel im Lauf).
+  - `AdventureChat.E2ETests`: 9 Playwright-E2E-Tests erfolgreich (Hindernisumrundung, Ablehnung von Hindernisklicks, nahtloser Richtungswechsel im Lauf, Debug-Overlay-Umschaltung).
+- **Menschliche Abnahme:** Erfolgreich bestätigt (Figur umgeht das Tischhindernis sauber im Browser).
