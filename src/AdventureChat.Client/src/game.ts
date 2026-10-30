@@ -2,12 +2,14 @@ import { moveTowards } from './math.js';
 import { RoomRenderer } from './renderer.js';
 import type {
   Character,
+  ChatMessageDto,
   JoinRoomResultDto,
   MoveResultDto,
   PlayerDto,
   PlayerMovedDto,
   Point,
   RoomDefinition,
+  SendChatMessageResultDto,
   UserJoinedDto,
   UserLeftDto,
 } from './types.js';
@@ -45,10 +47,13 @@ export class AdventureGame {
   public readonly room: RoomDefinition;
   public readonly character: Character;
   public readonly remotePlayers: Map<string, Character> = new Map();
+  public readonly chatMessages: ChatMessageDto[] = [];
   public readonly renderer: RoomRenderer;
   public connectionStatus: 'connected' | 'connecting' | 'disconnected' = 'disconnected';
   public sessionId = 'local-player';
   public playerName: string;
+  public onChatMessage?: (message: ChatMessageDto) => void;
+  public onConnectionStatusChanged?: (status: 'connected' | 'connecting' | 'disconnected') => void;
 
   private lastTimestamp = 0;
   private isRunning = false;
@@ -136,8 +141,12 @@ export class AdventureGame {
         this.handlePlayerMoved(dto);
       });
 
+      this.hubConnection.on('ChatMessageReceived', (dto: ChatMessageDto) => {
+        this.handleChatMessageReceived(dto);
+      });
+
       this.hubConnection.onreconnecting(() => {
-        this.connectionStatus = 'connecting';
+        this.setConnectionStatus('connecting');
       });
 
       this.hubConnection.onreconnected(async () => {
@@ -145,15 +154,20 @@ export class AdventureGame {
       });
 
       this.hubConnection.onclose(() => {
-        this.connectionStatus = 'disconnected';
+        this.setConnectionStatus('disconnected');
       });
 
       await this.hubConnection.start();
       await this.joinRoom();
     } catch (e) {
       console.error('Failed to initialize SignalR connection:', e);
-      this.connectionStatus = 'disconnected';
+      this.setConnectionStatus('disconnected');
     }
+  }
+
+  public setConnectionStatus(status: 'connected' | 'connecting' | 'disconnected'): void {
+    this.connectionStatus = status;
+    this.onConnectionStatusChanged?.(status);
   }
 
   private async joinRoom(): Promise<void> {
@@ -185,14 +199,22 @@ export class AdventureGame {
           }
         }
 
-        this.connectionStatus = 'connected';
+        this.chatMessages.length = 0;
+        if (result.snapshot.recentMessages) {
+          for (const msg of result.snapshot.recentMessages) {
+            this.chatMessages.push(msg);
+            this.onChatMessage?.(msg);
+          }
+        }
+
+        this.setConnectionStatus('connected');
       } else {
         console.error('JoinRoom rejected:', result.error);
-        this.connectionStatus = 'disconnected';
+        this.setConnectionStatus('disconnected');
       }
     } catch (e) {
       console.error('Error invoking JoinRoom:', e);
-      this.connectionStatus = 'disconnected';
+      this.setConnectionStatus('disconnected');
     }
   }
 
@@ -232,6 +254,42 @@ export class AdventureGame {
       if (remote) {
         this.applyPathToCharacter(remote, waypoints);
       }
+    }
+  }
+
+  private handleChatMessageReceived(msg: ChatMessageDto): void {
+    this.chatMessages.push(msg);
+
+    const bubble = {
+      text: msg.text,
+      startTime: performance.now(),
+      duration: 6000,
+    };
+
+    if (msg.sessionId === this.sessionId) {
+      this.character.speechBubble = bubble;
+    } else {
+      const remote = this.remotePlayers.get(msg.sessionId);
+      if (remote) {
+        remote.speechBubble = bubble;
+      }
+    }
+
+    this.onChatMessage?.(msg);
+  }
+
+  public async sendChatMessage(text: string): Promise<SendChatMessageResultDto> {
+    if (!this.hubConnection || this.connectionStatus !== 'connected') {
+      return { success: false, error: 'Nicht mit dem Server verbunden.', message: null };
+    }
+
+    try {
+      const result: SendChatMessageResultDto = await this.hubConnection.invoke('SendChatMessage', {
+        text,
+      });
+      return result;
+    } catch (e) {
+      return { success: false, error: String(e), message: null };
     }
   }
 

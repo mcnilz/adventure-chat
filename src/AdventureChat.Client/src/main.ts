@@ -1,4 +1,5 @@
 import { AdventureGame } from './game.js';
+import type { ChatMessageDto } from './types.js';
 
 declare global {
   interface Window {
@@ -12,19 +13,102 @@ function initialize(): void {
     throw new Error('Canvas element #game-canvas not found');
   }
 
-  const game = new AdventureGame(canvas);
-  game.start();
+  const chatContainer = document.getElementById('chat-container');
+  const chatMessages = document.getElementById('chat-messages');
+  const chatForm = document.getElementById('chat-form') as HTMLFormElement | null;
+  const chatInput = document.getElementById('chat-input') as HTMLInputElement | null;
+  const chatSend = document.getElementById('chat-send') as HTMLButtonElement | null;
 
+  const game = new AdventureGame(canvas);
   window.__ADVENTURE_GAME__ = game;
 
-  const chatContainer = document.getElementById('chat-container');
+  // Prevent chat interactions from triggering canvas movement or keyboard shortcuts
   if (chatContainer) {
-    chatContainer.addEventListener('click', (e) => {
+    const stopEvent = (e: Event) => {
       e.stopPropagation();
+    };
+    chatContainer.addEventListener('click', stopEvent);
+    chatContainer.addEventListener('mousedown', stopEvent);
+    chatContainer.addEventListener('pointerdown', stopEvent);
+    chatContainer.addEventListener('keydown', stopEvent);
+    chatContainer.addEventListener('keyup', stopEvent);
+  }
+
+  const updateInputState = (status: 'connected' | 'connecting' | 'disconnected') => {
+    const isConnected = status === 'connected';
+    if (chatInput) {
+      chatInput.disabled = !isConnected;
+      chatInput.placeholder = isConnected ? 'Nachricht eingeben...' : 'Verbindung zum Server wird aufgebaut...';
+    }
+    if (chatSend) {
+      chatSend.disabled = !isConnected;
+    }
+  };
+
+  const appendChatMessage = (msg: ChatMessageDto) => {
+    if (!chatMessages) return;
+
+    const msgEl = document.createElement('div');
+    msgEl.className = 'chat-message';
+
+    const senderEl = document.createElement('span');
+    senderEl.className = 'chat-sender';
+    if (msg.sessionId === game.sessionId) {
+      senderEl.classList.add('local');
+    }
+    senderEl.textContent = `${msg.senderName}: `;
+
+    const textEl = document.createElement('span');
+    textEl.className = 'chat-text';
+    // Use textContent exclusively to guarantee XSS protection
+    textEl.textContent = msg.text;
+
+    msgEl.appendChild(senderEl);
+    msgEl.appendChild(textEl);
+    chatMessages.appendChild(msgEl);
+
+    // Auto-scroll to bottom
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  };
+
+  const appendSystemError = (errorMessage: string) => {
+    if (!chatMessages) return;
+
+    const errorEl = document.createElement('div');
+    errorEl.className = 'chat-system-error';
+    errorEl.textContent = errorMessage;
+    chatMessages.appendChild(errorEl);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  };
+
+  game.onConnectionStatusChanged = (status) => {
+    updateInputState(status);
+  };
+
+  game.onChatMessage = (msg: ChatMessageDto) => {
+    appendChatMessage(msg);
+  };
+
+  updateInputState(game.connectionStatus);
+
+  if (chatForm && chatInput) {
+    chatForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const rawText = chatInput.value;
+      if (!rawText || !rawText.trim()) return;
+
+      const trimmed = rawText.trim();
+      chatInput.value = '';
+      const result = await game.sendChatMessage(trimmed);
+      if (!result.success) {
+        appendSystemError(result.error || 'Nachricht konnte nicht gesendet werden.');
+      }
     });
   }
 
-  console.log('Adventure Chat game initialized.');
+  game.start();
+
+  console.log('Adventure Chat game initialized with Room Chat support.');
 }
 
 if (document.readyState === 'loading') {

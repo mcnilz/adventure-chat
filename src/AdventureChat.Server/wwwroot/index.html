@@ -11,13 +11,13 @@
     <div id="game-container">
       <canvas id="game-canvas" width="640" height="360"></canvas>
       <div id="chat-container">
-        <div id="chat-messages" class="chat-placeholder">
+        <div id="chat-messages" class="chat-messages">
           <div class="chat-system-message">Willkommen im Adventure Chat. Klicke auf den Boden, um dich zu bewegen.</div>
         </div>
-        <div id="chat-input-bar">
-          <input type="text" id="chat-input" placeholder="Nachricht eingeben... (Chat folgt in Ticket 04)" disabled>
-          <button id="chat-send" disabled>Senden</button>
-        </div>
+        <form id="chat-form" class="chat-input-bar">
+          <input type="text" id="chat-input" placeholder="Nachricht eingeben..." maxlength="200" autocomplete="off" disabled>
+          <button type="submit" id="chat-send" disabled>Senden</button>
+        </form>
       </div>
     </div>
   </div>

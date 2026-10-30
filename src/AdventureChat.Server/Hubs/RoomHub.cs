@@ -50,6 +50,20 @@ public class RoomHub : Hub
         return new MoveResultDto(true, null);
     }
 
+    public async Task<SendChatMessageResultDto> SendChatMessage(SendChatMessageRequestDto request)
+    {
+        var result = _sessionManager.SendChatMessage(Context.ConnectionId, request.Text);
+        if (!result.Success || result.Message is null)
+        {
+            return new SendChatMessageResultDto(false, result.Error ?? "Message rejected.", null);
+        }
+
+        // Broadcast message to all clients in the same room
+        await Clients.Group(result.Message.RoomId).SendAsync("ChatMessageReceived", result.Message);
+
+        return new SendChatMessageResultDto(true, null, result.Message);
+    }
+
     public Task UpdateProgress(PointDto position, string direction, string state)
     {
         _sessionManager.UpdatePlayerProgress(Context.ConnectionId, new Point2D(position.X, position.Y), direction, state);

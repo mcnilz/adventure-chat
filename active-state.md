@@ -1,5 +1,5 @@
 # Aktueller Stand
-Revision 6 · 29.10.2026.
+Revision 7 · 30.10.2026.
 
 ## Vorhanden
 - [x] Gespräch in Spezifikation, Architektur, Autorenformat und Tickets überführt.
@@ -12,27 +12,22 @@ Revision 6 · 29.10.2026.
 - [x] Ticket 02 vollständig umgesetzt, getestet und menschlich abgenommen (Status: `done`).
 - [x] Ticket 03 (Echtzeit-Multiplayer mit SignalR) vollständig umgesetzt, getestet und menschlich abgenommen (Status: `done`).
 - [x] Wegfindungs-Optimierungen umgesetzt: 14px Ecksicherheitsabstand und dynamische Zwischenweg-Neuberechnung bei Klicks im Lauf.
-- [ ] Ticket 04 (Raumchat mit Verlauf und Sprechblasen) umsetzen.
+- [x] Ticket 04 (Raumchat mit Verlauf und Sprechblasen) vollständig umgesetzt und getestet (Status: `ready-for-human`).
+- [ ] Ticket 05 (Raumübergänge und Türen) umsetzen.
 - [ ] Skills installiert oder im Zielprojekt geprüft.
 - [ ] Git-Repository und endgültiger Projektname festgelegt.
 - [ ] MVP abgenommen.
 
 ## Aktives Ticket
 - **Ticket:** `04-room-chat.md` (Raumchat mit Verlauf und Sprechblasen benutzen)
-- **Status:** ready-to-start / draft (wartet auf Bestätigung des vorgeschlagenen Pakets)
-- **Letzter Stand:** Tickets 01, 02 und 03 sind vollständig `done` und im lokalen Git committet. SignalR-Hub `/hub/room` und Client-Synchronisation laufen stabil.
-- **Ausgeführte Checks:** `npm run typecheck` (0 Fehler), `dotnet build` (0 Warnungen/Fehler), `dotnet test` (41/41 Tests erfolgreich: 27 ServerTests + 14 E2ETests).
+- **Status:** `ready-for-human` (wartet auf menschliche Abnahme durch den Benutzer)
+- **Letzter Stand:** Chatleiste, HTML-Verlauf, XSS-Schutz, SignalR-Chatbroadcasting, Rate-Limiting (5 Msg / 3s), Verlaufssynchronisation (max. 50 Nachrichten) und Canvas-Sprechblasen (6s) vollständig implementiert.
+- **Ausgeführte Checks:** `npm run typecheck` (0 Fehler), `npm run build` (0 Fehler), `dotnet test` (53/53 Tests erfolgreich: 34 ServerTests + 19 E2ETests).
 
 ## Nächste Aktion
-Neue Session startet direkt mit der Bestätigung und Umsetzung von Ticket 04 (`04-room-chat.md`).
-1. Vorgeschlagene Parameter für Ticket 04:
-   - Nachrichtenlänge: 1 bis maximal 200 Zeichen.
-   - Verlauf: max. 50 Nachrichten pro Raum (im Arbeitsspeicher).
-   - Sprechblasendauer: 6 Sekunden Anzeigedauer über der Spielfigur.
-   - Rate-Limit: max. 5 Nachrichten pro 3 Sekunden pro Verbindung.
-   - XSS-Schutz: Reiner Text, HTML-Tags werden neutralisiert.
-2. Nach Bestätigung Umsetzung in `RoomHub.cs`, `RoomSessionManager.cs`, `RoomRenderer.ts`, `AdventureGame.ts` und `index.html`.
-3. Automatisierte Absicherung via NUnit (Server) und Playwright E2E (Multi-Browser-Chat).
+1. Menschliche Abnahme von Ticket 04 durch den Benutzer.
+2. Nach Abnahme: Ticket 04 auf `done` setzen.
+3. Vorschlag und Start von Ticket 05 (`05-room-transitions.md`).
 
 ## Offene Annahmen
 Privater Testbetrieb, ca. zehn Personen, Desktop-Mausbedienung; keine kollidierenden Figuren; Reconnect als frischer Eintritt.
@@ -41,7 +36,7 @@ Privater Testbetrieb, ca. zehn Personen, Desktop-Mausbedienung; keine kollidiere
 - `npm run typecheck` in `src/AdventureChat.Client`: 0 Fehler.
 - `npm run build`: 0 Fehler (SignalR Client-Bundle nach wwwroot kopiert).
 - `dotnet build`: 0 Fehler, 0 Warnungen.
-- `dotnet test`: 41 Tests erfolgreich bestanden (27 ServerTests, 14 E2ETests).
+- `dotnet test`: 53 Tests erfolgreich bestanden (34 ServerTests, 19 E2ETests).
 
 ## Übergabeformat für spätere Änderungen
 Aktives Ticket, letzter nachgewiesener Stand, ausgeführte Checks und Ergebnisse, konkrete Blocker, nächster Schritt sowie Referenz auf Benutzerabnahme hier knapp festhalten. Erledigte Detailhistorie gehört ins jeweilige Ticket.

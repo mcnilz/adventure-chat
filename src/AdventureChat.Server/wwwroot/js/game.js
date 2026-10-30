@@ -33,10 +33,13 @@ export class AdventureGame {
     room;
     character;
     remotePlayers = new Map();
+    chatMessages = [];
     renderer;
     connectionStatus = 'disconnected';
     sessionId = 'local-player';
     playerName;
+    onChatMessage;
+    onConnectionStatusChanged;
     lastTimestamp = 0;
     isRunning = false;
     animationFrameId = null;
@@ -109,22 +112,29 @@ export class AdventureGame {
             this.hubConnection.on('PlayerMoved', (dto) => {
                 this.handlePlayerMoved(dto);
             });
+            this.hubConnection.on('ChatMessageReceived', (dto) => {
+                this.handleChatMessageReceived(dto);
+            });
             this.hubConnection.onreconnecting(() => {
-                this.connectionStatus = 'connecting';
+                this.setConnectionStatus('connecting');
             });
             this.hubConnection.onreconnected(async () => {
                 await this.joinRoom();
             });
             this.hubConnection.onclose(() => {
-                this.connectionStatus = 'disconnected';
+                this.setConnectionStatus('disconnected');
             });
             await this.hubConnection.start();
             await this.joinRoom();
         }
         catch (e) {
             console.error('Failed to initialize SignalR connection:', e);
-            this.connectionStatus = 'disconnected';
+            this.setConnectionStatus('disconnected');
         }
+    }
+    setConnectionStatus(status) {
+        this.connectionStatus = status;
+        this.onConnectionStatusChanged?.(status);
     }
     async joinRoom() {
         if (!this.hubConnection)
@@ -153,16 +163,23 @@ export class AdventureGame {
                         this.handleUserJoined(p);
                     }
                 }
-                this.connectionStatus = 'connected';
+                this.chatMessages.length = 0;
+                if (result.snapshot.recentMessages) {
+                    for (const msg of result.snapshot.recentMessages) {
+                        this.chatMessages.push(msg);
+                        this.onChatMessage?.(msg);
+                    }
+                }
+                this.setConnectionStatus('connected');
             }
             else {
                 console.error('JoinRoom rejected:', result.error);
-                this.connectionStatus = 'disconnected';
+                this.setConnectionStatus('disconnected');
             }
         }
         catch (e) {
             console.error('Error invoking JoinRoom:', e);
-            this.connectionStatus = 'disconnected';
+            this.setConnectionStatus('disconnected');
         }
     }
     handleUserJoined(player) {
@@ -198,6 +215,38 @@ export class AdventureGame {
             if (remote) {
                 this.applyPathToCharacter(remote, waypoints);
             }
+        }
+    }
+    handleChatMessageReceived(msg) {
+        this.chatMessages.push(msg);
+        const bubble = {
+            text: msg.text,
+            startTime: performance.now(),
+            duration: 6000,
+        };
+        if (msg.sessionId === this.sessionId) {
+            this.character.speechBubble = bubble;
+        }
+        else {
+            const remote = this.remotePlayers.get(msg.sessionId);
+            if (remote) {
+                remote.speechBubble = bubble;
+            }
+        }
+        this.onChatMessage?.(msg);
+    }
+    async sendChatMessage(text) {
+        if (!this.hubConnection || this.connectionStatus !== 'connected') {
+            return { success: false, error: 'Nicht mit dem Server verbunden.', message: null };
+        }
+        try {
+            const result = await this.hubConnection.invoke('SendChatMessage', {
+                text,
+            });
+            return result;
+        }
+        catch (e) {
+            return { success: false, error: String(e), message: null };
         }
     }
     screenToLogical(clientX, clientY) {

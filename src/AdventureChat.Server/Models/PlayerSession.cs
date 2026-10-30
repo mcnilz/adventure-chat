@@ -40,7 +40,27 @@ public record PlayerDto(
 public record RoomSnapshotDto(
     string RoomId,
     string YourSessionId,
-    IReadOnlyList<PlayerDto> Players
+    IReadOnlyList<PlayerDto> Players,
+    IReadOnlyList<ChatMessageDto> RecentMessages
+);
+
+public record ChatMessageDto(
+    string MessageId,
+    string SessionId,
+    string SenderName,
+    string Text,
+    DateTime Timestamp,
+    string RoomId
+);
+
+public record SendChatMessageRequestDto(
+    string Text
+);
+
+public record SendChatMessageResultDto(
+    bool Success,
+    string? Error,
+    ChatMessageDto? Message
 );
 
 public record JoinRoomRequestDto(

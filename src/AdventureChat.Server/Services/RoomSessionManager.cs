@@ -9,7 +9,14 @@ public partial class RoomSessionManager : IRoomSessionManager
     private readonly IRoomService _roomService;
     private readonly IPathfindingService _pathfinder;
     private readonly ConcurrentDictionary<string, PlayerSession> _sessionsByConnection = new();
+    private readonly ConcurrentDictionary<string, List<ChatMessageDto>> _roomChatHistory = new();
+    private readonly ConcurrentDictionary<string, Queue<DateTime>> _messageTimestampsByConnection = new();
     private readonly object _lock = new();
+
+    private const int MaxChatHistoryPerRoom = 50;
+    private const int MaxMessageLength = 200;
+    private const int RateLimitMaxMessages = 5;
+    private static readonly TimeSpan RateLimitWindow = TimeSpan.FromSeconds(3);
 
     public RoomSessionManager(IRoomService roomService, IPathfindingService pathfinder)
     {
@@ -58,7 +65,11 @@ public partial class RoomSessionManager : IRoomSessionManager
                 .Select(s => s.ToDto())
                 .ToList();
 
-            var snapshot = new RoomSnapshotDto(roomId, sessionId, players);
+            var recentMessages = _roomChatHistory.TryGetValue(roomId, out var list)
+                ? list.ToList()
+                : new List<ChatMessageDto>();
+
+            var snapshot = new RoomSnapshotDto(roomId, sessionId, players, recentMessages);
             return new JoinResult(true, null, session, snapshot);
         }
     }
@@ -67,6 +78,7 @@ public partial class RoomSessionManager : IRoomSessionManager
     {
         lock (_lock)
         {
+            _messageTimestampsByConnection.TryRemove(connectionId, out _);
             if (_sessionsByConnection.TryRemove(connectionId, out var session))
             {
                 return session;
@@ -167,6 +179,77 @@ public partial class RoomSessionManager : IRoomSessionManager
                 }
             }
         }
+    }
+
+    public IReadOnlyList<ChatMessageDto> GetRecentMessages(string roomId)
+    {
+        lock (_lock)
+        {
+            if (_roomChatHistory.TryGetValue(roomId, out var list))
+            {
+                return list.ToList();
+            }
+            return Array.Empty<ChatMessageDto>();
+        }
+    }
+
+    public SendChatMessageResult SendChatMessage(string connectionId, string text)
+    {
+        if (!_sessionsByConnection.TryGetValue(connectionId, out var session))
+        {
+            return new SendChatMessageResult(false, "Player session not found. Please join room first.", null);
+        }
+
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return new SendChatMessageResult(false, "Message cannot be empty.", null);
+        }
+
+        var trimmedText = text.Trim();
+        if (trimmedText.Length > MaxMessageLength)
+        {
+            return new SendChatMessageResult(false, $"Message exceeds maximum length of {MaxMessageLength} characters.", null);
+        }
+
+        // Rate limiting check: Max 5 messages in 3 seconds
+        var now = DateTime.UtcNow;
+        var timestamps = _messageTimestampsByConnection.GetOrAdd(connectionId, _ => new Queue<DateTime>());
+        lock (timestamps)
+        {
+            while (timestamps.Count > 0 && now - timestamps.Peek() > RateLimitWindow)
+            {
+                timestamps.Dequeue();
+            }
+
+            if (timestamps.Count >= RateLimitMaxMessages)
+            {
+                return new SendChatMessageResult(false, $"Rate limit exceeded. Maximum {RateLimitMaxMessages} messages per {RateLimitWindow.TotalSeconds:F0} seconds allowed.", null);
+            }
+
+            timestamps.Enqueue(now);
+        }
+
+        var message = new ChatMessageDto(
+            Guid.NewGuid().ToString("N"),
+            session.SessionId,
+            session.DisplayName,
+            trimmedText,
+            now,
+            session.RoomId
+        );
+
+        lock (_lock)
+        {
+            var history = _roomChatHistory.GetOrAdd(session.RoomId, _ => new List<ChatMessageDto>());
+            history.Add(message);
+            if (history.Count > MaxChatHistoryPerRoom)
+            {
+                history.RemoveAt(0);
+            }
+            session.LastActivity = now;
+        }
+
+        return new SendChatMessageResult(true, null, message);
     }
 
     private static string SanitizeDisplayName(string? name, string connectionId)

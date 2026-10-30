@@ -148,4 +148,112 @@ public class RoomSessionManagerTests
         Assert.That(result.Success, Is.False);
         Assert.That(result.Error, Does.Contain("not found"));
     }
+
+    [Test]
+    public void SendChatMessage_ValidMessage_ReturnsSuccessAndStoresInRoomHistory()
+    {
+        _manager.JoinRoom("conn-1", "lounge", "Guybrush");
+
+        var result = _manager.SendChatMessage("conn-1", "Hello SCUMM Bar!");
+
+        Assert.That(result.Success, Is.True);
+        Assert.That(result.Message, Is.Not.Null);
+        Assert.That(result.Message!.Text, Is.EqualTo("Hello SCUMM Bar!"));
+        Assert.That(result.Message.SenderName, Is.EqualTo("Guybrush"));
+        Assert.That(result.Message.RoomId, Is.EqualTo("lounge"));
+        Assert.That(result.Message.MessageId, Is.Not.Null.And.Not.Empty);
+
+        var history = _manager.GetRecentMessages("lounge");
+        Assert.That(history.Count, Is.EqualTo(1));
+        Assert.That(history[0].Text, Is.EqualTo("Hello SCUMM Bar!"));
+    }
+
+    [Test]
+    public void SendChatMessage_EmptyOrWhitespaceMessage_Fails()
+    {
+        _manager.JoinRoom("conn-1", "lounge", "Guybrush");
+
+        var result1 = _manager.SendChatMessage("conn-1", "");
+        var result2 = _manager.SendChatMessage("conn-1", "   \t \n ");
+
+        Assert.That(result1.Success, Is.False);
+        Assert.That(result1.Error, Does.Contain("empty"));
+        Assert.That(result2.Success, Is.False);
+        Assert.That(result2.Error, Does.Contain("empty"));
+    }
+
+    [Test]
+    public void SendChatMessage_MessageExceeding200Chars_Fails()
+    {
+        _manager.JoinRoom("conn-1", "lounge", "Guybrush");
+        var longMessage = new string('x', 201);
+
+        var result = _manager.SendChatMessage("conn-1", longMessage);
+
+        Assert.That(result.Success, Is.False);
+        Assert.That(result.Error, Does.Contain("200"));
+    }
+
+    [Test]
+    public void SendChatMessage_ExceedingRateLimit_RejectsExcessMessages()
+    {
+        _manager.JoinRoom("conn-1", "lounge", "Guybrush");
+
+        // Send 5 allowed messages quickly
+        for (int i = 1; i <= 5; i++)
+        {
+            var res = _manager.SendChatMessage("conn-1", $"Msg {i}");
+            Assert.That(res.Success, Is.True, $"Message {i} should succeed within rate limit");
+        }
+
+        // 6th message should be rejected due to rate limiting
+        var blockedRes = _manager.SendChatMessage("conn-1", "Msg 6 (spammed)");
+        Assert.That(blockedRes.Success, Is.False);
+        Assert.That(blockedRes.Error, Does.Contain("Rate limit"));
+    }
+
+    [Test]
+    public void SendChatMessage_MaintainsMax50MessagesInRoomHistory()
+    {
+        _manager.JoinRoom("conn-1", "lounge", "Guybrush");
+
+        // Send 60 messages from different mock connections or within limit simulation
+        for (int i = 1; i <= 60; i++)
+        {
+            var conn = $"conn-{i}";
+            _manager.JoinRoom(conn, "lounge", $"Player-{i}");
+            var res = _manager.SendChatMessage(conn, $"Message #{i}");
+            Assert.That(res.Success, Is.True);
+        }
+
+        var history = _manager.GetRecentMessages("lounge");
+        Assert.That(history.Count, Is.EqualTo(50));
+        // Oldest messages 1..10 should have been pruned; oldest remaining is #11, newest is #60
+        Assert.That(history[0].Text, Is.EqualTo("Message #11"));
+        Assert.That(history[^1].Text, Is.EqualTo("Message #60"));
+    }
+
+    [Test]
+    public void JoinRoom_ProvidesRecentRoomMessagesInSnapshot()
+    {
+        _manager.JoinRoom("conn-1", "lounge", "Guybrush");
+        _manager.SendChatMessage("conn-1", "Welcome to the tavern!");
+
+        var joinResult = _manager.JoinRoom("conn-2", "lounge", "Elaine");
+
+        Assert.That(joinResult.Success, Is.True);
+        Assert.That(joinResult.Snapshot, Is.Not.Null);
+        Assert.That(joinResult.Snapshot!.RecentMessages.Count, Is.EqualTo(1));
+        Assert.That(joinResult.Snapshot.RecentMessages[0].Text, Is.EqualTo("Welcome to the tavern!"));
+        Assert.That(joinResult.Snapshot.RecentMessages[0].SenderName, Is.EqualTo("Guybrush"));
+    }
+
+    [Test]
+    public void SendChatMessage_UnknownConnection_Fails()
+    {
+        var result = _manager.SendChatMessage("unknown-conn", "Hello?");
+
+        Assert.That(result.Success, Is.False);
+        Assert.That(result.Error, Does.Contain("not found"));
+    }
 }

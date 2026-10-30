@@ -11,6 +11,12 @@ export interface RoomGeometry {
 export type FacingDirection = 'left' | 'right' | 'up' | 'down';
 export type CharacterState = 'idle' | 'walk';
 
+export interface SpeechBubble {
+  readonly text: string;
+  readonly startTime: number;
+  readonly duration: number; // in milliseconds (e.g. 6000ms = 6s)
+}
+
 export interface Character {
   id: string;
   name: string;
@@ -22,6 +28,7 @@ export interface Character {
   speed: number; // logical pixels per second
   walkFrame: number;
   frameTimer: number;
+  speechBubble?: SpeechBubble | null;
 }
 
 export interface RoomDefinition {
@@ -32,6 +39,25 @@ export interface RoomDefinition {
   readonly backgroundUrl: string;
   readonly geometry: RoomGeometry;
   readonly spawnPoint: Point;
+}
+
+export interface ChatMessageDto {
+  readonly messageId: string;
+  readonly sessionId: string;
+  readonly senderName: string;
+  readonly text: string;
+  readonly timestamp: string;
+  readonly roomId: string;
+}
+
+export interface SendChatMessageRequestDto {
+  readonly text: string;
+}
+
+export interface SendChatMessageResultDto {
+  readonly success: boolean;
+  readonly error: string | null;
+  readonly message: ChatMessageDto | null;
 }
 
 export interface PlayerDto {
@@ -48,6 +74,7 @@ export interface RoomSnapshotDto {
   readonly roomId: string;
   readonly yourSessionId: string;
   readonly players: ReadonlyArray<PlayerDto>;
+  readonly recentMessages?: ReadonlyArray<ChatMessageDto>;
 }
 
 export interface PlayerMovedDto {
