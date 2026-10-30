@@ -4,7 +4,7 @@
 
 **Blocked by:** 02
 
-**Status:** ready-for-human
+**Status:** done
 
 ## Acceptance criteria
 
@@ -28,11 +28,12 @@ Gemeinsamer Fachkontext: [Spezifikation](../../../SPEC.md), [Architektur](../../
   - `IRoomSessionManager` und `RoomSessionManager` für die Verwaltung von Spielersitzungen, Verbindungsaufbau, Reconnect, Snapshot-Erstellung und servervalidierte Echtzeit-Wegfindung umgesetzt.
   - `@microsoft/signalr@9.0.6` (MIT-Lizenz) im Client eingebunden und über Build-Skript bereitgestellt.
   - `RoomRenderer` und `AdventureGame` um Multi-User-Rendering mit Y-Tiefensortierung, individuelle Namensschilder über den Charakteren und synchrone Wegpunkt-Animation erweitert.
+  - Optimierung der Wegfindung: Corner-Clearance (14px Ecksicherheitsabstand) und dynamische Übergabe der aktuellen Spielerposition bei Folgeklicks im Lauf für unterbrechungsfreie Bewegungskorrekturen.
 - **Checks:**
   - `npm run typecheck` (`tsc --noEmit`): 0 Fehler.
   - `npm run build`: 0 Fehler.
   - `dotnet build`: 0 Fehler, 0 Warnungen.
-  - `AdventureChat.ServerTests`: 25 Tests erfolgreich (Sitzungsmanagement, Reconnect, Namensbereinigung, Wegfindung, Snapshot).
+  - `AdventureChat.ServerTests`: 27 Tests erfolgreich (Sitzungsmanagement, Reconnect, Namensbereinigung, Wegfindung mit Ecksicherheit, Snapshot).
   - `AdventureChat.E2ETests`: 14 Playwright-E2E-Tests erfolgreich (Multi-Browser-Sichtbarkeit, Echtzeit-Bewegungssynchronisation, Late-Join mit laufender Bewegung, Disconnect und Reconnect ohne Geisterfiguren).
 - **Abhängigkeitsbegründung `@microsoft/signalr`:**
   - *Nutzen:* Offizieller WebSocket/SignalR-Client für ASP.NET Core zur Echtzeitsynchronisation.
@@ -40,4 +41,5 @@ Gemeinsamer Fachkontext: [Spezifikation](../../../SPEC.md), [Architektur](../../
   - *Lizenz:* MIT.
   - *Wartung:* Microsoft ASP.NET Core Team.
   - *Transitive Abhängigkeiten:* Im Browser 0 Laufzeit-Abhängigkeiten (nutzt native `WebSocket`- und `fetch`-APIs).
+- **Menschliche Abnahme:** Erfolgreich bestätigt.
 
