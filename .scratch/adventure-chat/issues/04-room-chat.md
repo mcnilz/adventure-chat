@@ -4,7 +4,7 @@
 
 **Blocked by:** 03
 
-**Status:** ready-for-human
+**Status:** done
 
 ## Acceptance criteria
 
@@ -24,5 +24,5 @@ Namen-/Nachrichtenlänge (max. 200 Zeichen), Verlaufslimit (50 Nachrichten), Spr
 ## Abschluss
 - Ausgeführte Checks: `npm run typecheck` (0 Fehler), `npm run build` (0 Fehler), `dotnet test` (53/53 Tests bestanden: 34 Server-Tests, 19 Playwright-E2E-Tests).
 - Reviewbefunde: Alle Akzeptanzkriterien erfüllt, XSS durch ausschließliche Text-Content-Zuweisung ausgeschlossen, Rate-Limiting und Raum-Isolation serverseitig über SignalR-Hub und SessionManager abgesichert.
-- Status: `ready-for-human` (Wartet auf menschliche Abnahme).
+- Status: `done` (Menschlich abgenommen durch Benutzer am 30.10.2026).
 
