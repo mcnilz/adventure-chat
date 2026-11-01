@@ -172,16 +172,22 @@ export class AdventureGame {
   }
 
   private async joinRoom(): Promise<void> {
-    const result = await this.networkClient.joinRoom(this.state.room.id, this.state.playerName);
-    if (result.success && result.snapshot) {
-      this.applyRoomSnapshot(result.snapshot);
-      this.state.chatMessages.length = 0;
-      if (result.snapshot.recentMessages) {
-        for (const msg of result.snapshot.recentMessages) {
-          this.state.chatMessages.push(msg);
-          this.onChatMessage?.(msg);
+    this.changingRoom = true;
+    try {
+      const result = await this.networkClient.joinRoom(this.state.room.id, this.state.playerName);
+      if (result.success && result.snapshot) {
+        this.applyRoomSnapshot(result.snapshot);
+        this.state.chatMessages.length = 0;
+        if (result.snapshot.recentMessages) {
+          for (const msg of result.snapshot.recentMessages) {
+            this.state.chatMessages.push(msg);
+            this.onChatMessage?.(msg);
+          }
         }
       }
+    } finally {
+      this.changingRoom = false;
+      for (const event of this.pendingEvents.splice(0)) event();
     }
   }
 

@@ -152,7 +152,7 @@ public partial class RoomSessionManager : IRoomSessionManager
         }
     }
 
-    public RoomSnapshotDto? GetSnapshot(string connectionId)
+    public RoomSnapshotDto? GetSnapshot(string connectionId, bool includeHistory = false)
     {
         lock (_lock)
         {
@@ -161,7 +161,9 @@ public partial class RoomSessionManager : IRoomSessionManager
             if (room is null) return null;
             var players = _sessionsByConnection.Values.Where(s => s.RoomId == session.RoomId).ToList();
             foreach (var player in players) AdvanceMovement(player);
-            return new RoomSnapshotDto(session.RoomId, session.SessionId, players.Select(p => p.ToDto()).ToList(), Array.Empty<ChatMessageDto>(), room.ToDto());
+            var history = includeHistory && _roomChatHistory.TryGetValue(session.RoomId, out var messages)
+                ? messages.ToList() : new List<ChatMessageDto>();
+            return new RoomSnapshotDto(session.RoomId, session.SessionId, players.Select(p => p.ToDto()).ToList(), history, room.ToDto());
         }
     }
 

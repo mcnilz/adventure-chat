@@ -131,6 +131,7 @@ export class RoomState {
 
   public handleChatMessage(msg: ChatMessageDto): void {
     if (msg.roomId !== this.room.id) return;
+    if (this.chatMessages.some(message => message.messageId === msg.messageId)) return;
     this.chatMessages.push(msg);
 
     const bubble = {

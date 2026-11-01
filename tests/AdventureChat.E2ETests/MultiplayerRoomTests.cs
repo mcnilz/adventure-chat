@@ -7,6 +7,41 @@ namespace AdventureChat.E2ETests;
 public class MultiplayerRoomTests
 {
     [Test]
+    public async Task JoinWhileInitialSnapshotIsInFlight_IsAppliedAfterSnapshot()
+    {
+        await using var first = await _browser.NewContextAsync();
+        await using var second = await _browser.NewContextAsync();
+        var page1 = await first.NewPageAsync();
+        await page1.AddInitScriptAsync("""
+            (() => {
+                let library;
+                Object.defineProperty(window, 'signalR', {
+                    configurable: true,
+                    get: () => library,
+                    set: value => {
+                        library = value;
+                        const original = value.HubConnection.prototype.invoke;
+                        value.HubConnection.prototype.invoke = async function(method, ...args) {
+                            const result = await original.call(this, method, ...args);
+                            if (method === 'JoinRoom' && result.success) {
+                                window.joinHeld = true;
+                                await new Promise(resolve => { window.releaseJoin = resolve; });
+                            }
+                            return result;
+                        };
+                    }
+                });
+            })();
+            """);
+        await page1.GotoAsync($"{_server.BaseUrl}?name=First");
+        await page1.WaitForFunctionAsync("() => window.joinHeld === true");
+        var page2 = await second.NewPageAsync();
+        await page2.GotoAsync($"{_server.BaseUrl}?name=Second");
+        await page2.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__?.connectionStatus === 'connected'");
+        await page1.EvaluateAsync("() => window.releaseJoin()");
+        await page1.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.connectionStatus === 'connected' && window.__ADVENTURE_GAME__.remotePlayers.size === 1");
+    }
+    [Test]
     public async Task SignalR_RepeatedJoinAndForgedProgress_CannotChangeSession()
     {
         await using var context = await _browser.NewContextAsync();

@@ -22,11 +22,13 @@ public class RoomHub : Hub
         }
 
         await Groups.AddToGroupAsync(Context.ConnectionId, request.RoomId);
+        var snapshot = _sessionManager.GetSnapshot(Context.ConnectionId, includeHistory: true);
+        if (snapshot is null) return new JoinRoomResultDto(false, "Session not found.", null);
 
         // Notify other players in the room about the new participant
         await Clients.OthersInGroup(request.RoomId).SendAsync("UserJoined", new UserJoinedDto(result.Session.ToDto(), request.RoomId));
 
-        return new JoinRoomResultDto(true, null, result.Snapshot);
+        return new JoinRoomResultDto(true, null, snapshot);
     }
 
     public async Task<ChangeRoomResultDto> ChangeRoom(ChangeRoomRequestDto request)

@@ -11,7 +11,7 @@ public interface IRoomSessionManager
 {
     JoinResult JoinRoom(string connectionId, string roomId, string? displayName, Point2D? initialPosition = null);
     ChangeRoomResult ChangeRoom(string connectionId, string exitId);
-    RoomSnapshotDto? GetSnapshot(string connectionId);
+    RoomSnapshotDto? GetSnapshot(string connectionId, bool includeHistory = false);
     PlayerSession? Leave(string connectionId);
     PlayerSession? GetPlayer(string connectionId);
     IReadOnlyList<PlayerSession> GetPlayersInRoom(string roomId);
