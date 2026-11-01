@@ -1,5 +1,5 @@
 # Aktueller Stand
-Revision 19 · 01.11.2026.
+Revision 20 · 01.11.2026.
 
 ## Vorhanden
 - [x] Gespräch in Spezifikation, Architektur, Autorenformat und Tickets überführt.
@@ -31,18 +31,18 @@ Revision 19 · 01.11.2026.
 - [ ] Git-Repository und endgültiger Projektname festgelegt.
 
 ## Aktives Ticket
-- **Ticket 08:** `in-progress`; Basis `ef43f41`. Bewegung, Ausgangsprüfung, Ereignisbezug, Reconnect, Autorenmodus und YAML-Startprüfung bearbeitet. Einzelne Regressionen einschließlich echter Wiederverbindung bestanden. Locked Restore, Clientbuild und Server-Suite (87 Tests) bestanden; Browser-Gesamtsuite und Review nach letzten Änderungen laufen noch. Details im Ticket `.scratch/adventure-chat/issues/08-mvp-stabilization.md`.
+- **Ticket 08:** `ready-for-human`; Basis `ef43f41`. Bewegung, Raumwechsel, Reconnect, Autorenmodus und YAML-Startprüfung implementiert. Locked Restore, Client-Typcheck und Build, .NET-Build sowie 87 Server- und 43 Browsertests bestanden. Standards- und Spec-Review durchgeführt, Befunde korrigiert und nachgeprüft. Nachweise und Grenzen im Ticket `.scratch/adventure-chat/issues/08-mvp-stabilization.md`.
 - **Vorherige Tickets:** 01 bis 07 sind menschlich abgenommen (`done`).
 - **Historischer Stand vor Ticket 08:** 106 Tests wurden für Tickets 01–07 gemeldet. Diese Zahl ist kein Nachweis für den aktuellen Arbeitsstand.
 
 ## Nächste Aktion
-Ticket 08: laufende Browser-Gesamtsuite abschließen, vollständigen Review gegen `ef43f41` durchführen und dessen Befunde bearbeiten; erst danach menschliche Abnahme vorbereiten.
+Menschliche Abnahme von Ticket 08 anhand der Schritte im Ticket; erst ausdrückliche Abnahme setzt es auf `done`.
 
 ## Offene Annahmen
 Privater Testbetrieb, ca. zehn Personen, Desktop-Mausbedienung; keine kollidierenden Figuren; Reconnect als frischer Eintritt.
 
 ## Checks
-- Ticket 08: Client-Typcheck und Build, Locked Restore sowie .NET-Build erfolgreich; Server-Suite zuletzt 87 Tests erfolgreich. Browser-Gesamtlauf nach Änderungen und Review sind noch offen.
+- Ticket 08: Client-Typcheck und Build, Locked Restore, .NET-Build, 87 Server- und 43 Browsertests erfolgreich. Ein vorheriger Gesamtlauf hatte einen Browserstartfehler; die getrennten abschließenden Suiten bestanden.
 
 ## Übergabeformat für spätere Änderungen
 Aktives Ticket, letzter nachgewiesener Stand, ausgeführte Checks und Ergebnisse, konkrete Blocker, nächster Schritt sowie Referenz auf Benutzerabnahme hier knapp festhalten. Erledigte Detailhistorie gehört ins jeweilige Ticket.

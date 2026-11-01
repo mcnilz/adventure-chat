@@ -240,13 +240,15 @@ public class EditorEndpointTests
     [Test]
     public async Task UploadBackground_InvalidPngSignature_IsRejected()
     {
-        var status = await _client.GetFromJsonAsync<JsonElement>("/api/editor/status");
+        var existing = Path.Combine(_tempContentDir, "webroot", "assets", "images", "invalid-signature.png");
+        await File.WriteAllBytesAsync(existing, [9, 8, 7]);
         using var request = new HttpRequestMessage(HttpMethod.Post, "/api/editor/backgrounds");
         var form = new MultipartFormDataContent();
         form.Add(new ByteArrayContent([1, 2, 3, 4]), "file", "invalid-signature.png");
         request.Content = form;
         var response = await _client.SendAsync(request);
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+        Assert.That(await File.ReadAllBytesAsync(existing), Is.EqualTo(new byte[] { 9, 8, 7 }));
     }
 
     [TestCase("image.svg", false)]
