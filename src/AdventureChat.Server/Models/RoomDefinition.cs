@@ -26,7 +26,8 @@ public sealed record RoomDefinition(
     Point2D SpawnPoint,
     RoomGeometry Geometry,
     IReadOnlyList<RoomSpawn>? Spawns = null,
-    IReadOnlyList<RoomExit>? Exits = null
+    IReadOnlyList<RoomExit>? Exits = null,
+    string? Notes = null
 )
 {
     public IReadOnlyList<RoomSpawn> Spawns { get; init; } = Spawns ?? new List<RoomSpawn> { new("entry", SpawnPoint) };

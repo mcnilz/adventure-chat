@@ -1,5 +1,5 @@
 # Aktueller Stand
-Revision 11 · 01.11.2026.
+Revision 13 · 01.11.2026.
 
 ## Vorhanden
 - [x] Gespräch in Spezifikation, Architektur, Autorenformat und Tickets überführt.
@@ -16,32 +16,34 @@ Revision 11 · 01.11.2026.
 - [x] UI-Layout-Fix: Chatleiste als eigenständiger Bereich unterhalb des Canvas angedockt (kein transparentes Overlay auf Gehbereich).
 - [x] SCUMM-Aktionszeile ("Walk to" / "Go to [Raumname]") direkt unterhalb des Spielfelds implementiert.
 - [x] Visuelle Erkennbarkeit von Raumübergängen geschärft (beleuchtete Holzschilder, Laternen, pulsierende Türrahmen bei Mouseover, vollflächige Tür-Hitboxen).
-- [x] Ticket 05 (Raumübergänge und Türen) vollständig umgesetzt und getestet (Status: `ready-for-human`).
+- [x] Ticket 05 (Raumübergänge und Türen) vollständig umgesetzt, getestet und menschlich abgenommen (Status: `done`).
 - [x] Client-Codebase modularisiert (Single-Responsibility-Module für Netzwerk, Zustand, Simulation, Input, Renderer-Ebenen und UI).
 - [x] Clean Code & AI-Agent Guidelines in `docs/agents/coding-standards.md`, `AGENTS.md` und `ARCHITECTURE.md` hinterlegt.
+- [x] Versioniertes JSON Schema (`schemas/room.schema.json`) und kanonisches YAML-Autorenformat implementiert.
+- [x] Lokaler Browser-Raumeditor (`wwwroot/editor.html`) mit Polygon-, Spawn- und Ausgangs-Tools, Validierung und Vorschau-Modus umgesetzt.
+- [x] Ticket 06 (Raumeditor und YAML-Speicherung) vollständig umgesetzt und getestet (Status: `ready-for-human`).
 - [ ] Skills installiert oder im Zielprojekt geprüft.
 - [ ] Git-Repository und endgültiger Projektname festgelegt.
 - [ ] MVP abgenommen.
 
 ## Aktives Ticket
-- **Ticket:** `05-room-transitions.md` (Zwischen zwei Räumen wechseln und getrennt chatten)
+- **Ticket:** `06-room-editor.md` (Eigenen PNG-Raum im Browsereditor erstellen und speichern)
 - **Status:** `ready-for-human` (wartet auf menschliche Abnahme durch den Benutzer)
-- **Letzter Stand:** Modularisierung des TypeScript-Clients abgeschlossen, Clean-Code- und Agenten-Richtlinien hinterlegt. Zweiter Raum ("Tavernen-Garten"), Ausgangs-Navigation mit automatischem Raumwechsel bei Ankunft, SCUMM-Aktionszeile ("Go to [Raumname]"), beleuchtete Schilder und Laternen an Durchgängen, interaktive Tür-Hitboxen mit Mouseover-Highlighting, SignalR-Gruppenmigration und Chat-Isolation implementiert.
-- **Ausgeführte Checks:** `npm run typecheck` (0 Fehler), `npm run build` (0 Fehler), `dotnet test` (61/61 Tests erfolgreich: 39 ServerTests + 22 E2ETests).
+- **Letzter Stand:** Versioniertes JSON Schema `schemas/room.schema.json` bereitgestellt (`/schemas/room.schema.json`). Backend-Dienste für YAML-Serialisierung (`YamlDotNet`), geometrische und semantische Validierung (`JsonSchema.Net`), Pfad-Traversierungs-Schutz und atomares Speichern unter `/api/editor/...` implementiert. Browser-Editor unter `/editor.html` mit visueller Polygon- und Spawn-Bearbeitung, Drag & Drop von Knotenpunkten, Echtzeit-Validierungsanzeige und Vorschau-Modus mit Live-Laufanimationen umgesetzt.
+- **Ausgeführte Checks:** `npm run typecheck` (0 Fehler), `npm run build` (0 Fehler), `dotnet test` (86/86 Tests erfolgreich: 60 ServerTests + 26 E2ETests).
 
 ## Nächste Aktion
-1. Menschliche Abnahme von Ticket 05 durch den Benutzer.
-2. Nach Abnahme: Ticket 05 auf `done` setzen.
-3. Vorbereitung und Start von Ticket 06 (`06-room-editor.md`).
+1. Menschliche Abnahme von Ticket 06 durch den Benutzer (oder Übernahme in Status `done`).
+2. Vorschlag des nächsten Tickets (z. B. Ticket 07).
 
 ## Offene Annahmen
 Privater Testbetrieb, ca. zehn Personen, Desktop-Mausbedienung; keine kollidierenden Figuren; Reconnect als frischer Eintritt.
 
 ## Checks
 - `npm run typecheck` in `src/AdventureChat.Client`: 0 Fehler.
-- `npm run build`: 0 Fehler (SignalR Client-Bundle nach wwwroot kopiert).
+- `npm run build`: 0 Fehler (TypeScript kompiliert und SignalR-Bundle kopiert).
 - `dotnet build`: 0 Fehler, 0 Warnungen.
-- `dotnet test`: 61 Tests erfolgreich bestanden (39 ServerTests, 22 E2ETests).
+- `dotnet test`: 86 Tests erfolgreich bestanden (60 ServerTests, 26 E2ETests).
 
 ## Übergabeformat für spätere Änderungen
 Aktives Ticket, letzter nachgewiesener Stand, ausgeführte Checks und Ergebnisse, konkrete Blocker, nächster Schritt sowie Referenz auf Benutzerabnahme hier knapp festhalten. Erledigte Detailhistorie gehört ins jeweilige Ticket.

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Adventure Chat – Raumeditor</title>
+  <link rel="stylesheet" href="css/style.css?v=5">
+  <link rel="stylesheet" href="css/editor.css?v=1">
+</head>
+<body class="editor-body">
+  <div id="editor-app-container">
+    <!-- Top Header & Toolbar -->
+    <header class="editor-header">
+      <div class="editor-header-left">
+        <h1 class="editor-title">🗺️ Raumeditor</h1>
+        <div class="room-selector-group">
+          <label for="room-select">Raum:</label>
+          <select id="room-select" class="editor-select"></select>
+          <button id="btn-new-room" class="btn-secondary" title="Neuen leeren Raum anlegen">➕ Neu</button>
+        </div>
+        <span id="unsaved-badge" class="badge-unsaved" style="display: none;">⚠️ Ungespeichert</span>
+      </div>
+      <div class="editor-header-right">
+        <button id="btn-validate" class="btn-secondary" title="Raum-Geometrie und Schema prüfen">🔍 Prüfen</button>
+        <button id="btn-save" class="btn-primary" title="Raum als YAML im Projekt speichern">💾 Speichern</button>
+        <button id="btn-toggle-mode" class="btn-preview" title="Begehbarkeit in Vorschau testen">▶️ Raum-Vorschau</button>
+        <a href="index.html" class="btn-nav" title="Zum Chat-Spiel zurückkehren">🎮 Zum Spiel</a>
+      </div>
+    </header>
+
+    <!-- Status Banner -->
+    <div id="status-banner" class="status-banner status-info">Bereit.</div>
+
+    <!-- Main Editor Grid Layout -->
+    <div class="editor-main-layout">
+      <!-- Canvas & Drawing Tools -->
+      <main class="editor-canvas-column">
+        <div class="canvas-wrapper">
+          <canvas id="editor-canvas" width="640" height="360"></canvas>
+        </div>
+        <nav class="editor-canvas-toolbar" aria-label="Editor Werkzeuge">
+          <button id="tool-select" class="tool-btn active" title="Punkte/Spawns anklicken oder verschieben">🖱️ Auswählen / Ziehen</button>
+          <button id="tool-walkable" class="tool-btn" title="Klicke auf den Canvas, um Punkte zur begehbaren Fläche hinzuzufügen">🟩 Bodenpunkte (+)</button>
+          <button id="tool-obstacle" class="tool-btn" title="Klicke auf den Canvas, um Hindernispunkte hinzuzufügen">🟥 Hindernis (+)</button>
+          <button id="tool-spawn" class="tool-btn" title="Klicke, um einen Startpunkt (Spawn) zu setzen">📍 Spawn setzen</button>
+          <button id="tool-exit" class="tool-btn" title="Klicke, um einen Ausgang zu platzieren">🚪 Ausgang setzen</button>
+          <button id="btn-delete-vertex" class="tool-btn btn-danger" title="Ausgewählten Punkt löschen">🗑️ Punkt löschen</button>
+        </nav>
+      </main>
+
+      <!-- Sidebar Form & Metadata -->
+      <aside class="editor-sidebar">
+        <section class="sidebar-section">
+          <h2>Raum-Eigenschaften</h2>
+          <div class="form-group">
+            <label for="input-id">Raum-ID (Dateiname):</label>
+            <input type="text" id="input-id" placeholder="z. B. dungeon" pattern="^[a-zA-Z0-9_-]+$" required>
+          </div>
+          <div class="form-group">
+            <label for="input-name">Anzeigename:</label>
+            <input type="text" id="input-name" placeholder="z. B. Dunkles Verlies" required>
+          </div>
+          <div class="form-group">
+            <label for="input-bg">Hintergrundbild (PNG):</label>
+            <input type="text" id="input-bg" placeholder="assets/images/lounge.png" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="input-width">Breite:</label>
+              <input type="number" id="input-width" value="640" readonly>
+            </div>
+            <div class="form-group">
+              <label for="input-height">Höhe:</label>
+              <input type="number" id="input-height" value="360" readonly>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="input-notes">Notizen (Notes):</label>
+            <textarea id="input-notes" rows="3" placeholder="Interne Autorenhinweise..."></textarea>
+          </div>
+        </section>
+
+        <!-- Schema & YAML Note -->
+        <section class="sidebar-section info-card">
+          <h3>ℹ️ Kanonischer YAML-Export</h3>
+          <p>
+            Räume werden strikt gegen das Schema <code>schemas/room.schema.json</code> validiert.
+            Formatierungen und manuelle Kommentare werden beim kanonischen Export normalisiert.
+            Fachliche Hinweise im Feld <strong>Notizen</strong> bleiben vollständig erhalten.
+          </p>
+        </section>
+
+        <!-- Validation Error List -->
+        <section class="sidebar-section errors-card">
+          <h3>Validierungsfehler</h3>
+          <ul id="error-list" class="error-list" style="display: none;"></ul>
+        </section>
+      </aside>
+    </div>
+  </div>
+
+  <script type="module" src="js/editor/editor-main.js?v=1"></script>
+</body>
+</html>

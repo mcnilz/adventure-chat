@@ -4,7 +4,7 @@
 
 **Blocked by:** 04
 
-**Status:** ready-for-human
+**Status:** done
 
 ## Acceptance criteria
 
@@ -14,6 +14,8 @@
 - [x] Beim Wechsel bleibt der persönliche Chatverlauf erhalten und der Raumwechsel wird mit einer Systemnachricht kenntlich gemacht.
 - [x] Manipulierte Raumwechsel und nicht existierende Zielspawns werden serverseitig zurückgewiesen.
 - [x] Verspätete Bewegungs-/Chatereignisse aus dem alten Raum beschädigen den neuen Zustand nicht.
+
+- [x] Visuelle Overlays und Tür-Hoverboxen im regulären Spielbetrieb deaktiviert (nur im Debug-Modus aktiv, Steuerung über SCUMM-Aktionszeile).
 
 ## Testgrenzen – vor Beginn bestätigen
 Browserbedienung und öffentliche Raum-/Chatkommandos.
@@ -26,7 +28,7 @@ Browserbedienung und öffentliche Raum-/Chatkommandos.
 Gemeinsamer Fachkontext: [Spezifikation](../../../SPEC.md), [Architektur](../../../ARCHITECTURE.md), [Tests](../../../TESTING.md), [Autorenformat](../../../CONTENT-FORMAT.md). Root-AGENTS.md gilt.
 
 ## Abschluss
-- Ausgeführte Checks: `npm run typecheck` (0 Fehler), `npm run build` (0 Fehler), `dotnet test` (60/60 Tests bestanden: 39 Server-Tests, 21 Playwright-E2E-Tests).
-- Reviewbefunde: Alle Akzeptanzkriterien erfüllt, Raumwechsel über SignalR-Gruppentrennung und SessionManager-Validierung abgesichert, Chatnachrichten und Figurenpositionen bleiben strikt raumgebunden.
+- Ausgeführte Checks: `npm run typecheck` (0 Fehler), `npm run build` (0 Fehler), `dotnet test` (61/61 Tests bestanden: 39 Server-Tests, 22 Playwright-E2E-Tests).
+- Reviewbefunde: Alle Akzeptanzkriterien erfüllt, Raumwechsel über SignalR-Gruppentrennung und SessionManager-Validierung abgesichert, Chatnachrichten und Figurenpositionen bleiben strikt raumgebunden, SCUMM-Aktionszeile liefert klares Feedback.
 - Status: `ready-for-human` (Wartet auf menschliche Abnahme).
 

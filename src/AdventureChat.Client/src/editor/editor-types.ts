@@ -1,0 +1,72 @@
+export type EditorMode = 'edit' | 'preview';
+
+export type EditorTool = 'select' | 'add-walkable' | 'add-obstacle' | 'add-spawn' | 'add-exit';
+
+export interface RoomPointDto {
+  x: number;
+  y: number;
+}
+
+export interface RoomSpawnDto {
+  id: string;
+  position: RoomPointDto;
+}
+
+export interface RoomPolygonDto {
+  id: string;
+  points: RoomPointDto[];
+}
+
+export interface RoomRectDto {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+export interface RoomExitTargetDto {
+  room: string;
+  spawn: string;
+}
+
+export interface RoomExitDto {
+  id: string;
+  position: RoomPointDto;
+  radius: number;
+  bounds?: RoomRectDto | null;
+  label?: string | null;
+  target: RoomExitTargetDto;
+}
+
+export interface RoomYamlDto {
+  version: number;
+  id: string;
+  name: string;
+  background: string;
+  size: {
+    width: number;
+    height: number;
+  };
+  spawns: RoomSpawnDto[];
+  walkable: RoomPolygonDto[];
+  obstacles?: RoomPolygonDto[] | null;
+  exits?: RoomExitDto[] | null;
+  notes?: string | null;
+}
+
+export interface RoomSummaryDto {
+  id: string;
+  name: string;
+  background: string;
+  width: number;
+  height: number;
+}
+
+export interface SelectedEntity {
+  type: 'vertex' | 'spawn' | 'exit' | null;
+  polyType?: 'walkable' | 'obstacle';
+  polyIndex?: number;
+  vertexIndex?: number;
+  spawnId?: string;
+  exitId?: string;
+}

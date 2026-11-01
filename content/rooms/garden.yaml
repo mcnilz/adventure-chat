@@ -1,0 +1,55 @@
+# yaml-language-server: $schema=../../schemas/room.schema.json
+version: 1
+id: garden
+name: Tavernen-Garten
+background: assets/images/garden.png
+size:
+  width: 640
+  height: 360
+spawns:
+  - id: entry
+    position:
+      x: 80
+      y: 300
+  - id: from-lounge
+    position:
+      x: 80
+      y: 300
+walkable:
+  - id: floor
+    points:
+      - x: 40
+        y: 240
+      - x: 600
+        y: 240
+      - x: 600
+        y: 345
+      - x: 40
+        y: 345
+obstacles:
+  - id: table
+    points:
+      - x: 260
+        y: 260
+      - x: 380
+        y: 260
+      - x: 380
+        y: 310
+      - x: 260
+        y: 310
+exits:
+  - id: to-lounge
+    position:
+      x: 60
+      y: 300
+    radius: 45
+    bounds:
+      x: 25
+      y: 95
+      width: 75
+      height: 240
+    label: Lounge
+    target:
+      room: lounge
+      spawn: from-garden
+notes: Der lauschige Gartenbereich hinter der Taverne.

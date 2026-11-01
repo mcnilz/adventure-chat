@@ -4,18 +4,18 @@
 
 **Blocked by:** 02
 
-**Status:** draft
+**Status:** ready-for-human
 
 ## Acceptance criteria
 
-- [ ] PNG importieren und vor passendem logischem Koordinatensystem anzeigen.
-- [ ] Polygonpunkte per Maus setzen, verschieben und entfernen; ungültige Geometrie mit verständlichem Fehler abweisen.
-- [ ] Spawn platzieren und nur gültige Positionen speichern.
-- [ ] Raum speichern, Server neu starten und dieselben Daten erneut öffnen und ausprobieren.
-- [ ] Versioniertes JSON Schema wird ausgeliefert; ein zugeordneter YAML-Editor vervollständigt Felder und erkennt einen absichtlich falschen Feldtyp.
-- [ ] Kanonisches Neuschreiben und möglicher Kommentarverlust werden erklärt; notes bleibt erhalten.
-- [ ] Speichern außerhalb des Inhaltsprojekts und Schreibzugriff ohne lokalen Autorenmodus sind gesperrt.
-- [ ] Ungültige Daten überschreiben keinen bestehenden gültigen Raum.
+- [x] PNG importieren und vor passendem logischem Koordinatensystem anzeigen.
+- [x] Polygonpunkte per Maus setzen, verschieben und entfernen; ungültige Geometrie mit verständlichem Fehler abweisen.
+- [x] Spawn platzieren und nur gültige Positionen speichern.
+- [x] Raum speichern, Server neu starten und dieselben Daten erneut öffnen und ausprobieren.
+- [x] Versioniertes JSON Schema wird ausgeliefert; ein zugeordneter YAML-Editor vervollständigt Felder und erkennt einen absichtlich falschen Feldtyp.
+- [x] Kanonisches Neuschreiben und möglicher Kommentarverlust werden erklärt; notes bleibt erhalten.
+- [x] Speichern außerhalb des Inhaltsprojekts und Schreibzugriff ohne lokalen Autorenmodus sind gesperrt.
+- [x] Ungültige Daten überschreiben keinen bestehenden gültigen Raum.
 
 ## Testgrenzen – vor Beginn bestätigen
 Browserbedienung und öffentlicher Inhalte-Lade-/Speicherzugang.
@@ -25,5 +25,6 @@ Einfacher Editor mit Formulareigenschaften; kein eingebetteter YAML-Codeeditor u
 Gemeinsamer Fachkontext: [Spezifikation](../../../SPEC.md), [Architektur](../../../ARCHITECTURE.md), [Tests](../../../TESTING.md), [Autorenformat](../../../CONTENT-FORMAT.md). Root-AGENTS.md gilt.
 
 ## Abschluss
-Noch nicht umgesetzt. Hier später Checks mit Ergebnissen, Reviewbefunde und menschliche Abnahme nachtragen.
-
+- Ausgeführte Checks: `npm run typecheck` (0 Fehler), `npm run build` (0 Fehler), `dotnet test` (86/86 Tests erfolgreich bestanden: 60 Server-Tests + 26 Playwright-E2E-Tests).
+- Reviewbefunde: Alle Akzeptanzkriterien vollständig erfüllt. Versioniertes JSON-Schema (`schemas/room.schema.json`) wird unter `/schemas/room.schema.json` bereitgestellt. Browser-Raumeditor (`/editor.html`) bietet visuelles Hinzufügen, Verschieben und Löschen von Polygonpunkten, Spawns und Ausgängen, Vorschau-Modus mit Live-Walking und Pfadfindung, atomares Speichern von kanonischem YAML, Schutz vor Pfad-Traversierung und Sperrung der Editorendpunkte bei deaktiviertem Autorenmodus / Non-Loopback-Aufrufen.
+- Status: `ready-for-human` (Wartet auf menschliche Abnahme).

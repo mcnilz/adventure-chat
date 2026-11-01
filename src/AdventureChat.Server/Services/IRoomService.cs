@@ -6,11 +6,13 @@ public interface IRoomService
 {
     RoomDefinition? GetRoom(string roomId);
     IReadOnlyList<RoomDefinition> GetAllRooms();
+    void RegisterOrUpdateRoom(RoomDefinition room);
+    void ReloadRooms();
 }
 
 public sealed class RoomService : IRoomService
 {
-    private static readonly RoomDefinition Lounge = new(
+    private static readonly RoomDefinition DefaultLounge = new(
         Id: "lounge",
         Name: "Lounge",
         Width: 640,
@@ -48,10 +50,11 @@ public sealed class RoomService : IRoomService
                 new Rect2D(535, 75, 80, 260),
                 "Tavernen-Garten"
             )
-        ]
+        ],
+        Notes: "Der gemütliche Gastraum der Taverne."
     );
 
-    private static readonly RoomDefinition Garden = new(
+    private static readonly RoomDefinition DefaultGarden = new(
         Id: "garden",
         Name: "Tavernen-Garten",
         Width: 640,
@@ -88,22 +91,82 @@ public sealed class RoomService : IRoomService
                 new Rect2D(25, 95, 75, 240),
                 "Lounge"
             )
-        ]
+        ],
+        Notes: "Der lauschige Gartenbereich hinter der Taverne."
     );
 
-    private readonly Dictionary<string, RoomDefinition> _rooms = new(StringComparer.OrdinalIgnoreCase)
+    private readonly IContentPathProvider? _pathProvider;
+    private readonly IRoomYamlSerializer? _yamlSerializer;
+    private readonly Dictionary<string, RoomDefinition> _rooms = new(StringComparer.OrdinalIgnoreCase);
+    private readonly object _lock = new();
+
+    public RoomService(IContentPathProvider? pathProvider = null, IRoomYamlSerializer? yamlSerializer = null)
     {
-        [Lounge.Id] = Lounge,
-        [Garden.Id] = Garden
-    };
+        _pathProvider = pathProvider;
+        _yamlSerializer = yamlSerializer;
+
+        // Seed with built-in defaults
+        _rooms[DefaultLounge.Id] = DefaultLounge;
+        _rooms[DefaultGarden.Id] = DefaultGarden;
+
+        ReloadRooms();
+    }
 
     public RoomDefinition? GetRoom(string roomId)
     {
-        return _rooms.GetValueOrDefault(roomId);
+        lock (_lock)
+        {
+            return _rooms.GetValueOrDefault(roomId);
+        }
     }
 
     public IReadOnlyList<RoomDefinition> GetAllRooms()
     {
-        return _rooms.Values.ToList();
+        lock (_lock)
+        {
+            return _rooms.Values.ToList();
+        }
+    }
+
+    public void RegisterOrUpdateRoom(RoomDefinition room)
+    {
+        ArgumentNullException.ThrowIfNull(room);
+        lock (_lock)
+        {
+            _rooms[room.Id] = room;
+        }
+    }
+
+    public void ReloadRooms()
+    {
+        if (_pathProvider is null || _yamlSerializer is null)
+        {
+            return;
+        }
+
+        var roomsDir = _pathProvider.GetRoomsDirectory();
+        if (!Directory.Exists(roomsDir))
+        {
+            return;
+        }
+
+        var yamlFiles = Directory.GetFiles(roomsDir, "*.yaml");
+        lock (_lock)
+        {
+            foreach (var file in yamlFiles)
+            {
+                try
+                {
+                    var yaml = File.ReadAllText(file);
+                    var dto = _yamlSerializer.Deserialize(yaml);
+                    var roomDef = dto.ToRoomDefinition();
+                    _rooms[roomDef.Id] = roomDef;
+                }
+                catch
+                {
+                    // Ignore bad files during bulk load
+                }
+            }
+        }
     }
 }
