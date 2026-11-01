@@ -132,8 +132,7 @@ public sealed class EditorService : IEditorService
         try
         {
             var yaml = _yamlSerializer.Serialize(dto);
-            var raw = new YamlDotNet.Serialization.DeserializerBuilder().WithDuplicateKeyChecking().WithAttemptingUnquotedStringTypeDeserialization().Build().Deserialize<object>(yaml);
-            var json = new YamlDotNet.Serialization.SerializerBuilder().JsonCompatible().Build().Serialize(raw);
+            var json = YamlJsonConverter.Convert(yaml);
             var schema = _validator.ValidateJson(json);
             if (!schema.IsValid) return schema;
             _world.ValidateBackground(dto);
@@ -195,8 +194,7 @@ public sealed class EditorService : IEditorService
                 if (File.Exists(targetFile))
                 {
                     var oldYaml = WorldPackage.ReadYaml(targetFile);
-                    var raw = new YamlDotNet.Serialization.DeserializerBuilder().WithDuplicateKeyChecking().WithAttemptingUnquotedStringTypeDeserialization().Build().Deserialize<object>(oldYaml);
-                    var json = new YamlDotNet.Serialization.SerializerBuilder().JsonCompatible().Build().Serialize(raw);
+                    var json = YamlJsonConverter.Convert(oldYaml);
                     var oldValidation = _validator.ValidateJson(json);
                     if (!oldValidation.IsValid) return new SaveRoomResult(false, ["Existing room has an unsupported or invalid format; refusing to overwrite it."]);
                 }

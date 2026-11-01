@@ -49,28 +49,34 @@ public sealed record WorldPackage(string Root, string Id, string Name, string Fo
         if (!Directory.Exists(directory)) throw new InvalidOperationException($"World '{Id}': rooms directory is missing.");
         var serializer = new RoomYamlSerializer();
         var validator = new RoomValidator(FindSchema("room.schema.json"));
-        var rooms = new List<AdventureChat.Server.Models.RoomYamlDto>();
-        foreach (var file in Directory.GetFiles(directory, "*.yaml"))
+        var candidates = new List<(string File, AdventureChat.Server.Models.RoomYamlDto Room)>();
+        foreach (var file in Directory.GetFiles(directory, "*.yaml").OrderBy(path => path, StringComparer.Ordinal))
         {
             var relative = "rooms/" + Path.GetFileName(file);
             try
             {
                 SafePath(Root, relative, true);
                 var yaml = ReadYaml(file);
-                var raw = new DeserializerBuilder().WithDuplicateKeyChecking().WithAttemptingUnquotedStringTypeDeserialization().Build().Deserialize<object>(yaml);
-                var json = new SerializerBuilder().JsonCompatible().Build().Serialize(raw);
+                var json = YamlJsonConverter.Convert(yaml);
                 var schema = validator.ValidateJson(json);
                 if (!schema.IsValid) throw new InvalidOperationException(string.Join("; ", schema.Errors));
-                var room = serializer.Deserialize(yaml);
+                candidates.Add((relative, serializer.Deserialize(yaml)));
+            }
+            catch (Exception ex) { throw new InvalidOperationException($"World '{Id}', file '{relative}': {ex.Message}", ex); }
+        }
+        foreach (var (file, room) in candidates)
+        {
+            try
+            {
                 var validation = validator.Validate(room);
                 if (!validation.IsValid) throw new InvalidOperationException(string.Join("; ", validation.Errors));
                 if (!string.Equals(Path.GetFileNameWithoutExtension(file), room.Id, StringComparison.Ordinal))
                     throw new InvalidOperationException("Room ID must match its file name.");
                 ValidateBackground(room);
-                rooms.Add(room);
             }
-            catch (Exception ex) { throw new InvalidOperationException($"World '{Id}', file '{relative}': {ex.Message}", ex); }
+            catch (Exception ex) { throw new InvalidOperationException($"World '{Id}', file '{file}': {ex.Message}", ex); }
         }
+        var rooms = candidates.Select(candidate => candidate.Room).ToList();
         var result = validator.ValidateWorld(rooms);
         if (!result.IsValid) throw new InvalidOperationException($"Invalid world '{Id}', room files {string.Join(", ", rooms.Select(r => $"rooms/{r.Id}.yaml"))}: {string.Join("; ", result.Errors)}");
         var start = rooms.SingleOrDefault(r => string.Equals(r.Id, StartRoom, StringComparison.Ordinal));

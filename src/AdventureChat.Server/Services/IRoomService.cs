@@ -1,5 +1,4 @@
 using AdventureChat.Server.Models;
-using YamlDotNet.Serialization;
 
 namespace AdventureChat.Server.Services;
 
@@ -172,8 +171,7 @@ public sealed class RoomService : IRoomService
             {
                 var yaml = File.ReadAllText(file);
                 var dto = _yamlSerializer.Deserialize(yaml);
-                var raw = new DeserializerBuilder().WithDuplicateKeyChecking().WithAttemptingUnquotedStringTypeDeserialization().Build().Deserialize<object>(yaml);
-                var json = new SerializerBuilder().JsonCompatible().Build().Serialize(raw);
+                var json = YamlJsonConverter.Convert(yaml);
                 var schema = _validator?.ValidateJson(json);
                 var validation = _validator?.Validate(dto);
                 if (schema is { IsValid: false } || validation is { IsValid: false })

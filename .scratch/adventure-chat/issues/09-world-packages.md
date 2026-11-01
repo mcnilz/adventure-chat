@@ -4,7 +4,7 @@
 
 **Blocked by:** 08 (vor Implementierung lokales Stabilisierungsticket und Status nachweisen), 07
 
-**Status:** in-progress
+**Status:** ready-for-human
 
 ## Acceptance criteria
 
@@ -40,9 +40,17 @@ Gezielte Fälle: externe Referenzwelt laden, speichern und erneut laden; falsche
 ## Fachkontext
 [Architekturregel](../../../docs/work-packages/world-format-compatibility.md). Root-AGENTS.md und bestehende SPEC.md gelten mit den ausdrücklich bestätigten Erweiterungen aus diesem Paket.
 
-## Arbeitsstand 01.11.2026
-Umfang und öffentliche Testgrenzen bestätigt. Externe Weltpakete, Format `1.0.0` mit `legacy-1`, Offline-Schemas, Start-Spawn, Referenzwelt und lokaler Editorbetrieb implementiert. Ältere Raumdateien und ursprüngliches Schema sind unverändert. Die Unterstützungsmatrix enthält ausschließlich `1.0.0`; diese Erstveröffentlichung deutet die bestehende ganzzahlige Raumversion nicht um. Weitere SemVer-Folgen gelten gemäß Kompatibilitätsvertrag.
+## Ergebnis und Nachweise · 01.11.2026
+Umfang und öffentliche Testgrenzen bestätigt. Externe Weltpakete, Weltformat `1.0.0` mit `legacy-1`, Offline-Schemas, Start-Spawn, Referenzwelt und lokaler Editorbetrieb sind implementiert. Ältere Raumdateien und ursprüngliches Schema sind unverändert. Die Unterstützungsmatrix enthält ausschließlich `1.0.0`; diese Erstveröffentlichung deutet die bestehende ganzzahlige Raumversion nicht um. Weitere SemVer-Folgen gelten gemäß Kompatibilitätsvertrag. Vor erster Veröffentlichung wurden die Schema-Dateien nach dem Review korrigiert und anschließend bytegenau abgesichert.
 
-Checks: Offline-Restore im Locked Mode aus vorhandenem Paketcache (NuGet-Audit deaktiviert), Client-Typcheck und Build erfolgreich; vollständiger .NET-/Browserlauf: 160 bestanden. Danach Pfadprüfung geschärft und betroffene Weltpakettests erneut erfolgreich. Ein symbolischer Datei-Link-Test wurde wegen fehlender Windows-Berechtigung übersprungen; der tatsächliche Junction-Test bestanden. Ein Browserablauf für externen Eintritt, Editor und Neustart wurde ausgeführt. Vorbereitende unabhängige Reviews fanden Schema-, PNG- und Diagnosefehler; diese sind korrigiert und gezielt nachgeprüft. Abschließendes Review und menschliche Abnahme stehen noch aus.
+Checks: Offline-Restore im Locked Mode aus vorhandenem Paketcache (NuGet-Audit deaktiviert), Client-Typcheck und Build sowie .NET-Build erfolgreich. Vollständiger .NET-/Browserlauf nach Reviewkorrekturen: 163 bestanden. Anschließend gezielte Weltpakettests einschließlich Schemafingerabdrücken und zusätzlicher Legacy-/Referenzweltprüfung: 31 bestanden. Ein symbolischer Datei-Link-Test wurde wegen fehlender Windows-Berechtigung übersprungen; der tatsächliche Junction-Test bestand. Der Browserablauf prüft externen Eintritt, Editor, Speichern und Neustart.
 
-Ausgangspunkt: `f1cffc70f989ef9c0057e45a3a5813d8cd46f8e1`; zuvor bestehende Planungsänderungen wurden erhalten.
+Review: Unabhängige Vorprüfung und abschließende Reviews zu Standards und Ticket fanden und prüften nach Korrektur Schema- und PNG-Prüfung, Diagnose, Validierungsreihenfolge, SemVer-Schema, Bildauslieferung und gemeinsame YAML-Konvertierung; in den Nachprüfungen keine verbleibenden Befunde. Ausgangspunkt: `f1cffc70f989ef9c0057e45a3a5813d8cd46f8e1`. Menschliche Abnahme steht aus.
+
+## Manuelle Abnahme
+1. `worlds/reference` in ein Verzeichnis außerhalb des Repositorys kopieren. Nach README mit `--World:Root <Pfad> --authoring` starten; im Browser prüfen, dass der Startpunkt im Manifest verwendet und das Hintergrundbild geladen wird.
+2. `/editor.html` lokal öffnen, einen Raum bearbeiten und speichern. Server neu starten und prüfen, dass die Änderung erhalten bleibt und der Eintritt wieder am Start-Spawn erfolgt. Eine zweite Browserinstanz kann den Raum gemeinsam betreten.
+3. Server beenden; im kopierten Manifest `formatVersion` auf `9.0.0` ändern. Den erneuten Start versuchen und die verständliche Ablehnung prüfen. Danach `1.0.0` wiederherstellen.
+4. Optional die unveränderten Dateien aus `content/rooms` in das Paket übernehmen und mit `roomFormat: legacy-1` starten. Die lokalen YAML-Schema-Zuordnungen nach README prüfen.
+
+Erst eine ausdrückliche menschliche Abnahme setzt dieses Ticket auf `done`. Weltwahl und Mehrweltisolation folgen in Ticket 10.

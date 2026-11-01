@@ -79,8 +79,8 @@ public class WorldPackageTests
     }
 
     [TestCase("schemas/room.schema.json", "1967F9E5D2DDF5F3F2EE0B0A26C240A35969B250036B385836974AE5B8C99898")]
-    [TestCase("schemas/world/1.0.0/world.schema.json", "408E4EDD9609C09986EDC8CD5789ACE9E360FEB46C968D627A86CDFFCD827645")]
-    [TestCase("schemas/world/1.0.0/room.schema.json", "D19D4BD19137D70AD9EF9F2FFED47EC07BC1610CC96AC7502F4C5FF770C48399")]
+    [TestCase("schemas/world/1.0.0/world.schema.json", "EE546F3E592CE735EF7A8C5EB242462F3A8AEB34625A40A7E5ECE4300828E37B")]
+    [TestCase("schemas/world/1.0.0/room.schema.json", "F781D028F4BC8DB01A47B42A6180BCB45BB4B229BD8429E05B603136244A6D8E")]
     public void PublishedSchemas_RemainUnchanged(string relative, string expectedHash)
     {
         var root = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../../"));

@@ -75,27 +75,7 @@ public static class AppFactory
 
         app.UseAuthoringAccess(authoring);
 
-        if (world is not null)
-        {
-            app.Use(async (context, next) =>
-            {
-                if (context.Request.Path.StartsWithSegments("/assets/images", out var rest) && rest.HasValue)
-                {
-                    try
-                    {
-                        var relative = "assets/images/" + rest.Value!.TrimStart('/');
-                        var file = WorldPackage.SafePath(world.Root, relative, true);
-                        if (!string.Equals(Path.GetExtension(file), ".png", StringComparison.OrdinalIgnoreCase)) { context.Response.StatusCode = 404; return; }
-                        context.Response.ContentType = "image/png";
-                        context.Response.Headers.CacheControl = "no-store";
-                        await context.Response.SendFileAsync(file);
-                    }
-                    catch (Exception ex) when (ex is InvalidOperationException or IOException or UnauthorizedAccessException) { context.Response.StatusCode = 404; }
-                    return;
-                }
-                await next();
-            });
-        }
+        if (world is not null) app.UseWorldAssets(world);
         app.UseDefaultFiles();
         app.UseStaticFiles(new StaticFileOptions
         {

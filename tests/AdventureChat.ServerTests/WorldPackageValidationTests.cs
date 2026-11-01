@@ -204,6 +204,52 @@ public class WorldPackageValidationTests
         Assert.That(File.ReadAllBytes(lounge), Is.EqualTo(original));
     }
 
+    [Test]
+    public void AllRoomSchemas_AreCheckedBeforeImageAndGeometryRules()
+    {
+        File.Delete(Path.Combine(_root, "assets", "images", "garden.png"));
+        Replace("rooms/lounge.yaml", "version: 1", "version: 2");
+        var ex = Assert.Throws<InvalidOperationException>(() => WorldPackage.Load(_root).LoadRooms());
+        Assert.That(ex!.Message, Does.Contain("lounge.yaml").And.Not.Contain("garden.png"));
+    }
+
+    [Test]
+    public void ManifestSchema_RejectsInvalidNumericPrerelease()
+    {
+        var schema = Json.Schema.JsonSchema.FromText(File.ReadAllText(WorldPackage.FindSchema("world.schema.json")));
+        var manifest = System.Text.Json.Nodes.JsonNode.Parse("""
+            {"formatVersion":"1.0.0","id":"demo","name":"Demo","contentVersion":"1.0.0-01","startRoom":"lounge","startSpawn":"entry","roomFormat":"legacy-1"}
+            """);
+        Assert.That(schema.Evaluate(manifest).IsValid, Is.False);
+    }
+
+    [Test]
+    public async Task Server_LoadsLegacyAndCurrentWorldFixturesTogether()
+    {
+        var solution = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../../"));
+        var legacyRooms = Path.Combine(solution, "content", "rooms");
+        foreach (var file in Directory.GetFiles(legacyRooms, "*.yaml"))
+            File.Copy(file, Path.Combine(_root, "rooms", Path.GetFileName(file)), true);
+        var second = Path.Combine(_root, "second");
+        Copy(Path.Combine(solution, "worlds", "reference"), second);
+        var manifest = Path.Combine(second, "world.yaml");
+        File.WriteAllText(manifest, File.ReadAllText(manifest).Replace("id: reference", "id: second"));
+        var serverDir = Path.Combine(solution, "src", "AdventureChat.Server");
+        var app = AdventureChat.Server.AppFactory.CreateApp([], new Microsoft.AspNetCore.Builder.WebApplicationOptions
+        {
+            ContentRootPath = serverDir,
+            WebRootPath = Path.Combine(serverDir, "wwwroot"),
+            Args = ["--urls", "http://127.0.0.1:0", "--World:Roots:0", _root, "--World:Roots:1", second]
+        });
+        try
+        {
+            await app.StartAsync();
+            var rooms = app.Services.GetService(typeof(IRoomService)) as IRoomService;
+            Assert.That(rooms!.GetRoom("lounge"), Is.Not.Null);
+        }
+        finally { await app.DisposeAsync(); }
+    }
+
     private void Replace(string file, string oldText, string newText)
     {
         var path = Path.Combine(_root, file);
@@ -217,4 +263,3 @@ public class WorldPackageValidationTests
         foreach (var dir in Directory.GetDirectories(source)) Copy(dir, Path.Combine(target, Path.GetFileName(dir)));
     }
 }
-

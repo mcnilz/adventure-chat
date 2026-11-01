@@ -1,5 +1,5 @@
 # Umsetzungsplan
-Status: Tickets 01–08 sind menschlich abgenommen; 09 ist bestätigt und in-progress, 10–13 sind geplante Entwürfe.
+Status: Tickets 01–08 sind menschlich abgenommen; 09 ist ready-for-human, 10–13 sind geplante Entwürfe.
 
 | Ticket | Vorführbares Ergebnis | Blocked by |
 | --- | --- | --- |

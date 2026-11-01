@@ -32,18 +32,18 @@ Revision 22 · 01.11.2026.
 - [ ] Git-Repository und endgültiger Projektname festgelegt.
 
 ## Aktives Ticket
-- **Ticket 09 ist `in-progress`.** Externe Weltpakete und Editorbetrieb implementiert; Tests und vorbereitendes Review durchgeführt, abschließendes Review und menschliche Abnahme stehen aus. Ticket 08 ist `done`; Benutzerabnahme „passt“ am 01.11.2026. Basis `ef43f41`; Nachweise und Grenzen im Ticket `.scratch/adventure-chat/issues/08-mvp-stabilization.md`.
+- **Ticket 09 ist `ready-for-human`.** Externe Weltpakete und Editorbetrieb implementiert; Tests und Reviews durchgeführt. Manuelle Abnahme steht aus. Ticket 08 ist `done`; Benutzerabnahme „passt“ am 01.11.2026. Basis `ef43f41`; Nachweise und Grenzen im Ticket `.scratch/adventure-chat/issues/08-mvp-stabilization.md`.
 - **Vorherige Tickets:** 01 bis 07 sind menschlich abgenommen (`done`).
 - **Historischer Stand vor Ticket 08:** 106 Tests wurden für Tickets 01–07 gemeldet. Diese Zahl ist kein Nachweis für den aktuellen Arbeitsstand.
 
 ## Nächste Aktion
-Ticket 09 abschließend gegen Ticket und Projektregeln prüfen, danach Nachweise und manuelle Abnahmeschritte festhalten und auf ready-for-human setzen. 07 und 08 sind abgenommen; kein offener Ticket-Blocker für die Vorbereitung. Tickets 10–13 bleiben draft. 10 benötigt 09; 11 benötigt 09 und zur Gesamtabnahme 10; 12 benötigt 09 und zur Gesamtabnahme 10/11; 13 benötigt 09/11 und zur Gesamtabnahme 12. Siehe PLAN.md und die einzelnen Tickets.
+Ticket 09 anhand der manuellen Schritte im Ticket abnehmen lassen; nur ausdrückliche Benutzerabnahme setzt es auf done. 07 und 08 sind abgenommen; kein offener Ticket-Blocker für die Vorbereitung. Tickets 10–13 bleiben draft. 10 benötigt 09; 11 benötigt 09 und zur Gesamtabnahme 10; 12 benötigt 09 und zur Gesamtabnahme 10/11; 13 benötigt 09/11 und zur Gesamtabnahme 12. Siehe PLAN.md und die einzelnen Tickets.
 
 ## Offene Annahmen
 Privater Testbetrieb, ca. zehn Personen, Desktop-Mausbedienung; keine kollidierenden Figuren; Reconnect als frischer Eintritt.
 
 ## Checks
-- Ticket 09: Locked Restore offline, Client-Typcheck und Build erfolgreich; vollständiger .NET-/Browserlauf 160 bestanden, nachfolgende gezielte Weltpakettests erfolgreich. Symbolischer Datei-Link-Test mangels Windows-Berechtigung übersprungen; Junction-Test bestanden. Details im Ticket.
+- Ticket 09: Locked Restore offline, Client-Typcheck und Build erfolgreich; vollständiger .NET-/Browserlauf 163 bestanden, nachfolgende gezielte Weltpakettests 31 bestanden. Symbolischer Datei-Link-Test mangels Windows-Berechtigung übersprungen; Junction-Test bestanden. Details im Ticket.
 - Ticket 08: Client-Typcheck und Build, Locked Restore, .NET-Build, 87 Server- und 43 Browsertests erfolgreich. Ein vorheriger Gesamtlauf hatte einen Browserstartfehler; die getrennten abschließenden Suiten bestanden.
 
 ## Übergabeformat für spätere Änderungen
