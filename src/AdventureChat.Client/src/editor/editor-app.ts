@@ -1,17 +1,17 @@
-import { EditorApi } from './editor-api.js';
-import { EditorBackgroundModal } from './editor-background-modal.js';
-import { EditorCanvasInput } from './editor-canvas-input.js';
-import { EditorExitDialog } from './editor-exit-dialog.js';
-import { EditorInspector } from './editor-inspector.js';
-import { EditorPreview } from './editor-preview.js';
-import { EditorRenderer } from './editor-renderer.js';
-import { EditorSidebarForm } from './editor-sidebar-form.js';
-import { EditorState } from './editor-state.js';
-import { EditorToolbar } from './editor-toolbar.js';
+import { EditorApi } from './core/editor-api.js';
+import { EditorState } from './core/editor-state.js';
 import type {
   EditorMode,
   EditorTool
-} from './editor-types.js';
+} from './core/editor-types.js';
+import { EditorCanvasInput } from './canvas/editor-canvas-input.js';
+import { EditorPreview } from './canvas/editor-preview.js';
+import { EditorRenderer } from './canvas/editor-renderer.js';
+import { EditorBackgroundModal } from './ui/editor-background-modal.js';
+import { EditorExitDialog } from './ui/editor-exit-dialog.js';
+import { EditorInspector } from './ui/editor-inspector.js';
+import { EditorSidebarForm } from './ui/editor-sidebar-form.js';
+import { EditorToolbar } from './ui/editor-toolbar.js';
 
 export interface EditorElements {
   roomSelect: HTMLSelectElement;
@@ -365,15 +365,15 @@ export class EditorApp {
     const sel = this.state.getSelection();
 
     if (sel.type === 'vertex') {
-      if (this.inspector.applyVertexInputs(room, sel)) {
+      if (this.inspector.applyVertexChanges(room, sel)) {
         this.syncStateAndRender();
       }
     } else if (sel.type === 'spawn') {
-      if (this.inspector.applySpawnInputs(room, sel)) {
+      if (this.inspector.applySpawnChanges(room, sel)) {
         this.syncStateAndRender();
       }
     } else if (sel.type === 'exit') {
-      if (this.inspector.applyExitInputs(room, sel)) {
+      if (this.inspector.applyExitChanges(room, sel)) {
         this.syncStateAndRender();
       }
     }
