@@ -1,3 +1,4 @@
+import { EditorGeometry } from './editor-geometry.js';
 export class EditorState {
     currentRoom;
     selected = { type: null };
@@ -29,33 +30,7 @@ export class EditorState {
         this.selected = { type: null };
     }
     createDefaultRoom() {
-        return {
-            version: 1,
-            id: 'new-room',
-            name: 'Neuer Raum',
-            background: 'assets/images/lounge.png',
-            size: { width: 640, height: 360 },
-            spawns: [
-                {
-                    id: 'entry',
-                    position: { x: 120, y: 300 }
-                }
-            ],
-            walkable: [
-                {
-                    id: 'floor',
-                    points: [
-                        { x: 50, y: 240 },
-                        { x: 590, y: 240 },
-                        { x: 590, y: 340 },
-                        { x: 50, y: 340 }
-                    ]
-                }
-            ],
-            obstacles: [],
-            exits: [],
-            notes: ''
-        };
+        return EditorGeometry.createDefaultRoomYaml();
     }
     updateMetadata(metadata) {
         if (metadata.id !== undefined)
@@ -93,350 +68,211 @@ export class EditorState {
         if (!this.currentRoom.walkable) {
             this.currentRoom.walkable = [];
         }
-        const halfW = Math.round(width / 2);
-        const halfH = Math.round(height / 2);
-        const maxX = this.currentRoom.size.width;
-        const maxY = this.currentRoom.size.height;
-        const clamp = (val, max) => Math.max(0, Math.min(max, Math.round(val)));
-        const points = [
-            { x: clamp(x - halfW, maxX), y: clamp(y - halfH, maxY) },
-            { x: clamp(x + halfW, maxX), y: clamp(y - halfH, maxY) },
-            { x: clamp(x + halfW, maxX), y: clamp(y + halfH, maxY) },
-            { x: clamp(x - halfW, maxX), y: clamp(y + halfH, maxY) }
-        ];
-        if (this.currentRoom.walkable.length === 0 || this.currentRoom.walkable[0]?.points.length === 0) {
-            this.currentRoom.walkable = [{ id: 'floor', points }];
-            this.selected = { type: 'polygon', polyType: 'walkable', polyIndex: 0 };
-            this.dirty = true;
-            return 0;
-        }
-        const index = this.currentRoom.walkable.length;
-        this.currentRoom.walkable.push({
-            id: `floor-${index + 1}`,
-            points
-        });
-        this.selected = { type: 'polygon', polyType: 'walkable', polyIndex: index };
+        const id = `floor-${this.currentRoom.walkable.length + 1}`;
+        const poly = EditorGeometry.createDefaultBoxPolygon(id, x, y, width, height, this.currentRoom.size.width, this.currentRoom.size.height);
+        this.currentRoom.walkable.push(poly);
         this.dirty = true;
-        return index;
+        const pIdx = this.currentRoom.walkable.length - 1;
+        this.selected = { type: 'polygon', polyType: 'walkable', polyIndex: pIdx };
+        return pIdx;
     }
-    addObstacle(x, y, width = 60, height = 40) {
+    addObstaclePolygon(x, y, width = 60, height = 40) {
         if (!this.currentRoom.obstacles) {
             this.currentRoom.obstacles = [];
         }
-        const halfW = Math.round(width / 2);
-        const halfH = Math.round(height / 2);
-        const maxX = this.currentRoom.size.width;
-        const maxY = this.currentRoom.size.height;
-        const clamp = (val, max) => Math.max(0, Math.min(max, Math.round(val)));
-        const points = [
-            { x: clamp(x - halfW, maxX), y: clamp(y - halfH, maxY) },
-            { x: clamp(x + halfW, maxX), y: clamp(y - halfH, maxY) },
-            { x: clamp(x + halfW, maxX), y: clamp(y + halfH, maxY) },
-            { x: clamp(x - halfW, maxX), y: clamp(y + halfH, maxY) }
-        ];
-        const index = this.currentRoom.obstacles.length;
-        this.currentRoom.obstacles.push({
-            id: `obstacle-${index + 1}`,
-            points
-        });
-        this.selected = {
-            type: 'polygon',
-            polyType: 'obstacle',
-            polyIndex: index
-        };
+        const id = `obs-${this.currentRoom.obstacles.length + 1}`;
+        const poly = EditorGeometry.createDefaultBoxPolygon(id, x, y, width, height, this.currentRoom.size.width, this.currentRoom.size.height);
+        this.currentRoom.obstacles.push(poly);
         this.dirty = true;
-        return index;
+        const oIdx = this.currentRoom.obstacles.length - 1;
+        this.selected = { type: 'polygon', polyType: 'obstacle', polyIndex: oIdx };
+        return oIdx;
     }
-    addObstaclePoint(x, y, obstacleIndex = 0) {
+    addObstaclePoint(x, y) {
         if (!this.currentRoom.obstacles || this.currentRoom.obstacles.length === 0) {
-            this.addObstacle(x, y);
+            this.addObstaclePolygon(x, y);
             return;
         }
-        if (this.currentRoom.obstacles.length <= obstacleIndex) {
-            this.addObstacle(x, y);
-            return;
-        }
-        const obs = this.currentRoom.obstacles[obstacleIndex];
-        if (obs) {
-            obs.points.push({ x: Math.round(x), y: Math.round(y) });
+        const lastIdx = this.currentRoom.obstacles.length - 1;
+        const poly = this.currentRoom.obstacles[lastIdx];
+        if (poly) {
+            if (poly.points.length < 3) {
+                this.addObstaclePolygon(x, y);
+                return;
+            }
+            poly.points.push({ x: Math.round(x), y: Math.round(y) });
             this.selected = {
                 type: 'vertex',
                 polyType: 'obstacle',
-                polyIndex: obstacleIndex,
-                vertexIndex: obs.points.length - 1
+                polyIndex: lastIdx,
+                vertexIndex: poly.points.length - 1
             };
             this.dirty = true;
         }
     }
-    translatePolygon(polyType, polyIndex, dx, dy) {
-        const polys = polyType === 'walkable' ? this.currentRoom.walkable : (this.currentRoom.obstacles ?? []);
-        const poly = polys[polyIndex];
-        if (!poly || poly.points.length === 0)
-            return false;
-        const roundDx = Math.round(dx);
-        const roundDy = Math.round(dy);
-        if (roundDx === 0 && roundDy === 0)
-            return false;
-        const maxX = this.currentRoom.size.width;
-        const maxY = this.currentRoom.size.height;
-        // Check boundary limits so shape doesn't collapse on edges
-        let minX = Infinity;
-        let maxXPt = -Infinity;
-        let minY = Infinity;
-        let maxYPt = -Infinity;
-        for (const p of poly.points) {
-            minX = Math.min(minX, p.x);
-            maxXPt = Math.max(maxXPt, p.x);
-            minY = Math.min(minY, p.y);
-            maxYPt = Math.max(maxYPt, p.y);
-        }
-        const actualDx = Math.max(-minX, Math.min(maxX - maxXPt, roundDx));
-        const actualDy = Math.max(-minY, Math.min(maxY - maxYPt, roundDy));
-        if (actualDx === 0 && actualDy === 0)
-            return false;
-        for (const p of poly.points) {
-            p.x += actualDx;
-            p.y += actualDy;
-        }
-        this.dirty = true;
-        return true;
-    }
-    deletePolygon(polyType, polyIndex) {
-        const polys = polyType === 'walkable' ? this.currentRoom.walkable : (this.currentRoom.obstacles ?? []);
-        if (!polys || polyIndex < 0 || polyIndex >= polys.length)
-            return false;
-        polys.splice(polyIndex, 1);
-        this.selected = { type: null };
-        this.dirty = true;
-        return true;
-    }
-    moveVertex(polyType, polyIndex, vertexIndex, x, y) {
-        const polys = polyType === 'walkable' ? this.currentRoom.walkable : (this.currentRoom.obstacles ?? []);
-        const poly = polys[polyIndex];
-        if (poly && poly.points[vertexIndex]) {
-            poly.points[vertexIndex] = { x: Math.round(x), y: Math.round(y) };
-            this.dirty = true;
-        }
-    }
-    insertVertexOnEdge(polyType, polyIndex, edgeIndex, x, y) {
-        const polys = polyType === 'walkable' ? this.currentRoom.walkable : (this.currentRoom.obstacles ?? []);
-        const poly = polys[polyIndex];
+    splitEdge(edge) {
+        const list = edge.polyType === 'walkable' ? this.currentRoom.walkable : this.currentRoom.obstacles;
+        if (!list)
+            return;
+        const poly = list[edge.polyIndex];
         if (!poly)
-            return -1;
-        const newIndex = edgeIndex + 1;
-        poly.points.splice(newIndex, 0, { x: Math.round(x), y: Math.round(y) });
+            return;
+        poly.points.splice(edge.edgeIndex + 1, 0, { ...edge.splitPoint });
         this.selected = {
             type: 'vertex',
-            polyType,
-            polyIndex,
-            vertexIndex: newIndex
+            polyType: edge.polyType,
+            polyIndex: edge.polyIndex,
+            vertexIndex: edge.edgeIndex + 1
         };
         this.dirty = true;
-        return newIndex;
     }
-    updateSelectedVertex(x, y) {
-        if (this.selected.type !== 'vertex' || this.selected.vertexIndex === undefined)
-            return false;
-        const polyType = this.selected.polyType ?? 'walkable';
-        const polyIndex = this.selected.polyIndex ?? 0;
-        const polys = polyType === 'walkable' ? this.currentRoom.walkable : (this.currentRoom.obstacles ?? []);
-        const poly = polys[polyIndex];
-        if (poly && poly.points[this.selected.vertexIndex]) {
-            poly.points[this.selected.vertexIndex] = { x: Math.round(x), y: Math.round(y) };
-            this.dirty = true;
-            return true;
-        }
-        return false;
-    }
-    updateSelectedSpawn(id, x, y) {
-        if (this.selected.type !== 'spawn' || !this.selected.spawnId)
-            return false;
-        const spawn = this.currentRoom.spawns.find(s => s.id === this.selected.spawnId);
-        if (!spawn)
-            return false;
-        spawn.id = id;
-        spawn.position = { x: Math.round(x), y: Math.round(y) };
-        this.selected.spawnId = id;
+    addSpawn(pos, id) {
+        const nextNum = this.currentRoom.spawns.length + 1;
+        const spawnId = id ?? (nextNum === 1 ? 'entry' : `spawn-${nextNum}`);
+        this.currentRoom.spawns.push({
+            id: spawnId,
+            position: { x: Math.round(pos.x), y: Math.round(pos.y) }
+        });
+        this.selected = { type: 'spawn', spawnId };
         this.dirty = true;
-        return true;
-    }
-    updateSelectedExit(update) {
-        if (this.selected.type !== 'exit' || !this.selected.exitId || !this.currentRoom.exits)
-            return false;
-        const exit = this.currentRoom.exits.find(e => e.id === this.selected.exitId);
-        if (!exit)
-            return false;
-        if (update.id !== undefined) {
-            exit.id = update.id;
-            this.selected.exitId = update.id;
-        }
-        if (update.position !== undefined) {
-            exit.position = { x: Math.round(update.position.x), y: Math.round(update.position.y) };
-        }
-        if (update.radius !== undefined)
-            exit.radius = update.radius;
-        if (update.label !== undefined)
-            exit.label = update.label;
-        if (update.target !== undefined)
-            exit.target = update.target;
-        if (update.bounds !== undefined)
-            exit.bounds = update.bounds;
-        this.dirty = true;
-        return true;
-    }
-    deleteSelectedEntity() {
-        if (this.selected.type === 'polygon' && this.selected.polyType && this.selected.polyIndex !== undefined) {
-            return this.deletePolygon(this.selected.polyType, this.selected.polyIndex);
-        }
-        if (this.selected.type === 'vertex') {
-            return this.deleteSelectedVertex();
-        }
-        if (this.selected.type === 'spawn' && this.selected.spawnId) {
-            return this.deleteSpawn(this.selected.spawnId);
-        }
-        if (this.selected.type === 'exit' && this.selected.exitId) {
-            return this.deleteExit(this.selected.exitId);
-        }
-        return false;
-    }
-    deleteSelectedVertex() {
-        if (this.selected.type !== 'vertex' || this.selected.vertexIndex === undefined) {
-            return false;
-        }
-        const polyType = this.selected.polyType ?? 'walkable';
-        const polyIndex = this.selected.polyIndex ?? 0;
-        const vertexIndex = this.selected.vertexIndex;
-        const polys = polyType === 'walkable' ? this.currentRoom.walkable : (this.currentRoom.obstacles ?? []);
-        const poly = polys[polyIndex];
-        if (!poly || poly.points.length <= vertexIndex) {
-            return false;
-        }
-        // Polygons must not have fewer than 3 vertices
-        if (poly.points.length <= 3) {
-            if (polyType === 'obstacle') {
-                // If obstacle has only 3 vertices, removing a vertex deletes the obstacle cleanly
-                return this.deletePolygon('obstacle', polyIndex);
-            }
-            else if (polyType === 'walkable' && this.currentRoom.walkable.length > 1) {
-                return this.deletePolygon('walkable', polyIndex);
-            }
-            return false; // Minimum 3 vertices required for primary floor polygon
-        }
-        poly.points.splice(vertexIndex, 1);
-        this.selected = { type: null };
-        this.dirty = true;
-        return true;
     }
     addOrUpdateSpawn(id, x, y) {
-        const existing = this.currentRoom.spawns.find(s => s.id.toLowerCase() === id.toLowerCase());
+        const existing = this.currentRoom.spawns.find(s => s.id === id);
         if (existing) {
             existing.position = { x: Math.round(x), y: Math.round(y) };
         }
         else {
-            this.currentRoom.spawns.push({
-                id,
-                position: { x: Math.round(x), y: Math.round(y) }
-            });
+            this.currentRoom.spawns.push({ id, position: { x: Math.round(x), y: Math.round(y) } });
         }
         this.selected = { type: 'spawn', spawnId: id };
         this.dirty = true;
     }
-    moveSpawn(id, x, y) {
-        const spawn = this.currentRoom.spawns.find(s => s.id === id);
-        if (spawn) {
-            spawn.position = { x: Math.round(x), y: Math.round(y) };
-            this.dirty = true;
-        }
-    }
-    deleteSpawn(id) {
-        const idx = this.currentRoom.spawns.findIndex(s => s.id === id);
-        if (idx >= 0) {
-            this.currentRoom.spawns.splice(idx, 1);
-            if (this.selected.type === 'spawn' && this.selected.spawnId === id) {
-                this.selected = { type: null };
-            }
-            this.dirty = true;
-            return true;
-        }
-        return false;
-    }
-    addOrUpdateExit(exit) {
+    addExit(exitOrPos) {
         if (!this.currentRoom.exits) {
             this.currentRoom.exits = [];
         }
-        const idx = this.currentRoom.exits.findIndex(e => e.id.toLowerCase() === exit.id.toLowerCase());
-        if (idx >= 0) {
-            this.currentRoom.exits[idx] = exit;
+        if ('target' in exitOrPos) {
+            this.currentRoom.exits.push({ ...exitOrPos });
+            this.selected = { type: 'exit', exitId: exitOrPos.id };
         }
         else {
-            this.currentRoom.exits.push(exit);
+            const nextNum = this.currentRoom.exits.length + 1;
+            const exitId = `exit-${nextNum}`;
+            const newExit = {
+                id: exitId,
+                position: { x: Math.round(exitOrPos.x), y: Math.round(exitOrPos.y) },
+                radius: 35,
+                target: {
+                    room: 'garden',
+                    spawn: 'entry'
+                },
+                label: 'Nach Garten'
+            };
+            this.currentRoom.exits.push(newExit);
+            this.selected = { type: 'exit', exitId };
         }
-        this.selected = { type: 'exit', exitId: exit.id };
         this.dirty = true;
     }
-    moveExit(id, x, y) {
+    moveVertex(polyType, polyIdx, vIdx, pos) {
+        const list = polyType === 'walkable' ? this.currentRoom.walkable : this.currentRoom.obstacles;
+        if (!list)
+            return;
+        const poly = list[polyIdx];
+        if (poly && poly.points[vIdx]) {
+            const clampedX = Math.max(0, Math.min(this.currentRoom.size.width, Math.round(pos.x)));
+            const clampedY = Math.max(0, Math.min(this.currentRoom.size.height, Math.round(pos.y)));
+            poly.points[vIdx] = { x: clampedX, y: clampedY };
+            this.dirty = true;
+        }
+    }
+    movePolygon(polyType, polyIdx, dx, dy) {
+        const list = polyType === 'walkable' ? this.currentRoom.walkable : this.currentRoom.obstacles;
+        if (!list)
+            return;
+        const poly = list[polyIdx];
+        if (poly && poly.points.length > 0) {
+            poly.points = EditorGeometry.translatePoints(poly.points, dx, dy, this.currentRoom.size.width, this.currentRoom.size.height);
+            this.dirty = true;
+        }
+    }
+    moveSpawn(id, pos) {
+        const spawn = this.currentRoom.spawns.find(s => s.id === id);
+        if (spawn) {
+            spawn.position = {
+                x: Math.max(0, Math.min(this.currentRoom.size.width, Math.round(pos.x))),
+                y: Math.max(0, Math.min(this.currentRoom.size.height, Math.round(pos.y)))
+            };
+            this.dirty = true;
+        }
+    }
+    moveExit(id, pos) {
         if (!this.currentRoom.exits)
             return;
         const exit = this.currentRoom.exits.find(e => e.id === id);
         if (exit) {
-            exit.position = { x: Math.round(x), y: Math.round(y) };
+            exit.position = {
+                x: Math.max(0, Math.min(this.currentRoom.size.width, Math.round(pos.x))),
+                y: Math.max(0, Math.min(this.currentRoom.size.height, Math.round(pos.y)))
+            };
             this.dirty = true;
         }
     }
-    deleteExit(id) {
-        if (!this.currentRoom.exits)
+    deleteSelected() {
+        const sel = this.selected;
+        if (!sel || !sel.type)
             return false;
-        const idx = this.currentRoom.exits.findIndex(e => e.id === id);
-        if (idx >= 0) {
-            this.currentRoom.exits.splice(idx, 1);
-            if (this.selected.type === 'exit' && this.selected.exitId === id) {
-                this.selected = { type: null };
+        if (sel.type === 'vertex' && sel.polyType && sel.polyIndex !== undefined && sel.vertexIndex !== undefined) {
+            const list = sel.polyType === 'walkable' ? this.currentRoom.walkable : this.currentRoom.obstacles;
+            if (list && list[sel.polyIndex]) {
+                const poly = list[sel.polyIndex];
+                if (poly && poly.points.length > 3) {
+                    poly.points.splice(sel.vertexIndex, 1);
+                    this.selected = { type: null };
+                    this.dirty = true;
+                    return true;
+                }
+                else if (poly && poly.points.length <= 3 && list.length > 1) {
+                    list.splice(sel.polyIndex, 1);
+                    this.selected = { type: null };
+                    this.dirty = true;
+                    return true;
+                }
             }
-            this.dirty = true;
-            return true;
+        }
+        else if (sel.type === 'polygon' && sel.polyType && sel.polyIndex !== undefined) {
+            const list = sel.polyType === 'walkable' ? this.currentRoom.walkable : this.currentRoom.obstacles;
+            if (list && list[sel.polyIndex]) {
+                if (sel.polyType === 'walkable' && list.length <= 1) {
+                    return false;
+                }
+                list.splice(sel.polyIndex, 1);
+                this.selected = { type: null };
+                this.dirty = true;
+                return true;
+            }
+        }
+        else if (sel.type === 'spawn' && sel.spawnId) {
+            const idx = this.currentRoom.spawns.findIndex(s => s.id === sel.spawnId);
+            if (idx >= 0 && this.currentRoom.spawns.length > 1) {
+                this.currentRoom.spawns.splice(idx, 1);
+                this.selected = { type: null };
+                this.dirty = true;
+                return true;
+            }
+        }
+        else if (sel.type === 'exit' && sel.exitId && this.currentRoom.exits) {
+            const idx = this.currentRoom.exits.findIndex(e => e.id === sel.exitId);
+            if (idx >= 0) {
+                this.currentRoom.exits.splice(idx, 1);
+                this.selected = { type: null };
+                this.dirty = true;
+                return true;
+            }
         }
         return false;
     }
-    toRuntimeRoomDefinition() {
-        const { currentRoom } = this;
-        const outerBoundary = currentRoom.walkable[0]?.points ?? [
-            { x: 0, y: 0 },
-            { x: currentRoom.size.width, y: 0 },
-            { x: currentRoom.size.width, y: currentRoom.size.height },
-            { x: 0, y: currentRoom.size.height }
-        ];
-        const obstacles = (currentRoom.obstacles ?? []).map(o => o.points);
-        const defaultSpawn = currentRoom.spawns[0]?.position ?? {
-            x: currentRoom.size.width / 2,
-            y: currentRoom.size.height / 2
-        };
-        return {
-            id: currentRoom.id,
-            name: currentRoom.name,
-            width: currentRoom.size.width,
-            height: currentRoom.size.height,
-            backgroundUrl: currentRoom.background,
-            spawnPoint: defaultSpawn,
-            geometry: {
-                outerBoundary,
-                obstacles
-            },
-            spawns: currentRoom.spawns.map(s => ({ id: s.id, position: s.position })),
-            exits: (currentRoom.exits ?? []).map(e => {
-                const exit = {
-                    id: e.id,
-                    position: e.position,
-                    radius: e.radius,
-                    targetRoomId: e.target.room,
-                    targetSpawnId: e.target.spawn
-                };
-                if (e.bounds)
-                    exit.bounds = e.bounds;
-                if (e.label)
-                    exit.label = e.label;
-                return exit;
-            })
-        };
+    toRoomDefinition() {
+        return EditorGeometry.roomYamlToRoomDefinition(this.currentRoom);
     }
 }
 //# sourceMappingURL=editor-state.js.map

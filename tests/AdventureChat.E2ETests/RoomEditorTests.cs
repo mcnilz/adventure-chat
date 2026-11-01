@@ -380,4 +380,79 @@ public class RoomEditorTests
 
         await context.DisposeAsync();
     }
+
+    [Test]
+    public async Task Editor_ValidationErrors_OnlyShownWhenErrorsExist()
+    {
+        var context = await _browser.NewContextAsync();
+        var page = await context.NewPageAsync();
+
+        await page.GotoAsync($"{_server.BaseUrl}/editor.html");
+        await page.WaitForSelectorAsync("#editor-canvas");
+        await page.WaitForFunctionAsync("() => document.querySelectorAll('#room-select option').length >= 2");
+
+        // 1. Errors section should be hidden initially
+        var isSectionHiddenInitially = await page.EvaluateAsync<bool>("() => document.getElementById('errors-section')?.style.display === 'none'");
+        Assert.That(isSectionHiddenInitially, Is.True, "Validation errors section should be hidden initially.");
+
+        // 2. Validate valid room -> section remains hidden
+        await page.ClickAsync("#btn-validate");
+        await page.WaitForTimeoutAsync(300);
+        var isSectionStillHidden = await page.EvaluateAsync<bool>("() => document.getElementById('errors-section')?.style.display === 'none'");
+        Assert.That(isSectionStillHidden, Is.True, "Validation errors section should remain hidden when room is valid.");
+
+        // 3. Inject invalid geometry -> section becomes visible
+        await page.EvaluateAsync("() => window.__ROOM_EDITOR__.getState().addOrUpdateSpawn('invalid-spawn', 5, 5)");
+        await page.ClickAsync("#btn-validate");
+
+        await page.WaitForSelectorAsync("#errors-section", new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible });
+        var isSectionVisible = await page.EvaluateAsync<bool>("() => document.getElementById('errors-section')?.style.display === 'block'");
+        Assert.That(isSectionVisible, Is.True, "Validation errors section should be visible when errors exist.");
+
+        await context.DisposeAsync();
+    }
+
+    [Test]
+    public async Task Editor_ExitCreation_UsesModalDialogWithoutPrompt()
+    {
+        var context = await _browser.NewContextAsync();
+        var page = await context.NewPageAsync();
+
+        await page.GotoAsync($"{_server.BaseUrl}/editor.html");
+        await page.WaitForSelectorAsync("#editor-canvas");
+        await page.WaitForFunctionAsync("() => document.querySelectorAll('#room-select option').length >= 2");
+
+        // Click Add Exit Tool
+        await page.ClickAsync("#tool-exit");
+
+        var canvasBounding = await page.Locator("#editor-canvas").BoundingBoxAsync();
+        Assert.That(canvasBounding, Is.Not.Null);
+
+        // Click on canvas to place an exit
+        await page.Mouse.ClickAsync(canvasBounding!.X + 250, canvasBounding.Y + 280);
+
+        // Verify Exit Modal dialog is opened
+        await page.WaitForSelectorAsync("#modal-exit-dialog[open]");
+
+        // Verify target room and spawn options are available in dropdowns
+        var roomOptionsCount = await page.Locator("#modal-exit-room option").CountAsync();
+        Assert.That(roomOptionsCount, Is.GreaterThanOrEqualTo(1));
+
+        var spawnOptionsCount = await page.Locator("#modal-exit-target-spawn option").CountAsync();
+        Assert.That(spawnOptionsCount, Is.GreaterThanOrEqualTo(1));
+
+        // Confirm exit creation dialog
+        await page.ClickAsync("#btn-confirm-exit-modal");
+
+        // Verify exit is added to state
+        var exitsCount = await page.EvaluateAsync<int>("() => window.__ROOM_EDITOR__.getState().getRoom().exits?.length ?? 0");
+        Assert.That(exitsCount, Is.GreaterThanOrEqualTo(1));
+
+        // Inspector should show Exit details
+        await page.WaitForSelectorAsync("#inspector-exit", new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible });
+        var inspectorRoomVal = await page.InputValueAsync("#inspector-exit-room");
+        Assert.That(inspectorRoomVal, Is.Not.Empty);
+
+        await context.DisposeAsync();
+    }
 }

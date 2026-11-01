@@ -31,6 +31,7 @@ function initializeEditor(): void {
     inputHeight: document.getElementById('input-height') as HTMLInputElement,
     inputNotes: document.getElementById('input-notes') as HTMLTextAreaElement,
     statusBanner: document.getElementById('status-banner') as HTMLElement,
+    errorsSection: document.getElementById('errors-section') as HTMLElement,
     errorList: document.getElementById('error-list') as HTMLElement,
     unsavedBadge: document.getElementById('unsaved-badge') as HTMLElement,
     // Inspector elements
@@ -53,8 +54,8 @@ function initializeEditor(): void {
     btnInspectorDeleteSpawn: document.getElementById('btn-inspector-delete-spawn') as HTMLButtonElement,
     inspectorExit: document.getElementById('inspector-exit') as HTMLElement,
     inspectorExitId: document.getElementById('inspector-exit-id') as HTMLInputElement,
-    inspectorExitRoom: document.getElementById('inspector-exit-room') as HTMLInputElement,
-    inspectorExitTargetSpawn: document.getElementById('inspector-exit-target-spawn') as HTMLInputElement,
+    inspectorExitRoom: document.getElementById('inspector-exit-room') as HTMLSelectElement,
+    inspectorExitTargetSpawn: document.getElementById('inspector-exit-target-spawn') as HTMLSelectElement,
     inspectorExitLabel: document.getElementById('inspector-exit-label') as HTMLInputElement,
     inspectorExitX: document.getElementById('inspector-exit-x') as HTMLInputElement,
     inspectorExitY: document.getElementById('inspector-exit-y') as HTMLInputElement,
@@ -73,7 +74,17 @@ function initializeEditor(): void {
     bgDropZone: document.getElementById('bg-drop-zone') as HTMLElement,
     btnModalUploadSelect: document.getElementById('btn-modal-upload-select') as HTMLButtonElement,
     bgGalleryGrid: document.getElementById('bg-gallery-grid') as HTMLElement,
-    bgCount: document.getElementById('bg-count') as HTMLElement
+    bgCount: document.getElementById('bg-count') as HTMLElement,
+    // Exit Dialog
+    modalExitDialog: document.getElementById('modal-exit-dialog') as HTMLDialogElement,
+    btnCloseExitModal: document.getElementById('btn-close-exit-modal') as HTMLButtonElement,
+    btnCancelExitModal: document.getElementById('btn-cancel-exit-modal') as HTMLButtonElement,
+    btnConfirmExitModal: document.getElementById('btn-confirm-exit-modal') as HTMLButtonElement,
+    modalExitId: document.getElementById('modal-exit-id') as HTMLInputElement,
+    modalExitRoom: document.getElementById('modal-exit-room') as HTMLSelectElement,
+    modalExitTargetSpawn: document.getElementById('modal-exit-target-spawn') as HTMLSelectElement,
+    modalExitLabel: document.getElementById('modal-exit-label') as HTMLInputElement,
+    modalExitRadius: document.getElementById('modal-exit-radius') as HTMLInputElement
   };
 
   const app = new EditorApp(canvas, elements);

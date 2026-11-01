@@ -23,6 +23,7 @@ function initializeEditor() {
         inputHeight: document.getElementById('input-height'),
         inputNotes: document.getElementById('input-notes'),
         statusBanner: document.getElementById('status-banner'),
+        errorsSection: document.getElementById('errors-section'),
         errorList: document.getElementById('error-list'),
         unsavedBadge: document.getElementById('unsaved-badge'),
         // Inspector elements
@@ -65,7 +66,17 @@ function initializeEditor() {
         bgDropZone: document.getElementById('bg-drop-zone'),
         btnModalUploadSelect: document.getElementById('btn-modal-upload-select'),
         bgGalleryGrid: document.getElementById('bg-gallery-grid'),
-        bgCount: document.getElementById('bg-count')
+        bgCount: document.getElementById('bg-count'),
+        // Exit Dialog
+        modalExitDialog: document.getElementById('modal-exit-dialog'),
+        btnCloseExitModal: document.getElementById('btn-close-exit-modal'),
+        btnCancelExitModal: document.getElementById('btn-cancel-exit-modal'),
+        btnConfirmExitModal: document.getElementById('btn-confirm-exit-modal'),
+        modalExitId: document.getElementById('modal-exit-id'),
+        modalExitRoom: document.getElementById('modal-exit-room'),
+        modalExitTargetSpawn: document.getElementById('modal-exit-target-spawn'),
+        modalExitLabel: document.getElementById('modal-exit-label'),
+        modalExitRadius: document.getElementById('modal-exit-radius')
     };
     const app = new EditorApp(canvas, elements);
     window.__ROOM_EDITOR__ = app;

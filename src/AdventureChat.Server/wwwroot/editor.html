@@ -125,12 +125,12 @@
               </div>
               <div class="form-row">
                 <div class="form-group">
-                  <label for="inspector-exit-room" title="ID des Zielraums (z. B. garden)">Zielraum:</label>
-                  <input type="text" id="inspector-exit-room" placeholder="garden" title="ID des Raumes, in den gewechselt werden soll">
+                  <label for="inspector-exit-room" title="ID des Zielraums">Zielraum:</label>
+                  <select id="inspector-exit-room" class="editor-select" title="Zielraum auswählen"></select>
                 </div>
                 <div class="form-group">
                   <label for="inspector-exit-target-spawn" title="ID des Spawn-Punktes im Zielraum">Ziel-Spawn:</label>
-                  <input type="text" id="inspector-exit-target-spawn" placeholder="from-lounge" title="Spawn-Punkt im Zielraum">
+                  <select id="inspector-exit-target-spawn" class="editor-select" title="Startpunkt im Zielraum"></select>
                 </div>
               </div>
               <div class="form-group">
@@ -204,10 +204,10 @@
           </p>
         </section>
 
-        <!-- Validation Error List -->
-        <section class="sidebar-section errors-card">
-          <h3>Validierungsfehler</h3>
-          <ul id="error-list" class="error-list" style="display: none;"></ul>
+        <!-- Validation Error List (only displayed when validation errors actually exist) -->
+        <section id="errors-section" class="sidebar-section errors-card" style="display: none;">
+          <h3>⚠️ Validierungsfehler</h3>
+          <ul id="error-list" class="error-list"></ul>
         </section>
       </aside>
     </div>
@@ -255,6 +255,46 @@
 
       <div class="modal-footer">
         <button id="btn-close-bg-modal-footer" type="button" class="btn-secondary">Schließen</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Exit Creation & Config Modal Dialog -->
+  <dialog id="modal-exit-dialog" class="editor-modal">
+    <div class="modal-content" style="max-width: 480px;">
+      <div class="modal-header">
+        <h3 id="modal-exit-title">🚪 Neuen Raum-Ausgang konfigurieren</h3>
+        <button id="btn-close-exit-modal" class="modal-close-btn" title="Schließen">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="modal-exit-id">Ausgangs-ID:</label>
+          <input type="text" id="modal-exit-id" placeholder="to-garden" pattern="^[a-zA-Z0-9_-]+$" required>
+        </div>
+        <div class="form-group">
+          <label for="modal-exit-room">Zielraum:</label>
+          <select id="modal-exit-room" class="editor-select"></select>
+        </div>
+        <div class="form-group">
+          <label for="modal-exit-target-spawn">Ziel-Spawn (Startpunkt im Zielraum):</label>
+          <select id="modal-exit-target-spawn" class="editor-select"></select>
+        </div>
+        <div class="form-group">
+          <label for="modal-exit-label">Label / Beschriftung (optional):</label>
+          <input type="text" id="modal-exit-label" placeholder="Tavernen-Garten">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="modal-exit-radius">Interaktionsradius (Pixel):</label>
+            <input type="number" id="modal-exit-radius" min="5" max="200" value="35">
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button id="btn-cancel-exit-modal" type="button" class="btn-secondary">Abbrechen</button>
+        <button id="btn-confirm-exit-modal" type="button" class="btn-primary">Ausgang platzieren</button>
       </div>
     </div>
   </dialog>
