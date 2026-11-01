@@ -20,13 +20,14 @@ Revision 8 · 30.10.2026.
 
 ## Aktives Ticket
 - **Ticket:** `05-room-transitions.md` (Zwischen zwei Räumen wechseln und getrennt chatten)
-- **Status:** `in-preparation` (wartet auf Bestätigung von Umfang und Testgrenzen vor Implementierungsstart)
-- **Geplanter Umfang:** Zweiter Beispielraum (z. B. "Garden" / "Tavern Backyard"), Ausgänge/Türen mit interaktiven Klick-Bereichen, Wegfindung zum Ausgang und automatischer Raumwechsel nach Erreichen, SignalR-Raumwechsel/Umgruppierung, Entleerung des alten Chatverlaufs und Laden des neuen Raum-Snapshots, saubere Ereignisisolation zwischen Räumen.
-- **Letzter Stand:** Ticket 04 menschlich abgenommen und abgeschlossen.
+- **Status:** `in-progress` (Parameter und Testgrenzen bestätigt, Implementierung gestartet)
+- **Geplanter Umfang:** Zweiter Beispielraum ("Tavernen-Garten"), Ausgänge/Türen mit Navigation & automatischem Raumwechsel bei Ankunft, SignalR-Raumgruppenwechsel, persönlicher Chatverlauf mit Raumwechsel-Systemnachrichten, strikte Trennung von Chat & Bewegung zwischen Räumen.
+- **Letzter Stand:** Parameter mit Benutzer abgestimmt (Laufen & Wechseln, persönlicher Verlauf mit Systemmeldungen, Tavernen-Garten als 2. Raum).
 
 ## Nächste Aktion
-1. Bestätigung von Ergebnis, Detailentscheidungen und Testgrenzen für Ticket 05 durch den Benutzer.
-2. Nach Bestätigung: Ticket 05 (`05-room-transitions.md`) auf `in-progress` setzen und umsetzen.
+1. Implementierung von Ticket 05 (Modelle, Server-Hub/Manager, Renderer, Client-Navigation, Tests).
+2. Ausführung von Build, Typecheck und automatisierten Tests (NUnit & Playwright).
+3. Bereitstellung der Ergebnisse zur menschlichen Abnahme (`ready-for-human`).
 
 ## Offene Annahmen
 Privater Testbetrieb, ca. zehn Personen, Desktop-Mausbedienung; keine kollidierenden Figuren; Reconnect als frischer Eintritt.
