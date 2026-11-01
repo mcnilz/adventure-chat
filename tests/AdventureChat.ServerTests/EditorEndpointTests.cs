@@ -240,6 +240,58 @@ public class EditorEndpointTests
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
     }
 
+    [Test]
+    public async Task GetBackgrounds_ReturnsOverviewAndExistingImages()
+    {
+        var response = await _client.GetAsync("/api/editor/backgrounds");
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        var overview = await response.Content.ReadFromJsonAsync<BackgroundsOverviewResponseDto>();
+        Assert.That(overview, Is.Not.Null);
+        Assert.That(overview!.FilesystemDirectory, Is.Not.Empty);
+        Assert.That(overview.RelativePath, Is.EqualTo("assets/images"));
+        Assert.That(overview.Backgrounds, Is.Not.Null);
+        Assert.That(overview.Backgrounds.Count, Is.GreaterThanOrEqualTo(5)); // lounge, garden, library, courtyard, cafe
+        Assert.That(overview.Backgrounds.Any(b => b.Name == "library.png"), Is.True);
+        Assert.That(overview.Backgrounds.Any(b => b.Name == "courtyard.png"), Is.True);
+        Assert.That(overview.Backgrounds.Any(b => b.Name == "cafe.png"), Is.True);
+    }
+
+    [Test]
+    public async Task UploadBackground_ValidPng_SavesAndReturnsPath()
+    {
+        using var form = new MultipartFormDataContent();
+        var fakePngBytes = new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D };
+        var fileContent = new ByteArrayContent(fakePngBytes);
+        fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("image/png");
+        form.Add(fileContent, "file", "test-uploaded-bg.png");
+
+        var response = await _client.PostAsync("/api/editor/backgrounds", form);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        var result = await response.Content.ReadFromJsonAsync<UploadBackgroundResponseDto>();
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result!.Success, Is.True);
+        Assert.That(result.Name, Is.EqualTo("test-uploaded-bg.png"));
+        Assert.That(result.Path, Is.EqualTo("assets/images/test-uploaded-bg.png"));
+
+        var solutionDir = FindSolutionDirectory();
+        var targetFile = Path.Combine(solutionDir, "src", "AdventureChat.Server", "wwwroot", "assets", "images", "test-uploaded-bg.png");
+        _createdFiles.Add(targetFile);
+    }
+
+    [Test]
+    public async Task UploadBackground_DisallowedExtension_ReturnsBadRequest()
+    {
+        using var form = new MultipartFormDataContent();
+        var fileContent = new StringContent("malicious script");
+        form.Add(fileContent, "file", "dangerous.exe");
+
+        var response = await _client.PostAsync("/api/editor/backgrounds", form);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+    }
+
     private static int GetFreePort()
     {
         using var listener = new TcpListener(IPAddress.Loopback, 0);
@@ -268,4 +320,7 @@ public class EditorEndpointTests
     private sealed record RoomSummaryResponseDto(string Id, string Name, string Background, int Width, int Height);
     private sealed record ValidationResponseDto(bool Valid, IReadOnlyList<string> Errors);
     private sealed record SaveRoomResponseDto(bool Success, string? RoomId, IReadOnlyList<string>? Errors);
+    private sealed record BackgroundItemResponseDto(string Name, string Path, long SizeBytes, DateTimeOffset LastModified);
+    private sealed record BackgroundsOverviewResponseDto(string FilesystemDirectory, string RelativePath, IReadOnlyList<BackgroundItemResponseDto> Backgrounds);
+    private sealed record UploadBackgroundResponseDto(bool Success, string? Name, string? Path, string? Error);
 }

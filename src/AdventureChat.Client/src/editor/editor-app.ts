@@ -1,10 +1,11 @@
-import { closestPointOnSegment, distance, isPointWalkable } from '../math.js';
+import { closestPointOnSegment, distance, isPointInPolygon, isPointWalkable } from '../math.js';
 import { RoomRenderer } from '../rendering/renderer.js';
 import { assignPathToCharacter, updateCharacterMovement } from '../simulation/movement.js';
 import type { Character, Point } from '../types.js';
 import { EditorRenderer } from './editor-renderer.js';
 import { EditorState } from './editor-state.js';
 import type {
+  BackgroundsOverviewDto,
   EditorMode,
   EditorTool,
   HoveredEdge,
@@ -41,6 +42,12 @@ export interface EditorElements {
   inspectorVertexX: HTMLInputElement;
   inspectorVertexY: HTMLInputElement;
   btnInspectorDeleteVertex: HTMLButtonElement;
+  // Polygon Inspector
+  inspectorPolygon: HTMLElement;
+  inspectorPolygonBadge: HTMLElement;
+  inspectorPolygonId: HTMLInputElement;
+  inspectorPolygonPointsCount: HTMLInputElement;
+  btnInspectorDeletePolygon: HTMLButtonElement;
   inspectorSpawn: HTMLElement;
   inspectorSpawnId: HTMLInputElement;
   inspectorSpawnX: HTMLInputElement;
@@ -55,6 +62,20 @@ export interface EditorElements {
   inspectorExitY: HTMLInputElement;
   inspectorExitRadius: HTMLInputElement;
   btnInspectorDeleteExit: HTMLButtonElement;
+  // Background picker & upload
+  btnOpenBgModal: HTMLButtonElement;
+  btnUploadBgTrigger: HTMLButtonElement;
+  inputBgFile: HTMLInputElement;
+  bgFsHintPath: HTMLElement;
+  modalBgPicker: HTMLDialogElement;
+  btnCloseBgModal: HTMLButtonElement;
+  btnCloseBgModalFooter: HTMLButtonElement;
+  modalFsPath: HTMLElement;
+  btnCopyFsPath: HTMLButtonElement;
+  bgDropZone: HTMLElement;
+  btnModalUploadSelect: HTMLButtonElement;
+  bgGalleryGrid: HTMLElement;
+  bgCount: HTMLElement;
 }
 
 export class EditorApp {
@@ -68,8 +89,11 @@ export class EditorApp {
   private mouseLogicalPos: RoomPointDto | null = null;
   private isDragging = false;
   private dragPos: RoomPointDto | null = null;
+  private dragStartLogicalPos: RoomPointDto | null = null;
+  private dragOffset: { dx: number; dy: number } | null = null;
   private hoveredEdge: HoveredEdge | null = null;
   private hoveredEntity: { type: 'spawn' | 'exit'; id: string } | null = null;
+  private backgroundsOverview: BackgroundsOverviewDto | null = null;
 
   // Preview character state
   private previewCharacter: Character | null = null;
@@ -91,6 +115,7 @@ export class EditorApp {
 
   public async init(): Promise<void> {
     await this.loadRoomList(false);
+    void this.loadBackgroundsList();
     window.addEventListener('beforeunload', (e) => {
       if (this.state.isDirty()) {
         e.preventDefault();
@@ -329,8 +354,38 @@ export class EditorApp {
 
     this.elements.btnDeleteVertex.addEventListener('click', handleDelete);
     this.elements.btnInspectorDeleteVertex.addEventListener('click', handleDelete);
+    this.elements.btnInspectorDeletePolygon.addEventListener('click', handleDelete);
     this.elements.btnInspectorDeleteSpawn.addEventListener('click', handleDelete);
     this.elements.btnInspectorDeleteExit.addEventListener('click', handleDelete);
+
+    // Background modal & upload actions
+    this.elements.btnOpenBgModal.addEventListener('click', () => this.openBackgroundModal());
+    this.elements.btnUploadBgTrigger.addEventListener('click', () => this.elements.inputBgFile.click());
+    this.elements.btnModalUploadSelect.addEventListener('click', () => this.elements.inputBgFile.click());
+    this.elements.btnCloseBgModal.addEventListener('click', () => this.closeBackgroundModal());
+    this.elements.btnCloseBgModalFooter.addEventListener('click', () => this.closeBackgroundModal());
+    this.elements.btnCopyFsPath.addEventListener('click', () => void this.copyFilesystemPath());
+    this.elements.inputBgFile.addEventListener('change', () => {
+      const file = this.elements.inputBgFile.files?.[0];
+      if (file) void this.uploadBackgroundFile(file);
+    });
+
+    const dropZone = this.elements.bgDropZone;
+    if (dropZone) {
+      dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('drag-over');
+      });
+      dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('drag-over');
+      });
+      dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('drag-over');
+        const file = e.dataTransfer?.files?.[0];
+        if (file) void this.uploadBackgroundFile(file);
+      });
+    }
 
     // Tool selection buttons
     this.elements.toolSelect.addEventListener('click', () => this.setTool('select'));
@@ -473,9 +528,16 @@ export class EditorApp {
 
     if (this.mode === 'preview') return;
 
-    if (this.isDragging && this.dragPos) {
-      this.dragPos = { x: Math.round(pos.x), y: Math.round(pos.y) };
-      this.updateInspectorCoordinates(this.dragPos.x, this.dragPos.y);
+    if (this.isDragging) {
+      if (this.dragPos) {
+        this.dragPos = { x: Math.round(pos.x), y: Math.round(pos.y) };
+        this.updateInspectorCoordinates(this.dragPos.x, this.dragPos.y);
+      } else if (this.dragStartLogicalPos) {
+        this.dragOffset = {
+          dx: Math.round(pos.x - this.dragStartLogicalPos.x),
+          dy: Math.round(pos.y - this.dragStartLogicalPos.y)
+        };
+      }
       this.render();
       return;
     }
@@ -591,6 +653,46 @@ export class EditorApp {
         return;
       }
 
+      // 5. Check if clicking inside an obstacle polygon -> select whole obstacle & start drag!
+      if (room.obstacles) {
+        for (let oIdx = 0; oIdx < room.obstacles.length; oIdx++) {
+          const obs = room.obstacles[oIdx];
+          if (obs && obs.points.length >= 3 && isPointInPolygon(pos, obs.points)) {
+            this.state.setSelection({
+              type: 'polygon',
+              polyType: 'obstacle',
+              polyIndex: oIdx
+            });
+            this.isDragging = true;
+            this.dragStartLogicalPos = { ...pos };
+            this.dragOffset = { dx: 0, dy: 0 };
+            this.updateInspector();
+            this.updateCursor();
+            this.render();
+            return;
+          }
+        }
+      }
+
+      // 6. Check if clicking inside a walkable polygon -> select whole floor & start drag!
+      for (let pIdx = 0; pIdx < room.walkable.length; pIdx++) {
+        const walk = room.walkable[pIdx];
+        if (walk && walk.points.length >= 3 && isPointInPolygon(pos, walk.points)) {
+          this.state.setSelection({
+            type: 'polygon',
+            polyType: 'walkable',
+            polyIndex: pIdx
+          });
+          this.isDragging = true;
+          this.dragStartLogicalPos = { ...pos };
+          this.dragOffset = { dx: 0, dy: 0 };
+          this.updateInspector();
+          this.updateCursor();
+          this.render();
+          return;
+        }
+      }
+
       // Clicked on empty space -> clear selection
       this.state.clearSelection();
       this.updateInspector();
@@ -601,7 +703,7 @@ export class EditorApp {
       this.updateUnsavedBadge();
       this.setTool('select');
     } else if (this.currentTool === 'add-obstacle') {
-      this.state.addObstaclePoint(pos.x, pos.y);
+      this.state.addObstacle(pos.x, pos.y);
       this.updateInspector();
       this.updateUnsavedBadge();
       this.setTool('select');
@@ -628,21 +730,30 @@ export class EditorApp {
   }
 
   private handleMouseUp(): void {
-    if (this.isDragging && this.dragPos) {
+    if (this.isDragging) {
       const sel = this.state.getSelection();
-      if (sel.type === 'vertex' && sel.polyType && sel.polyIndex !== undefined && sel.vertexIndex !== undefined) {
-        this.state.moveVertex(sel.polyType, sel.polyIndex, sel.vertexIndex, this.dragPos.x, this.dragPos.y);
-      } else if (sel.type === 'spawn' && sel.spawnId) {
-        this.state.moveSpawn(sel.spawnId, this.dragPos.x, this.dragPos.y);
-      } else if (sel.type === 'exit' && sel.exitId) {
-        this.state.moveExit(sel.exitId, this.dragPos.x, this.dragPos.y);
+      if (sel.type === 'polygon' && sel.polyType && sel.polyIndex !== undefined && this.dragOffset) {
+        if (this.dragOffset.dx !== 0 || this.dragOffset.dy !== 0) {
+          this.state.translatePolygon(sel.polyType, sel.polyIndex, this.dragOffset.dx, this.dragOffset.dy);
+          this.updateUnsavedBadge();
+        }
+      } else if (this.dragPos) {
+        if (sel.type === 'vertex' && sel.polyType && sel.polyIndex !== undefined && sel.vertexIndex !== undefined) {
+          this.state.moveVertex(sel.polyType, sel.polyIndex, sel.vertexIndex, this.dragPos.x, this.dragPos.y);
+        } else if (sel.type === 'spawn' && sel.spawnId) {
+          this.state.moveSpawn(sel.spawnId, this.dragPos.x, this.dragPos.y);
+        } else if (sel.type === 'exit' && sel.exitId) {
+          this.state.moveExit(sel.exitId, this.dragPos.x, this.dragPos.y);
+        }
+        this.updateUnsavedBadge();
       }
       this.updateInspector();
-      this.updateUnsavedBadge();
     }
 
     this.isDragging = false;
     this.dragPos = null;
+    this.dragStartLogicalPos = null;
+    this.dragOffset = null;
     this.updateCursor();
     this.render();
   }
@@ -765,7 +876,8 @@ export class EditorApp {
       this.dragPos,
       hovered,
       this.hoveredEdge,
-      this.hoveredEntity
+      this.hoveredEntity,
+      this.dragOffset
     );
   }
 
@@ -786,10 +898,28 @@ export class EditorApp {
 
     this.elements.inspectorEmpty.style.display = 'none';
     this.elements.inspectorVertex.style.display = 'none';
+    this.elements.inspectorPolygon.style.display = 'none';
     this.elements.inspectorSpawn.style.display = 'none';
     this.elements.inspectorExit.style.display = 'none';
 
-    if (sel.type === 'vertex' && sel.vertexIndex !== undefined) {
+    if (sel.type === 'polygon' && sel.polyType && sel.polyIndex !== undefined) {
+      const polys = sel.polyType === 'walkable' ? room.walkable : (room.obstacles ?? []);
+      const poly = polys[sel.polyIndex];
+      if (poly) {
+        this.elements.inspectorPolygon.style.display = 'block';
+        if (sel.polyType === 'obstacle') {
+          this.elements.inspectorPolygonBadge.className = 'inspector-badge badge-obstacle';
+          this.elements.inspectorPolygonBadge.textContent = '🔴 Hindernis-Fläche';
+        } else {
+          this.elements.inspectorPolygonBadge.className = 'inspector-badge';
+          this.elements.inspectorPolygonBadge.textContent = '🟢 Begehbare Boden-Fläche';
+        }
+        this.elements.inspectorPolygonId.value = poly.id;
+        this.elements.inspectorPolygonPointsCount.value = `${poly.points.length} Eckpunkte`;
+      } else {
+        this.elements.inspectorEmpty.style.display = 'block';
+      }
+    } else if (sel.type === 'vertex' && sel.vertexIndex !== undefined) {
       const polys = sel.polyType === 'walkable' ? room.walkable : (room.obstacles ?? []);
       const poly = polys[sel.polyIndex ?? 0];
       const pt = poly?.points[sel.vertexIndex];
@@ -834,6 +964,138 @@ export class EditorApp {
       }
     } else {
       this.elements.inspectorEmpty.style.display = 'block';
+    }
+  }
+
+  public async loadBackgroundsList(): Promise<void> {
+    try {
+      const response = await fetch('/api/editor/backgrounds');
+      if (!response.ok) return;
+
+      const overview = (await response.json()) as BackgroundsOverviewDto;
+      this.backgroundsOverview = overview;
+
+      const displayPath = overview.filesystemDirectory || overview.relativePath || 'assets/images';
+      if (this.elements.bgFsHintPath) {
+        this.elements.bgFsHintPath.textContent = displayPath;
+      }
+      if (this.elements.modalFsPath) {
+        this.elements.modalFsPath.textContent = displayPath;
+      }
+      if (this.elements.bgCount) {
+        this.elements.bgCount.textContent = String(overview.backgrounds.length);
+      }
+
+      this.renderBackgroundGallery();
+    } catch {
+      // Ignore background load errors
+    }
+  }
+
+  private renderBackgroundGallery(): void {
+    const grid = this.elements.bgGalleryGrid;
+    if (!grid || !this.backgroundsOverview) return;
+
+    grid.innerHTML = '';
+    const currentBg = this.state.getRoom().background;
+
+    for (const bg of this.backgroundsOverview.backgrounds) {
+      const isCurrent = bg.path === currentBg || currentBg.endsWith(bg.name);
+      const card = document.createElement('div');
+      card.className = `bg-gallery-card ${isCurrent ? 'active' : ''}`;
+      card.dataset.path = bg.path;
+      card.title = `Klicken, um '${bg.name}' als Hintergrund zu wählen`;
+
+      const sizeKb = Math.round(bg.sizeBytes / 1024);
+
+      card.innerHTML = `
+        <div class="bg-thumbnail-wrap">
+          <img class="bg-thumbnail-img" src="${bg.path}" alt="${bg.name}" loading="lazy">
+          ${isCurrent ? '<span class="bg-active-tag">✓ Aktiv</span>' : ''}
+        </div>
+        <div class="bg-card-info">
+          <div class="bg-card-title">${bg.name}</div>
+          <div class="bg-card-meta">${sizeKb} KB</div>
+        </div>
+      `;
+
+      card.addEventListener('click', () => {
+        this.selectBackground(bg.path);
+        this.closeBackgroundModal();
+      });
+
+      grid.appendChild(card);
+    }
+  }
+
+  public openBackgroundModal(): void {
+    void this.loadBackgroundsList();
+    if (typeof this.elements.modalBgPicker.showModal === 'function') {
+      this.elements.modalBgPicker.showModal();
+    } else {
+      this.elements.modalBgPicker.style.display = 'block';
+    }
+  }
+
+  public closeBackgroundModal(): void {
+    if (typeof this.elements.modalBgPicker.close === 'function') {
+      this.elements.modalBgPicker.close();
+    } else {
+      this.elements.modalBgPicker.style.display = 'none';
+    }
+  }
+
+  public selectBackground(path: string): void {
+    this.elements.inputBg.value = path;
+    this.state.updateMetadata({ background: path });
+    this.editorRenderer.setBackground(path);
+    this.updateUnsavedBadge();
+    this.render();
+    this.renderBackgroundGallery();
+    this.setStatus(`Hintergrund '${path}' ausgewählt.`, 'info');
+  }
+
+  public async uploadBackgroundFile(file: File): Promise<void> {
+    if (!file) return;
+
+    this.setStatus(`Lade '${file.name}' hoch...`, 'info');
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('/api/editor/backgrounds', {
+        method: 'POST',
+        body: formData
+      });
+
+      const res = await response.json();
+      if (!response.ok || !res.success) {
+        this.setStatus(`Fehler beim Upload: ${res.error ?? 'Unbekannter Fehler'}`, 'error');
+        alert(`Fehler beim Upload: ${res.error ?? 'Unbekannter Fehler'}`);
+        return;
+      }
+
+      this.setStatus(`Hintergrundbild '${res.name}' erfolgreich hochgeladen!`, 'success');
+      this.selectBackground(res.path);
+      await this.loadBackgroundsList();
+    } catch (err) {
+      this.setStatus(`Netzwerkfehler beim Upload: ${String(err)}`, 'error');
+    }
+  }
+
+  public async copyFilesystemPath(): Promise<void> {
+    const pathText = this.elements.modalFsPath.textContent ?? '';
+    if (!pathText) return;
+
+    try {
+      await navigator.clipboard.writeText(pathText);
+      const originalText = this.elements.btnCopyFsPath.textContent;
+      this.elements.btnCopyFsPath.textContent = '✓ Kopiert!';
+      setTimeout(() => {
+        this.elements.btnCopyFsPath.textContent = originalText;
+      }, 2000);
+    } catch {
+      // Fallback
     }
   }
 

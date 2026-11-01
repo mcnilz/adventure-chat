@@ -70,10 +70,15 @@ export class EditorState {
     }
     addWalkablePoint(x, y) {
         if (!this.currentRoom.walkable || this.currentRoom.walkable.length === 0) {
-            this.currentRoom.walkable = [{ id: 'floor', points: [] }];
+            this.addWalkablePolygon(x, y);
+            return;
         }
         const poly = this.currentRoom.walkable[0];
         if (poly) {
+            if (poly.points.length < 3) {
+                this.addWalkablePolygon(x, y);
+                return;
+            }
             poly.points.push({ x: Math.round(x), y: Math.round(y) });
             this.selected = {
                 type: 'vertex',
@@ -84,15 +89,72 @@ export class EditorState {
             this.dirty = true;
         }
     }
-    addObstaclePoint(x, y, obstacleIndex = 0) {
+    addWalkablePolygon(x, y, width = 80, height = 60) {
+        if (!this.currentRoom.walkable) {
+            this.currentRoom.walkable = [];
+        }
+        const halfW = Math.round(width / 2);
+        const halfH = Math.round(height / 2);
+        const maxX = this.currentRoom.size.width;
+        const maxY = this.currentRoom.size.height;
+        const clamp = (val, max) => Math.max(0, Math.min(max, Math.round(val)));
+        const points = [
+            { x: clamp(x - halfW, maxX), y: clamp(y - halfH, maxY) },
+            { x: clamp(x + halfW, maxX), y: clamp(y - halfH, maxY) },
+            { x: clamp(x + halfW, maxX), y: clamp(y + halfH, maxY) },
+            { x: clamp(x - halfW, maxX), y: clamp(y + halfH, maxY) }
+        ];
+        if (this.currentRoom.walkable.length === 0 || this.currentRoom.walkable[0]?.points.length === 0) {
+            this.currentRoom.walkable = [{ id: 'floor', points }];
+            this.selected = { type: 'polygon', polyType: 'walkable', polyIndex: 0 };
+            this.dirty = true;
+            return 0;
+        }
+        const index = this.currentRoom.walkable.length;
+        this.currentRoom.walkable.push({
+            id: `floor-${index + 1}`,
+            points
+        });
+        this.selected = { type: 'polygon', polyType: 'walkable', polyIndex: index };
+        this.dirty = true;
+        return index;
+    }
+    addObstacle(x, y, width = 60, height = 40) {
         if (!this.currentRoom.obstacles) {
             this.currentRoom.obstacles = [];
         }
+        const halfW = Math.round(width / 2);
+        const halfH = Math.round(height / 2);
+        const maxX = this.currentRoom.size.width;
+        const maxY = this.currentRoom.size.height;
+        const clamp = (val, max) => Math.max(0, Math.min(max, Math.round(val)));
+        const points = [
+            { x: clamp(x - halfW, maxX), y: clamp(y - halfH, maxY) },
+            { x: clamp(x + halfW, maxX), y: clamp(y - halfH, maxY) },
+            { x: clamp(x + halfW, maxX), y: clamp(y + halfH, maxY) },
+            { x: clamp(x - halfW, maxX), y: clamp(y + halfH, maxY) }
+        ];
+        const index = this.currentRoom.obstacles.length;
+        this.currentRoom.obstacles.push({
+            id: `obstacle-${index + 1}`,
+            points
+        });
+        this.selected = {
+            type: 'polygon',
+            polyType: 'obstacle',
+            polyIndex: index
+        };
+        this.dirty = true;
+        return index;
+    }
+    addObstaclePoint(x, y, obstacleIndex = 0) {
+        if (!this.currentRoom.obstacles || this.currentRoom.obstacles.length === 0) {
+            this.addObstacle(x, y);
+            return;
+        }
         if (this.currentRoom.obstacles.length <= obstacleIndex) {
-            this.currentRoom.obstacles.push({
-                id: `obstacle-${this.currentRoom.obstacles.length + 1}`,
-                points: []
-            });
+            this.addObstacle(x, y);
+            return;
         }
         const obs = this.currentRoom.obstacles[obstacleIndex];
         if (obs) {
@@ -105,6 +167,48 @@ export class EditorState {
             };
             this.dirty = true;
         }
+    }
+    translatePolygon(polyType, polyIndex, dx, dy) {
+        const polys = polyType === 'walkable' ? this.currentRoom.walkable : (this.currentRoom.obstacles ?? []);
+        const poly = polys[polyIndex];
+        if (!poly || poly.points.length === 0)
+            return false;
+        const roundDx = Math.round(dx);
+        const roundDy = Math.round(dy);
+        if (roundDx === 0 && roundDy === 0)
+            return false;
+        const maxX = this.currentRoom.size.width;
+        const maxY = this.currentRoom.size.height;
+        // Check boundary limits so shape doesn't collapse on edges
+        let minX = Infinity;
+        let maxXPt = -Infinity;
+        let minY = Infinity;
+        let maxYPt = -Infinity;
+        for (const p of poly.points) {
+            minX = Math.min(minX, p.x);
+            maxXPt = Math.max(maxXPt, p.x);
+            minY = Math.min(minY, p.y);
+            maxYPt = Math.max(maxYPt, p.y);
+        }
+        const actualDx = Math.max(-minX, Math.min(maxX - maxXPt, roundDx));
+        const actualDy = Math.max(-minY, Math.min(maxY - maxYPt, roundDy));
+        if (actualDx === 0 && actualDy === 0)
+            return false;
+        for (const p of poly.points) {
+            p.x += actualDx;
+            p.y += actualDy;
+        }
+        this.dirty = true;
+        return true;
+    }
+    deletePolygon(polyType, polyIndex) {
+        const polys = polyType === 'walkable' ? this.currentRoom.walkable : (this.currentRoom.obstacles ?? []);
+        if (!polys || polyIndex < 0 || polyIndex >= polys.length)
+            return false;
+        polys.splice(polyIndex, 1);
+        this.selected = { type: null };
+        this.dirty = true;
+        return true;
     }
     moveVertex(polyType, polyIndex, vertexIndex, x, y) {
         const polys = polyType === 'walkable' ? this.currentRoom.walkable : (this.currentRoom.obstacles ?? []);
@@ -181,6 +285,9 @@ export class EditorState {
         return true;
     }
     deleteSelectedEntity() {
+        if (this.selected.type === 'polygon' && this.selected.polyType && this.selected.polyIndex !== undefined) {
+            return this.deletePolygon(this.selected.polyType, this.selected.polyIndex);
+        }
         if (this.selected.type === 'vertex') {
             return this.deleteSelectedVertex();
         }
@@ -203,6 +310,17 @@ export class EditorState {
         const poly = polys[polyIndex];
         if (!poly || poly.points.length <= vertexIndex) {
             return false;
+        }
+        // Polygons must not have fewer than 3 vertices
+        if (poly.points.length <= 3) {
+            if (polyType === 'obstacle') {
+                // If obstacle has only 3 vertices, removing a vertex deletes the obstacle cleanly
+                return this.deletePolygon('obstacle', polyIndex);
+            }
+            else if (polyType === 'walkable' && this.currentRoom.walkable.length > 1) {
+                return this.deletePolygon('walkable', polyIndex);
+            }
+            return false; // Minimum 3 vertices required for primary floor polygon
         }
         poly.points.splice(vertexIndex, 1);
         this.selected = { type: null };

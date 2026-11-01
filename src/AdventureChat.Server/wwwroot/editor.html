@@ -79,6 +79,21 @@
               <button id="btn-inspector-delete-vertex" class="btn-danger w-100" title="Diesen Eckpunkt aus dem Polygon entfernen">🗑️ Punkt löschen</button>
             </div>
 
+            <!-- Polygon (Area) Inspector -->
+            <div id="inspector-polygon" style="display: none;">
+              <div class="inspector-badge badge-obstacle" id="inspector-polygon-badge" title="Ausgewählte Fläche">Hindernis-Fläche</div>
+              <p class="text-hint" style="margin-bottom: 8px;">Ganze Fläche ausgewählt. Ziehe auf der Karte, um die gesamte Fläche zu verschieben.</p>
+              <div class="form-group">
+                <label for="inspector-polygon-id" title="ID dieser Fläche">Flächen-ID:</label>
+                <input type="text" id="inspector-polygon-id" readonly>
+              </div>
+              <div class="form-group">
+                <label for="inspector-polygon-points-count" title="Anzahl der Eckpunkte dieser Fläche">Eckpunkte:</label>
+                <input type="text" id="inspector-polygon-points-count" readonly>
+              </div>
+              <button id="btn-inspector-delete-polygon" class="btn-danger w-100" title="Diese gesamte Fläche entfernen">🗑️ Ganze Fläche löschen</button>
+            </div>
+
             <!-- Spawn Inspector -->
             <div id="inspector-spawn" style="display: none;">
               <div class="inspector-badge badge-spawn" title="Startposition: Hier spawnen Spielerfiguren">📍 Startpunkt (Spawn)</div>
@@ -153,7 +168,15 @@
           </div>
           <div class="form-group">
             <label for="input-bg">Hintergrundbild (PNG):</label>
-            <input type="text" id="input-bg" placeholder="assets/images/lounge.png" required>
+            <div class="input-action-row">
+              <input type="text" id="input-bg" placeholder="assets/images/lounge.png" required>
+              <button id="btn-open-bg-modal" type="button" class="btn-secondary btn-action" title="Bildgalerie öffnen und Hintergrundbild aus Vorrat mit Vorschau wählen">🖼️ Galerie</button>
+              <button id="btn-upload-bg-trigger" type="button" class="btn-secondary btn-action" title="Neues Bild hochladen">📤 Upload</button>
+            </div>
+            <input type="file" id="input-bg-file" accept="image/png, image/jpeg, image/webp, image/gif" style="display: none;">
+            <div class="bg-fs-hint" id="bg-fs-hint" title="Speicherort der Bilder im Dateisystem">
+              📁 Ordner: <code id="bg-fs-hint-path">assets/images</code>
+            </div>
           </div>
           <div class="form-row">
             <div class="form-group">
@@ -189,6 +212,52 @@
       </aside>
     </div>
   </div>
+
+  <!-- Background Picker & Upload Modal Dialog -->
+  <dialog id="modal-bg-picker" class="editor-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>🖼️ Hintergrundbild auswählen & verwalten</h3>
+        <button id="btn-close-bg-modal" class="modal-close-btn" title="Schließen">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Filesystem Path Info Box -->
+        <div class="modal-fs-box">
+          <div class="fs-box-header">
+            <strong>📁 Speicherort im Dateisystem:</strong>
+          </div>
+          <div class="fs-box-row">
+            <code id="modal-fs-path" class="fs-path-code">assets/images</code>
+            <button id="btn-copy-fs-path" type="button" class="btn-secondary btn-sm" title="Vollständigen Pfad in die Zwischenablage kopieren">📋 Pfad kopieren</button>
+          </div>
+          <p class="text-hint">Hier gespeicherte Bilddateien (.png, .jpg, .webp) können direkt als Raumhintergrund verwendet werden.</p>
+        </div>
+
+        <!-- Upload Dropzone -->
+        <div class="modal-upload-box" id="bg-drop-zone">
+          <div class="upload-icon">📤</div>
+          <div class="upload-text">
+            <strong>Neues Hintergrundbild hochladen</strong>
+            <p class="text-hint">PNG, JPG, WebP (empfohlen: 640 × 360 px) – Datei hierher ziehen oder auswählen</p>
+          </div>
+          <button id="btn-modal-upload-select" type="button" class="btn-primary btn-sm">📁 Bild auswählen...</button>
+        </div>
+
+        <!-- Image Gallery Grid -->
+        <div class="modal-gallery-header">
+          <h4>Verfügbare Hintergrundbilder (<span id="bg-count">0</span>):</h4>
+        </div>
+        <div class="bg-gallery-grid" id="bg-gallery-grid">
+          <!-- Populated dynamically via editor-app.ts -->
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button id="btn-close-bg-modal-footer" type="button" class="btn-secondary">Schließen</button>
+      </div>
+    </div>
+  </dialog>
 
   <script type="module" src="js/editor/editor-main.js?v=1"></script>
 </body>

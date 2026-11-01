@@ -35,7 +35,8 @@ export class EditorRenderer {
     dragPos: RoomPointDto | null,
     hoveredVertex: { polyType: 'walkable' | 'obstacle'; polyIndex: number; vertexIndex: number } | null,
     hoveredEdge: HoveredEdge | null = null,
-    hoveredEntity: { type: 'spawn' | 'exit'; id: string } | null = null
+    hoveredEntity: { type: 'spawn' | 'exit'; id: string } | null = null,
+    dragOffset: { dx: number; dy: number } | null = null
   ): void {
     const { ctx, canvas } = this;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -79,7 +80,8 @@ export class EditorRenderer {
         pIdx,
         selection,
         hoveredVertex,
-        dragPos
+        dragPos,
+        dragOffset
       );
     }
 
@@ -97,7 +99,8 @@ export class EditorRenderer {
           oIdx,
           selection,
           hoveredVertex,
-          dragPos
+          dragPos,
+          dragOffset
         );
       }
     }
@@ -209,10 +212,16 @@ export class EditorRenderer {
     polyIndex: number,
     selection: SelectedEntity,
     hoveredVertex: { polyType: 'walkable' | 'obstacle'; polyIndex: number; vertexIndex: number } | null,
-    dragPos: RoomPointDto | null
+    dragPos: RoomPointDto | null,
+    dragOffset: { dx: number; dy: number } | null = null
   ): void {
     const { ctx } = this;
     if (points.length === 0) return;
+
+    const isPolySelected =
+      selection.type === 'polygon' &&
+      selection.polyType === polyType &&
+      selection.polyIndex === polyIndex;
 
     ctx.save();
     ctx.beginPath();
@@ -226,6 +235,8 @@ export class EditorRenderer {
         selection.vertexIndex === i
       ) {
         pt = dragPos;
+      } else if (isPolySelected && dragOffset) {
+        pt = { x: pt.x + dragOffset.dx, y: pt.y + dragOffset.dy };
       }
 
       if (i === 0) {
@@ -235,11 +246,22 @@ export class EditorRenderer {
       }
     }
     ctx.closePath();
-    ctx.fillStyle = fillColor;
-    ctx.fill();
-    ctx.strokeStyle = strokeColor;
-    ctx.lineWidth = 2;
-    ctx.stroke();
+
+    if (isPolySelected) {
+      ctx.fillStyle = polyType === 'obstacle' ? 'rgba(245, 101, 101, 0.45)' : 'rgba(72, 187, 120, 0.45)';
+      ctx.fill();
+      ctx.strokeStyle = '#ecc94b';
+      ctx.lineWidth = 3;
+      ctx.setLineDash([6, 3]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    } else {
+      ctx.fillStyle = fillColor;
+      ctx.fill();
+      ctx.strokeStyle = strokeColor;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
 
     // Draw vertex handles
     for (let i = 0; i < points.length; i++) {
@@ -252,6 +274,8 @@ export class EditorRenderer {
 
       if (isSelected && dragPos) {
         pt = dragPos;
+      } else if (isPolySelected && dragOffset) {
+        pt = { x: pt.x + dragOffset.dx, y: pt.y + dragOffset.dy };
       }
 
       const isHovered =
@@ -261,9 +285,9 @@ export class EditorRenderer {
         hoveredVertex.vertexIndex === i;
 
       ctx.beginPath();
-      const radius = isSelected ? 6 : isHovered ? 5 : 4;
+      const radius = isSelected ? 6 : (isPolySelected || isHovered) ? 5 : 4;
       ctx.arc(pt.x, pt.y, radius, 0, Math.PI * 2);
-      ctx.fillStyle = isSelected ? '#ecc94b' : isHovered ? '#63b3ed' : '#ffffff';
+      ctx.fillStyle = isSelected ? '#ecc94b' : isPolySelected ? '#ecc94b' : isHovered ? '#63b3ed' : '#ffffff';
       ctx.fill();
       ctx.strokeStyle = '#000000';
       ctx.lineWidth = 1.5;

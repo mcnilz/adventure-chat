@@ -63,7 +63,7 @@ export interface RoomSummaryDto {
 }
 
 export interface SelectedEntity {
-  type: 'vertex' | 'spawn' | 'exit' | null;
+  type: 'vertex' | 'polygon' | 'spawn' | 'exit' | null;
   polyType?: 'walkable' | 'obstacle';
   polyIndex?: number;
   vertexIndex?: number;
@@ -76,4 +76,17 @@ export interface HoveredEdge {
   polyIndex: number;
   edgeIndex: number;
   splitPoint: RoomPointDto;
+}
+
+export interface BackgroundItemDto {
+  name: string;
+  path: string;
+  sizeBytes: number;
+  lastModified: string;
+}
+
+export interface BackgroundsOverviewDto {
+  filesystemDirectory: string;
+  relativePath: string;
+  backgrounds: BackgroundItemDto[];
 }

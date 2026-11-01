@@ -40,6 +40,12 @@ function initializeEditor(): void {
     inspectorVertexX: document.getElementById('inspector-vertex-x') as HTMLInputElement,
     inspectorVertexY: document.getElementById('inspector-vertex-y') as HTMLInputElement,
     btnInspectorDeleteVertex: document.getElementById('btn-inspector-delete-vertex') as HTMLButtonElement,
+    // Polygon Inspector
+    inspectorPolygon: document.getElementById('inspector-polygon') as HTMLElement,
+    inspectorPolygonBadge: document.getElementById('inspector-polygon-badge') as HTMLElement,
+    inspectorPolygonId: document.getElementById('inspector-polygon-id') as HTMLInputElement,
+    inspectorPolygonPointsCount: document.getElementById('inspector-polygon-points-count') as HTMLInputElement,
+    btnInspectorDeletePolygon: document.getElementById('btn-inspector-delete-polygon') as HTMLButtonElement,
     inspectorSpawn: document.getElementById('inspector-spawn') as HTMLElement,
     inspectorSpawnId: document.getElementById('inspector-spawn-id') as HTMLInputElement,
     inspectorSpawnX: document.getElementById('inspector-spawn-x') as HTMLInputElement,
@@ -53,7 +59,21 @@ function initializeEditor(): void {
     inspectorExitX: document.getElementById('inspector-exit-x') as HTMLInputElement,
     inspectorExitY: document.getElementById('inspector-exit-y') as HTMLInputElement,
     inspectorExitRadius: document.getElementById('inspector-exit-radius') as HTMLInputElement,
-    btnInspectorDeleteExit: document.getElementById('btn-inspector-delete-exit') as HTMLButtonElement
+    btnInspectorDeleteExit: document.getElementById('btn-inspector-delete-exit') as HTMLButtonElement,
+    // Background picker & upload
+    btnOpenBgModal: document.getElementById('btn-open-bg-modal') as HTMLButtonElement,
+    btnUploadBgTrigger: document.getElementById('btn-upload-bg-trigger') as HTMLButtonElement,
+    inputBgFile: document.getElementById('input-bg-file') as HTMLInputElement,
+    bgFsHintPath: document.getElementById('bg-fs-hint-path') as HTMLElement,
+    modalBgPicker: document.getElementById('modal-bg-picker') as HTMLDialogElement,
+    btnCloseBgModal: document.getElementById('btn-close-bg-modal') as HTMLButtonElement,
+    btnCloseBgModalFooter: document.getElementById('btn-close-bg-modal-footer') as HTMLButtonElement,
+    modalFsPath: document.getElementById('modal-fs-path') as HTMLElement,
+    btnCopyFsPath: document.getElementById('btn-copy-fs-path') as HTMLButtonElement,
+    bgDropZone: document.getElementById('bg-drop-zone') as HTMLElement,
+    btnModalUploadSelect: document.getElementById('btn-modal-upload-select') as HTMLButtonElement,
+    bgGalleryGrid: document.getElementById('bg-gallery-grid') as HTMLElement,
+    bgCount: document.getElementById('bg-count') as HTMLElement
   };
 
   const app = new EditorApp(canvas, elements);

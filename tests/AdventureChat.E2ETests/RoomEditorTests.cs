@@ -293,4 +293,91 @@ public class RoomEditorTests
 
         await context.DisposeAsync();
     }
+
+    [Test]
+    public async Task Editor_BackgroundPicker_OpensModalAndSelectsImage()
+    {
+        var context = await _browser.NewContextAsync();
+        var page = await context.NewPageAsync();
+
+        await page.GotoAsync($"{_server.BaseUrl}/editor.html");
+        await page.WaitForSelectorAsync("#editor-canvas");
+        await page.WaitForFunctionAsync("() => document.querySelectorAll('#room-select option').length >= 2");
+
+        // Verify folder hint is visible on main editor page
+        var hintPath = await page.InnerTextAsync("#bg-fs-hint-path");
+        Assert.That(hintPath, Does.Contain("assets/images").Or.Contain("assets\\images"));
+
+        // Open background modal
+        await page.ClickAsync("#btn-open-bg-modal");
+        await page.WaitForSelectorAsync(".bg-gallery-card", new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible });
+
+        // Verify filesystem path in modal
+        var modalFsPath = await page.InnerTextAsync("#modal-fs-path");
+        Assert.That(modalFsPath, Does.Contain("assets/images").Or.Contain("assets\\images"));
+
+        // Check that test backgrounds are visible in gallery
+        var galleryCards = await page.Locator(".bg-gallery-card").CountAsync();
+        Assert.That(galleryCards, Is.GreaterThanOrEqualTo(5)); // lounge, garden, library, courtyard, cafe
+
+        // Click on library background card
+        var libraryCard = page.Locator(".bg-gallery-card[data-path='assets/images/library.png']");
+        await libraryCard.ClickAsync();
+
+        // Verify background is updated in input and state
+        var bgInput = await page.InputValueAsync("#input-bg");
+        Assert.That(bgInput, Is.EqualTo("assets/images/library.png"));
+
+        var stateBg = await page.EvaluateAsync<string>("() => window.__ROOM_EDITOR__.getState().getRoom().background");
+        Assert.That(stateBg, Is.EqualTo("assets/images/library.png"));
+
+        await context.DisposeAsync();
+    }
+
+    [Test]
+    public async Task Editor_AddObstacle_CreatesMultiPointAreaAndCanBeMoved()
+    {
+        var context = await _browser.NewContextAsync();
+        var page = await context.NewPageAsync();
+
+        await page.GotoAsync($"{_server.BaseUrl}/editor.html");
+        await page.WaitForSelectorAsync("#editor-canvas");
+        await page.WaitForFunctionAsync("() => document.querySelectorAll('#room-select option').length >= 2");
+
+        // Click Add Obstacle Tool
+        await page.ClickAsync("#tool-obstacle");
+
+        var canvasBounding = await page.Locator("#editor-canvas").BoundingBoxAsync();
+        Assert.That(canvasBounding, Is.Not.Null);
+
+        // Click on canvas at (300, 280) to place a 4-point obstacle area
+        await page.Mouse.ClickAsync(canvasBounding!.X + 300, canvasBounding.Y + 280);
+
+        // Verify obstacle created with 4 vertices
+        var obsCount = await page.EvaluateAsync<int>("() => window.__ROOM_EDITOR__.getState().getRoom().obstacles?.length ?? 0");
+        Assert.That(obsCount, Is.GreaterThanOrEqualTo(1));
+
+        var ptsCount = await page.EvaluateAsync<int>("() => window.__ROOM_EDITOR__.getState().getRoom().obstacles[0].points.length");
+        Assert.That(ptsCount, Is.EqualTo(4));
+
+        var initialPt0X = await page.EvaluateAsync<int>("() => window.__ROOM_EDITOR__.getState().getRoom().obstacles[0].points[0].x");
+        Assert.That(initialPt0X, Is.InRange(250, 280));
+
+        // Inspector should show the whole polygon selected
+        await page.WaitForSelectorAsync("#inspector-polygon", new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible });
+        var pointsCountVal = await page.InputValueAsync("#inspector-polygon-points-count");
+        Assert.That(pointsCountVal, Does.Contain("4 Eckpunkte"));
+
+        // Drag the obstacle from (300, 280) to (340, 300)
+        await page.Mouse.MoveAsync(canvasBounding.X + 300, canvasBounding.Y + 280);
+        await page.Mouse.DownAsync();
+        await page.Mouse.MoveAsync(canvasBounding.X + 340, canvasBounding.Y + 300);
+        await page.Mouse.UpAsync();
+
+        // Verify first vertex moved to the right (greater than initial)
+        var newPt0X = await page.EvaluateAsync<int>("() => window.__ROOM_EDITOR__.getState().getRoom().obstacles[0].points[0].x");
+        Assert.That(newPt0X, Is.GreaterThan(initialPt0X));
+
+        await context.DisposeAsync();
+    }
 }

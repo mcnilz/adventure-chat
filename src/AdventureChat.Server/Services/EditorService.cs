@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using AdventureChat.Server.Models;
 
 namespace AdventureChat.Server.Services;
@@ -5,6 +6,12 @@ namespace AdventureChat.Server.Services;
 public sealed record RoomSummaryDto(string Id, string Name, string Background, int Width, int Height);
 
 public sealed record SaveRoomResult(bool Success, IReadOnlyList<string> Errors, string? RoomId = null);
+
+public sealed record BackgroundItemDto(string Name, string Path, long SizeBytes, DateTimeOffset LastModified);
+
+public sealed record BackgroundsOverviewDto(string FilesystemDirectory, string RelativePath, IReadOnlyList<BackgroundItemDto> Backgrounds);
+
+public sealed record UploadBackgroundResult(bool Success, string? Name = null, string? Path = null, string? Error = null);
 
 public interface IEditorService
 {
@@ -14,6 +21,8 @@ public interface IEditorService
     string? GetRoomRawYaml(string roomId);
     ValidationResult ValidateRoom(RoomYamlDto dto);
     SaveRoomResult SaveRoom(RoomYamlDto dto);
+    BackgroundsOverviewDto ListBackgrounds();
+    UploadBackgroundResult SaveBackground(string fileName, Stream content);
 }
 
 public sealed class EditorService : IEditorService
@@ -146,6 +155,100 @@ public sealed class EditorService : IEditorService
                 try { File.Delete(tempFile); } catch { /* ignore */ }
             }
             return new SaveRoomResult(false, [$"Failed to save room: {ex.Message}"]);
+        }
+    }
+
+    public BackgroundsOverviewDto ListBackgrounds()
+    {
+        var dir = _pathProvider.GetBackgroundsDirectory();
+        var rel = _pathProvider.GetBackgroundsRelativePath();
+        var items = new List<BackgroundItemDto>();
+
+        if (Directory.Exists(dir))
+        {
+            var allowedExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg"
+            };
+
+            var files = Directory.GetFiles(dir);
+            foreach (var file in files)
+            {
+                var ext = Path.GetExtension(file);
+                if (allowedExtensions.Contains(ext))
+                {
+                    var fileInfo = new FileInfo(file);
+                    var name = fileInfo.Name;
+                    var path = $"{rel}/{name}";
+                    items.Add(new BackgroundItemDto(name, path, fileInfo.Length, fileInfo.LastWriteTimeUtc));
+                }
+            }
+        }
+
+        items.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase));
+
+        return new BackgroundsOverviewDto(
+            FilesystemDirectory: Path.GetFullPath(dir),
+            RelativePath: rel,
+            Backgrounds: items
+        );
+    }
+
+    public UploadBackgroundResult SaveBackground(string fileName, Stream content)
+    {
+        if (!_editorEnabled)
+        {
+            return new UploadBackgroundResult(false, Error: "Authoring / editor mode is disabled on this server instance.");
+        }
+
+        if (string.IsNullOrWhiteSpace(fileName))
+        {
+            return new UploadBackgroundResult(false, Error: "Dateiname darf nicht leer sein.");
+        }
+
+        var ext = Path.GetExtension(fileName).ToLowerInvariant();
+        var allowedExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg"
+        };
+
+        if (!allowedExtensions.Contains(ext))
+        {
+            return new UploadBackgroundResult(false, Error: $"Ungültiges Dateiformat '{ext}'. Erlaubt sind .png, .jpg, .jpeg, .webp, .gif, .svg.");
+        }
+
+        var nameWithoutExt = Path.GetFileNameWithoutExtension(fileName);
+        var sanitizedBase = Regex.Replace(nameWithoutExt, @"[^a-zA-Z0-9_-]", "-").Trim('-');
+        if (string.IsNullOrEmpty(sanitizedBase))
+        {
+            sanitizedBase = "background-" + Guid.NewGuid().ToString("N")[..8];
+        }
+
+        var sanitizedFileName = sanitizedBase + ext;
+        var dir = _pathProvider.GetBackgroundsDirectory();
+        Directory.CreateDirectory(dir);
+
+        var targetFile = Path.GetFullPath(Path.Combine(dir, sanitizedFileName));
+
+        // Guard against Path Traversal
+        if (!targetFile.StartsWith(Path.GetFullPath(dir), StringComparison.OrdinalIgnoreCase))
+        {
+            return new UploadBackgroundResult(false, Error: "Ungültiger Dateipfad.");
+        }
+
+        try
+        {
+            using (var fileStream = new FileStream(targetFile, FileMode.Create, FileAccess.Write, FileShare.None))
+            {
+                content.CopyTo(fileStream);
+            }
+
+            var rel = _pathProvider.GetBackgroundsRelativePath();
+            return new UploadBackgroundResult(true, Name: sanitizedFileName, Path: $"{rel}/{sanitizedFileName}");
+        }
+        catch (Exception ex)
+        {
+            return new UploadBackgroundResult(false, Error: $"Fehler beim Speichern des Hintergrundbildes: {ex.Message}");
         }
     }
 }

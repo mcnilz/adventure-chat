@@ -32,6 +32,12 @@ function initializeEditor() {
         inspectorVertexX: document.getElementById('inspector-vertex-x'),
         inspectorVertexY: document.getElementById('inspector-vertex-y'),
         btnInspectorDeleteVertex: document.getElementById('btn-inspector-delete-vertex'),
+        // Polygon Inspector
+        inspectorPolygon: document.getElementById('inspector-polygon'),
+        inspectorPolygonBadge: document.getElementById('inspector-polygon-badge'),
+        inspectorPolygonId: document.getElementById('inspector-polygon-id'),
+        inspectorPolygonPointsCount: document.getElementById('inspector-polygon-points-count'),
+        btnInspectorDeletePolygon: document.getElementById('btn-inspector-delete-polygon'),
         inspectorSpawn: document.getElementById('inspector-spawn'),
         inspectorSpawnId: document.getElementById('inspector-spawn-id'),
         inspectorSpawnX: document.getElementById('inspector-spawn-x'),
@@ -45,7 +51,21 @@ function initializeEditor() {
         inspectorExitX: document.getElementById('inspector-exit-x'),
         inspectorExitY: document.getElementById('inspector-exit-y'),
         inspectorExitRadius: document.getElementById('inspector-exit-radius'),
-        btnInspectorDeleteExit: document.getElementById('btn-inspector-delete-exit')
+        btnInspectorDeleteExit: document.getElementById('btn-inspector-delete-exit'),
+        // Background picker & upload
+        btnOpenBgModal: document.getElementById('btn-open-bg-modal'),
+        btnUploadBgTrigger: document.getElementById('btn-upload-bg-trigger'),
+        inputBgFile: document.getElementById('input-bg-file'),
+        bgFsHintPath: document.getElementById('bg-fs-hint-path'),
+        modalBgPicker: document.getElementById('modal-bg-picker'),
+        btnCloseBgModal: document.getElementById('btn-close-bg-modal'),
+        btnCloseBgModalFooter: document.getElementById('btn-close-bg-modal-footer'),
+        modalFsPath: document.getElementById('modal-fs-path'),
+        btnCopyFsPath: document.getElementById('btn-copy-fs-path'),
+        bgDropZone: document.getElementById('bg-drop-zone'),
+        btnModalUploadSelect: document.getElementById('btn-modal-upload-select'),
+        bgGalleryGrid: document.getElementById('bg-gallery-grid'),
+        bgCount: document.getElementById('bg-count')
     };
     const app = new EditorApp(canvas, elements);
     window.__ROOM_EDITOR__ = app;

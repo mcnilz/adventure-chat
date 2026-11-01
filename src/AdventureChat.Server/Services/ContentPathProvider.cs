@@ -8,6 +8,9 @@ public interface IContentPathProvider
     string GetRoomsDirectory();
     string GetRoomFilePath(string roomId);
     string GetSchemaFilePath();
+    string GetWebRoot();
+    string GetBackgroundsDirectory();
+    string GetBackgroundsRelativePath();
 }
 
 public sealed partial class ContentPathProvider : IContentPathProvider
@@ -17,8 +20,9 @@ public sealed partial class ContentPathProvider : IContentPathProvider
 
     private readonly string _contentRoot;
     private readonly string _schemaPath;
+    private readonly string _webRoot;
 
-    public ContentPathProvider(string? contentRoot = null, string? schemaPath = null)
+    public ContentPathProvider(string? contentRoot = null, string? schemaPath = null, string? webRoot = null)
     {
         if (!string.IsNullOrEmpty(contentRoot))
         {
@@ -38,7 +42,17 @@ public sealed partial class ContentPathProvider : IContentPathProvider
             _schemaPath = ResolveDefaultSchemaPath();
         }
 
+        if (!string.IsNullOrEmpty(webRoot))
+        {
+            _webRoot = Path.GetFullPath(webRoot);
+        }
+        else
+        {
+            _webRoot = ResolveDefaultWebRoot();
+        }
+
         Directory.CreateDirectory(GetRoomsDirectory());
+        Directory.CreateDirectory(GetBackgroundsDirectory());
     }
 
     public string GetContentRoot() => _contentRoot;
@@ -46,6 +60,12 @@ public sealed partial class ContentPathProvider : IContentPathProvider
     public string GetRoomsDirectory() => Path.Combine(_contentRoot, "rooms");
 
     public string GetSchemaFilePath() => _schemaPath;
+
+    public string GetWebRoot() => _webRoot;
+
+    public string GetBackgroundsDirectory() => Path.Combine(_webRoot, "assets", "images");
+
+    public string GetBackgroundsRelativePath() => "assets/images";
 
     public string GetRoomFilePath(string roomId)
     {
@@ -106,5 +126,32 @@ public sealed partial class ContentPathProvider : IContentPathProvider
         }
 
         return Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "schemas", "room.schema.json"));
+    }
+
+    private static string ResolveDefaultWebRoot()
+    {
+        var current = AppContext.BaseDirectory;
+        while (!string.IsNullOrEmpty(current))
+        {
+            var wwwroot = Path.Combine(current, "wwwroot");
+            if (Directory.Exists(wwwroot))
+            {
+                return Path.GetFullPath(wwwroot);
+            }
+
+            var marker = Path.Combine(current, "SPEC.md");
+            if (File.Exists(marker))
+            {
+                var serverWwwroot = Path.Combine(current, "src", "AdventureChat.Server", "wwwroot");
+                if (Directory.Exists(serverWwwroot))
+                {
+                    return Path.GetFullPath(serverWwwroot);
+                }
+            }
+
+            current = Directory.GetParent(current)?.FullName;
+        }
+
+        return Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "wwwroot"));
     }
 }

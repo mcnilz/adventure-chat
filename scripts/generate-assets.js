@@ -1172,10 +1172,341 @@ const gardenPng = createPng(640, 360, (x, y) => {
   ];
 });
 
+// 3. Generate Cozy Scholarly Library Background (640x360)
+const libraryPng = createPng(640, 360, (x, y) => {
+  const dist = (x1, y1, x2, y2) => Math.hypot(x1 - x2, y1 - y2);
+
+  // Upper walls: y < 235
+  if (y < 235) {
+    // Ceiling moldings / beams: y: 0 .. 20
+    if (y <= 20) {
+      const bShade = (y === 0 || y === 20 || x % 40 === 0) ? -25 : 0;
+      return [55 + bShade, 35 + bShade, 22 + bShade, 255];
+    }
+
+    // Central Arch Window (x: 240 .. 400, y: 30 .. 180)
+    const winCenterX = 320;
+    const winArchY = 80;
+    const isWinArch = (y >= winArchY && x >= 240 && x <= 400) || (dist(x, y, winCenterX, winArchY) <= 80 && y < winArchY);
+    const isWinFrame = isWinArch && (Math.abs(x - 240) <= 4 || Math.abs(x - 400) <= 4 || Math.abs(x - 320) <= 3 || Math.abs(y - 120) <= 3 || (y < winArchY && Math.abs(dist(x, y, winCenterX, winArchY) - 80) <= 4));
+
+    if (isWinFrame) {
+      return [45, 28, 16, 255]; // Dark timber window frame
+    }
+
+    if (isWinArch) {
+      // Twilight sky with soft stars and hills
+      const skyGradient = (y - 20) / 160;
+      const star = ((x * 17 + y * 23) % 43 === 0 && y < 140) ? 255 : 0;
+      if (star > 0) return [240, 240, 255, 255];
+      return [
+        Math.floor(25 + skyGradient * 35),
+        Math.floor(30 + skyGradient * 45),
+        Math.floor(65 + skyGradient * 60),
+        255
+      ];
+    }
+
+    // Left and Right Bookshelves (x < 230 or x > 410)
+    const isBookshelf = (x >= 20 && x <= 225) || (x >= 415 && x <= 620);
+    if (isBookshelf) {
+      // Bookshelf wooden frame & shelves every 45px
+      const isShelf = (y % 45 <= 4) || (x === 20 || x === 225 || x === 415 || x === 620 || x === 122 || x === 518);
+      if (isShelf) {
+        const fTone = (x % 2 === 0) ? -10 : 0;
+        return [70 + fTone, 42 + fTone, 22 + fTone, 255];
+      }
+
+      // Books in shelf!
+      const bookWidth = 7 + ((x * 13 + y * 7) % 6);
+      const bookIndex = Math.floor(x / bookWidth);
+      const bookHeight = 32 + ((bookIndex * 19) % 8);
+      const shelfTop = Math.floor(y / 45) * 45 + 5;
+      const shelfBottom = shelfTop + 40;
+
+      if (y >= shelfBottom - bookHeight) {
+        // Book spines in various rich scholarly colors: red, green, blue, gold, leather
+        const paletteIndex = (bookIndex * 7 + Math.floor(y / 45) * 11) % 6;
+        const spineShade = (x % bookWidth === 0) ? -35 : (x % bookWidth === bookWidth - 1) ? -20 : 0;
+        switch (paletteIndex) {
+          case 0: return [Math.max(0, 130 + spineShade), Math.max(0, 35 + spineShade), Math.max(0, 35 + spineShade), 255]; // Crimson
+          case 1: return [Math.max(0, 30 + spineShade), Math.max(0, 85 + spineShade), Math.max(0, 60 + spineShade), 255]; // Emerald
+          case 2: return [Math.max(0, 40 + spineShade), Math.max(0, 60 + spineShade), Math.max(0, 115 + spineShade), 255]; // Sapphire
+          case 3: return [Math.max(0, 150 + spineShade), Math.max(0, 110 + spineShade), Math.max(0, 40 + spineShade), 255]; // Gold
+          case 4: return [Math.max(0, 90 + spineShade), Math.max(0, 50 + spineShade), Math.max(0, 30 + spineShade), 255]; // Brown Leather
+          default: return [Math.max(0, 110 + spineShade), Math.max(0, 75 + spineShade), Math.max(0, 120 + spineShade), 255]; // Purple
+        }
+      }
+
+      return [25, 15, 10, 255]; // Dark back of shelf
+    }
+
+    // Wood Paneling / Green Wallpaper behind window
+    const wallY = y % 30;
+    const stripe = (x % 20 <= 2) ? -15 : 0;
+    return [38 + stripe, 55 + stripe, 48 + stripe, 255]; // Victorian dark teal/sage wallpaper
+  }
+
+  // Baseboard: y: 235 .. 242
+  if (y <= 242) {
+    return [45, 26, 14, 255];
+  }
+
+  // Walkable Floor: Parquet Floor + Large Persian Teal/Gold Carpet
+  // Carpet: x: 140 .. 500, y: 250 .. 345
+  const isCarpet = (x >= 140 && x <= 500 && y >= 250 && y <= 345);
+  if (isCarpet) {
+    const isBorder = (x <= 152 || x >= 488 || y <= 260 || y >= 335);
+    const pattern = ((x + y) % 18 <= 2 || Math.abs(x - y) % 18 <= 2);
+    if (isBorder) {
+      const fringe = (x % 4 === 0) ? [210, 180, 100, 255] : [120, 30, 40, 255];
+      return fringe;
+    }
+    if (pattern) {
+      return [195, 160, 80, 255]; // Gold ornate pattern
+    }
+    const noise = (x * 7 + y * 13) % 9;
+    return [26 + noise, 75 + noise, 80 + noise, 255]; // Deep teal carpet field
+  }
+
+  // Parquet Wood Floor: Herringbone pattern
+  const tileX = Math.floor(x / 30);
+  const tileY = Math.floor(y / 15);
+  const isJoint = (x % 30 === 0) || (y % 15 === 0);
+  if (isJoint) {
+    return [38, 22, 12, 255];
+  }
+  const plankTone = ((tileX * 13 + tileY * 19) % 15) - 7;
+  const isEdge = (x < 40 || x > 600 || y > 345);
+  const edgeShade = isEdge ? -25 : 0;
+
+  return [
+    Math.max(0, Math.min(255, 115 + plankTone + edgeShade)),
+    Math.max(0, Math.min(255, 72 + plankTone + edgeShade)),
+    Math.max(0, Math.min(255, 42 + plankTone + edgeShade)),
+    255
+  ];
+});
+
+// 4. Generate Castle Courtyard Background (640x360)
+const courtyardPng = createPng(640, 360, (x, y) => {
+  const dist = (x1, y1, x2, y2) => Math.hypot(x1 - x2, y1 - y2);
+
+  // Upper Scene: Castle walls, sky, battlements (y < 235)
+  if (y < 235) {
+    // Daytime Sky: y < 110
+    if (y < 100) {
+      const skyGrad = y / 100;
+      return [
+        Math.floor(100 + skyGrad * 40),
+        Math.floor(160 + skyGrad * 50),
+        Math.floor(225 + skyGrad * 30),
+        255
+      ];
+    }
+
+    // Castle Wall & Battlements: y: 80 .. 235
+    // Left & Right Towers (x < 120 or x > 520)
+    const isTower = (x < 120 || x > 520);
+    // Battlements (crenellations) at y: 80..105
+    if (y < 105) {
+      const crenel = Math.floor(x / 25) % 2 === 0;
+      if (!crenel && !isTower) {
+        // Sky gap between battlements
+        return [130, 190, 240, 255];
+      }
+    }
+
+    // Central Castle Gate / Portcullis (x: 260 .. 380, y: 130 .. 235)
+    const gateCenterX = 320;
+    const gateArchY = 165;
+    const isGateArch = (y >= gateArchY && x >= 265 && x <= 375) || (dist(x, y, gateCenterX, gateArchY) <= 55 && y < gateArchY);
+    const isGateFrame = isGateArch && (Math.abs(x - 265) <= 5 || Math.abs(x - 375) <= 5 || (y < gateArchY && Math.abs(dist(x, y, gateCenterX, gateArchY) - 55) <= 5));
+
+    if (isGateFrame) {
+      return [60, 65, 70, 255]; // Dressed stone arch
+    }
+
+    if (isGateArch) {
+      // Iron Portcullis grill & dark inner passage
+      const isIronBar = (x % 15 === 0) || (y % 15 === 0);
+      if (isIronBar) {
+        return [40, 42, 45, 255]; // Iron grid
+      }
+      return [18, 20, 24, 255]; // Dark inner courtyard passage
+    }
+
+    // Stone wall masonry
+    const blockWidth = 32;
+    const blockHeight = 16;
+    const row = Math.floor(y / blockHeight);
+    const colShift = (row % 2 === 0) ? 0 : 16;
+    const col = Math.floor((x + colShift) / blockWidth);
+    const isMortar = ((x + colShift) % blockWidth <= 1) || (y % blockHeight <= 1);
+
+    if (isMortar) {
+      return [75, 80, 85, 255]; // Mortar
+    }
+
+    const stoneNoise = ((col * 17 + row * 29) % 21) - 10;
+    return [
+      Math.max(0, Math.min(255, 120 + stoneNoise)),
+      Math.max(0, Math.min(255, 125 + stoneNoise)),
+      Math.max(0, Math.min(255, 130 + stoneNoise)),
+      255
+    ];
+  }
+
+  // Base line: y: 235 .. 242
+  if (y <= 242) {
+    return [65, 70, 75, 255];
+  }
+
+  // Walkable Courtyard Cobblestones
+  const stoneW = 22;
+  const stoneH = 14;
+  const sRow = Math.floor(y / stoneH);
+  const sShift = (sRow % 2 === 0) ? 0 : 11;
+  const sCol = Math.floor((x + sShift) / stoneW);
+  const isJoint = ((x + sShift) % stoneW <= 1) || (y % stoneH <= 1);
+
+  if (isJoint) {
+    return [45, 48, 52, 255]; // Dark ground mortar
+  }
+
+  const sTone = ((sCol * 19 + sRow * 37) % 23) - 11;
+  const isMargin = (x < 40 || x > 600 || y > 345);
+  const marginShade = isMargin ? -30 : 0;
+
+  return [
+    Math.max(0, Math.min(255, 95 + sTone + marginShade)),
+    Math.max(0, Math.min(255, 100 + sTone + marginShade)),
+    Math.max(0, Math.min(255, 105 + sTone + marginShade)),
+    255
+  ];
+});
+
+// 5. Generate Cozy Retro Cafe / Bistro Background (640x360)
+const cafePng = createPng(640, 360, (x, y) => {
+  // Upper walls: y < 235
+  if (y < 235) {
+    // Ceiling & Brass Lamps: y: 0 .. 50
+    if (y <= 16) {
+      return [35, 38, 42, 255]; // Dark ceiling
+    }
+
+    // Hanging pendant lamps at x: 160, x: 320, x: 480
+    for (const lampX of [160, 320, 480]) {
+      if (Math.abs(x - lampX) <= 1 && y <= 45) {
+        return [180, 150, 60, 255]; // Brass cord
+      }
+      if (Math.hypot(x - lampX, y - 50) <= 12 && y <= 54) {
+        return [210, 175, 70, 255]; // Brass shade
+      }
+      if (Math.hypot(x - lampX, y - 54) <= 6) {
+        return [255, 245, 180, 255]; // Glowing bulb
+      }
+    }
+
+    // Chalkboard Menu (x: 230 .. 410, y: 55 .. 145)
+    const isMenuBoard = (x >= 230 && x <= 410 && y >= 55 && y <= 145);
+    if (isMenuBoard) {
+      const isBoardFrame = (x <= 236 || x >= 404 || y <= 61 || y >= 139);
+      if (isBoardFrame) {
+        return [90, 60, 35, 255]; // Wooden frame
+      }
+      // Chalk text lines
+      const chalkLine = (y >= 75 && y <= 77 && x >= 255 && x <= 385) ||
+                        (y >= 92 && y <= 94 && x >= 250 && x <= 390) ||
+                        (y >= 109 && y <= 111 && x >= 260 && x <= 380) ||
+                        (y >= 124 && y <= 126 && x >= 270 && x <= 370);
+      if (chalkLine && (x % 5 !== 0)) {
+        return [220, 230, 235, 255]; // White chalk
+      }
+      return [28, 35, 32, 255]; // Dark slate green chalkboard
+    }
+
+    // Cafe Counter & Shelves (x < 180 or x > 460)
+    const isBackBar = (x <= 180 || x >= 460);
+    if (isBackBar && y >= 90) {
+      // Bar shelves every 35px
+      const isShelf = (y % 35 <= 3);
+      if (isShelf) {
+        return [110, 75, 45, 255];
+      }
+      // Bottles / Coffee cups on shelves
+      const bottleW = 6;
+      const bIndex = Math.floor(x / bottleW);
+      if (y % 35 >= 14 && (bIndex % 3 !== 0)) {
+        const bottleColor = (bIndex % 4 === 0) ? [80, 140, 110, 255] : (bIndex % 4 === 1) ? [160, 70, 60, 255] : [190, 140, 60, 255];
+        return bottleColor;
+      }
+    }
+
+    // Warm Exposed Brick Wall
+    const brickW = 24;
+    const brickH = 10;
+    const bRow = Math.floor(y / brickH);
+    const bShift = (bRow % 2 === 0) ? 0 : 12;
+    const bCol = Math.floor((x + bShift) / brickW);
+    const isMortar = ((x + bShift) % brickW <= 1) || (y % brickH <= 1);
+
+    if (isMortar) {
+      return [160, 150, 140, 255]; // Light mortar
+    }
+
+    const brickNoise = ((bCol * 13 + bRow * 23) % 17) - 8;
+    return [
+      Math.max(0, Math.min(255, 155 + brickNoise)),
+      Math.max(0, Math.min(255, 65 + brickNoise)),
+      Math.max(0, Math.min(255, 50 + brickNoise)),
+      255
+    ];
+  }
+
+  // Baseboard: y: 235 .. 242
+  if (y <= 242) {
+    return [40, 25, 18, 255];
+  }
+
+  // Walkable Floor: Checkerboard Black & Cream / Jade tiles
+  const tileSize = 24;
+  const tileCol = Math.floor(x / tileSize);
+  const tileRow = Math.floor(y / tileSize);
+  const isBlackTile = (tileCol + tileRow) % 2 === 0;
+  const isGrout = (x % tileSize <= 1) || (y % tileSize <= 1);
+
+  if (isGrout) {
+    return [45, 45, 45, 255]; // Tile grout
+  }
+
+  const isEdge = (x < 40 || x > 600 || y > 345);
+  const edgeShade = isEdge ? -25 : 0;
+
+  if (isBlackTile) {
+    return [
+      Math.max(0, 35 + edgeShade),
+      Math.max(0, 38 + edgeShade),
+      Math.max(0, 42 + edgeShade),
+      255
+    ];
+  } else {
+    return [
+      Math.max(0, 210 + edgeShade),
+      Math.max(0, 205 + edgeShade),
+      Math.max(0, 190 + edgeShade),
+      255
+    ];
+  }
+});
+
 const targetDir = path.join('src', 'AdventureChat.Server', 'wwwroot', 'assets', 'images');
 fs.mkdirSync(targetDir, { recursive: true });
 
 fs.writeFileSync(path.join(targetDir, 'lounge.png'), loungePng);
 fs.writeFileSync(path.join(targetDir, 'garden.png'), gardenPng);
+fs.writeFileSync(path.join(targetDir, 'library.png'), libraryPng);
+fs.writeFileSync(path.join(targetDir, 'courtyard.png'), courtyardPng);
+fs.writeFileSync(path.join(targetDir, 'cafe.png'), cafePng);
 fs.writeFileSync(path.join(targetDir, 'character.png'), charPng);
 console.log('Assets created successfully in ' + targetDir);

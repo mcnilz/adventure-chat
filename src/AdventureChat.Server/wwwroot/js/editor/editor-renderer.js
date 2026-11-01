@@ -24,7 +24,7 @@ export class EditorRenderer {
             this.backgroundImage.src = url;
         }
     }
-    render(room, selection, mousePos, dragPos, hoveredVertex, hoveredEdge = null, hoveredEntity = null) {
+    render(room, selection, mousePos, dragPos, hoveredVertex, hoveredEdge = null, hoveredEntity = null, dragOffset = null) {
         const { ctx, canvas } = this;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         // 1. Background image or dark fallback
@@ -57,7 +57,7 @@ export class EditorRenderer {
             const poly = room.walkable[pIdx];
             if (!poly || poly.points.length === 0)
                 continue;
-            this.drawPolygon(poly.points, 'rgba(72, 187, 120, 0.25)', '#48bb78', 'walkable', pIdx, selection, hoveredVertex, dragPos);
+            this.drawPolygon(poly.points, 'rgba(72, 187, 120, 0.25)', '#48bb78', 'walkable', pIdx, selection, hoveredVertex, dragPos, dragOffset);
         }
         // 4. Obstacles
         if (room.obstacles) {
@@ -65,7 +65,7 @@ export class EditorRenderer {
                 const poly = room.obstacles[oIdx];
                 if (!poly || poly.points.length === 0)
                     continue;
-                this.drawPolygon(poly.points, 'rgba(245, 101, 101, 0.3)', '#f56565', 'obstacle', oIdx, selection, hoveredVertex, dragPos);
+                this.drawPolygon(poly.points, 'rgba(245, 101, 101, 0.3)', '#f56565', 'obstacle', oIdx, selection, hoveredVertex, dragPos, dragOffset);
             }
         }
         // 5. Highlight Hovered Edge & Split Indicator
@@ -153,10 +153,13 @@ export class EditorRenderer {
         ctx.fillText('Kante teilen (+ Punkt)', x + 14, y - 10);
         ctx.restore();
     }
-    drawPolygon(points, fillColor, strokeColor, polyType, polyIndex, selection, hoveredVertex, dragPos) {
+    drawPolygon(points, fillColor, strokeColor, polyType, polyIndex, selection, hoveredVertex, dragPos, dragOffset = null) {
         const { ctx } = this;
         if (points.length === 0)
             return;
+        const isPolySelected = selection.type === 'polygon' &&
+            selection.polyType === polyType &&
+            selection.polyIndex === polyIndex;
         ctx.save();
         ctx.beginPath();
         for (let i = 0; i < points.length; i++) {
@@ -168,6 +171,9 @@ export class EditorRenderer {
                 selection.vertexIndex === i) {
                 pt = dragPos;
             }
+            else if (isPolySelected && dragOffset) {
+                pt = { x: pt.x + dragOffset.dx, y: pt.y + dragOffset.dy };
+            }
             if (i === 0) {
                 ctx.moveTo(pt.x, pt.y);
             }
@@ -176,11 +182,22 @@ export class EditorRenderer {
             }
         }
         ctx.closePath();
-        ctx.fillStyle = fillColor;
-        ctx.fill();
-        ctx.strokeStyle = strokeColor;
-        ctx.lineWidth = 2;
-        ctx.stroke();
+        if (isPolySelected) {
+            ctx.fillStyle = polyType === 'obstacle' ? 'rgba(245, 101, 101, 0.45)' : 'rgba(72, 187, 120, 0.45)';
+            ctx.fill();
+            ctx.strokeStyle = '#ecc94b';
+            ctx.lineWidth = 3;
+            ctx.setLineDash([6, 3]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+        else {
+            ctx.fillStyle = fillColor;
+            ctx.fill();
+            ctx.strokeStyle = strokeColor;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
         // Draw vertex handles
         for (let i = 0; i < points.length; i++) {
             let pt = points[i];
@@ -191,14 +208,17 @@ export class EditorRenderer {
             if (isSelected && dragPos) {
                 pt = dragPos;
             }
+            else if (isPolySelected && dragOffset) {
+                pt = { x: pt.x + dragOffset.dx, y: pt.y + dragOffset.dy };
+            }
             const isHovered = hoveredVertex &&
                 hoveredVertex.polyType === polyType &&
                 hoveredVertex.polyIndex === polyIndex &&
                 hoveredVertex.vertexIndex === i;
             ctx.beginPath();
-            const radius = isSelected ? 6 : isHovered ? 5 : 4;
+            const radius = isSelected ? 6 : (isPolySelected || isHovered) ? 5 : 4;
             ctx.arc(pt.x, pt.y, radius, 0, Math.PI * 2);
-            ctx.fillStyle = isSelected ? '#ecc94b' : isHovered ? '#63b3ed' : '#ffffff';
+            ctx.fillStyle = isSelected ? '#ecc94b' : isPolySelected ? '#ecc94b' : isHovered ? '#63b3ed' : '#ffffff';
             ctx.fill();
             ctx.strokeStyle = '#000000';
             ctx.lineWidth = 1.5;

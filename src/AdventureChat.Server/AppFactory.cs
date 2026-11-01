@@ -228,6 +228,46 @@ public static class AppFactory
             });
         });
 
+        editorGroup.MapGet("/backgrounds", (IEditorService editorService) =>
+        {
+            return Results.Ok(editorService.ListBackgrounds());
+        });
+
+        editorGroup.MapPost("/backgrounds", async (HttpRequest request, IEditorService editorService) =>
+        {
+            if (!request.HasFormContentType)
+            {
+                return Results.BadRequest(new { error = "Erwartet multipart/form-data mit Bilddatei." });
+            }
+
+            var form = await request.ReadFormAsync();
+            var file = form.Files.GetFile("file") ?? form.Files.FirstOrDefault();
+            if (file is null || file.Length == 0)
+            {
+                return Results.BadRequest(new { error = "Keine Datei im Upload übermittelt." });
+            }
+
+            // Limit file size to 10MB
+            if (file.Length > 10 * 1024 * 1024)
+            {
+                return Results.BadRequest(new { error = "Die Datei überschreitet die Maximalgröße von 10 MB." });
+            }
+
+            using var stream = file.OpenReadStream();
+            var result = editorService.SaveBackground(file.FileName, stream);
+            if (!result.Success)
+            {
+                return Results.BadRequest(new { error = result.Error });
+            }
+
+            return Results.Ok(new
+            {
+                success = true,
+                name = result.Name,
+                path = result.Path
+            });
+        });
+
         editorGroup.MapPost("/rooms/{id}", (string id, RoomYamlDto dto, IEditorService editorService) =>
         {
             if (!string.Equals(dto.Id, id, StringComparison.OrdinalIgnoreCase))
