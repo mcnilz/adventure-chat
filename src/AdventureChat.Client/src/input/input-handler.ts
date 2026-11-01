@@ -81,7 +81,7 @@ export class InputHandler {
         playerPos.x - clickedExit.position.x,
         playerPos.y - clickedExit.position.y
       );
-      const isImmediate = currentDist <= EXIT_TRIGGER_DISTANCE;
+      const isImmediate = currentDist <= (clickedExit.radius ?? EXIT_TRIGGER_DISTANCE) + 5;
       await this.callbacks.onNavigateToExit(clickedExit, isImmediate);
       return { point: logical, exit: clickedExit };
     } else {

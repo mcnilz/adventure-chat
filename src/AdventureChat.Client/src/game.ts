@@ -34,6 +34,8 @@ export class AdventureGame {
   private exitRequestInFlight = false;
   private exitRetries = 0;
   private nextExitAttempt = 0;
+  private changingRoom = false;
+  private pendingEvents: Array<() => void> = [];
 
   public constructor(
     private readonly canvas: HTMLCanvasElement,
@@ -53,10 +55,10 @@ export class AdventureGame {
     };
 
     this.networkClient = new RoomNetworkClient({
-      onUserJoined: (dto) => { if (dto.roomId === this.state.room.id) this.state.addOrUpdateRemotePlayer(dto.player); },
-      onUserLeft: (dto) => { if (dto.roomId === this.state.room.id) this.state.removeRemotePlayer(dto.sessionId); },
-      onPlayerMoved: (dto) => this.state.handlePlayerMoved(dto),
-      onChatMessageReceived: (dto) => this.state.handleChatMessage(dto),
+      onUserJoined: (dto) => this.dispatchRoomEvent(() => { if (dto.roomId === this.state.room.id) this.state.addOrUpdateRemotePlayer(dto.player); }),
+      onUserLeft: (dto) => this.dispatchRoomEvent(() => { if (dto.roomId === this.state.room.id) this.state.removeRemotePlayer(dto.sessionId); }),
+      onPlayerMoved: (dto) => this.dispatchRoomEvent(() => this.state.handlePlayerMoved(dto)),
+      onChatMessageReceived: (dto) => this.dispatchRoomEvent(() => this.state.handleChatMessage(dto)),
       onConnectionStatusChanged: (status) => this.onConnectionStatusChanged?.(status),
       onReconnected: async () => {
         await this.joinRoom();
@@ -184,12 +186,24 @@ export class AdventureGame {
   }
 
   public async changeRoom(exitId: string): Promise<boolean> {
-    const result = await this.networkClient.changeRoom(exitId);
-    if (result.success && result.snapshot) {
-      this.applyRoomSnapshot(result.snapshot);
-      return true;
+    if (this.changingRoom) return false;
+    this.changingRoom = true;
+    try {
+      const result = await this.networkClient.changeRoom(exitId);
+      if (result.success && result.snapshot) {
+        this.applyRoomSnapshot(result.snapshot);
+        return true;
+      }
+      return false;
+    } finally {
+      this.changingRoom = false;
+      for (const event of this.pendingEvents.splice(0)) event();
     }
-    return false;
+  }
+
+  private dispatchRoomEvent(event: () => void): void {
+    if (this.changingRoom) this.pendingEvents.push(event);
+    else event();
   }
 
   public applyRoomSnapshot(snapshot: RoomSnapshotDto): void {
@@ -281,7 +295,7 @@ export class AdventureGame {
         this.state.character.position.x - this.state.pendingExit.position.x,
         this.state.character.position.y - this.state.pendingExit.position.y
       );
-      if (dist <= EXIT_TRIGGER_DISTANCE && !this.exitRequestInFlight && performance.now() >= this.nextExitAttempt) {
+      if (dist <= (this.state.pendingExit.radius ?? EXIT_TRIGGER_DISTANCE) + 5 && !this.exitRequestInFlight && performance.now() >= this.nextExitAttempt) {
         const exitToTrigger = this.state.pendingExit;
         this.exitRequestInFlight = true;
         void this.changeRoom(exitToTrigger.id).then((success) => {

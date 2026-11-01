@@ -1,4 +1,3 @@
-using System.Net;
 using System.Text.Json.Serialization;
 using AdventureChat.Server.Hubs;
 using AdventureChat.Server.Models;
@@ -58,34 +57,7 @@ public static class AppFactory
 
         var app = builder.Build();
 
-        app.Use(async (context, next) =>
-        {
-            if (context.Request.Path.Equals("/editor.html", StringComparison.OrdinalIgnoreCase) &&
-                (!authoring || context.Connection.RemoteIpAddress is not { } editorIp || !IPAddress.IsLoopback(editorIp) || !IsLocalAuthorRequest(context)))
-            {
-                context.Response.StatusCode = StatusCodes.Status404NotFound;
-                return;
-            }
-            if (context.Request.Path.StartsWithSegments("/api/editor"))
-            {
-                var ip = context.Connection.RemoteIpAddress;
-                if (!authoring || ip is null || !IPAddress.IsLoopback(ip) || !IsLocalAuthorRequest(context))
-                {
-                    context.Response.StatusCode = StatusCodes.Status403Forbidden;
-                    return;
-                }
-                if (!HttpMethods.IsGet(context.Request.Method) && !HttpMethods.IsHead(context.Request.Method))
-                {
-                    var antiforgery = context.RequestServices.GetRequiredService<IAntiforgery>();
-                    if (!await antiforgery.IsRequestValidAsync(context))
-                    {
-                        context.Response.StatusCode = StatusCodes.Status403Forbidden;
-                        return;
-                    }
-                }
-            }
-            await next();
-        });
+        app.UseAuthoringAccess(authoring);
 
         app.UseDefaultFiles();
         app.UseStaticFiles(new StaticFileOptions
@@ -187,24 +159,7 @@ public static class AppFactory
             });
         });
 
-        // Editor API group with local-loopback author authorization filter
-        var editorGroup = app.MapGroup("/api/editor")
-            .AddEndpointFilter(async (context, next) =>
-            {
-                var editorService = context.HttpContext.RequestServices.GetRequiredService<IEditorService>();
-                if (!editorService.IsEditorEnabled)
-                {
-                    return Results.Json(new { error = "Editor is disabled on this server instance." }, statusCode: StatusCodes.Status403Forbidden);
-                }
-
-                var remoteIp = context.HttpContext.Connection.RemoteIpAddress;
-                if (remoteIp is null || !IPAddress.IsLoopback(remoteIp) || !IsLocalAuthorRequest(context.HttpContext))
-                {
-                    return Results.Json(new { error = "Editor endpoints are restricted to local loopback connections." }, statusCode: StatusCodes.Status403Forbidden);
-                }
-
-                return await next(context);
-            });
+        var editorGroup = app.MapGroup("/api/editor");
 
         editorGroup.MapGet("/status", (HttpContext context, IEditorService editorService, IAntiforgery antiforgery) =>
         {
@@ -383,15 +338,4 @@ public static class AppFactory
         return app;
     }
 
-    private static bool IsLocalAuthorRequest(HttpContext context)
-    {
-        var host = context.Request.Host.Host;
-        if (!string.Equals(host, "localhost", StringComparison.OrdinalIgnoreCase) &&
-            !(IPAddress.TryParse(host, out var address) && IPAddress.IsLoopback(address))) return false;
-        var origin = context.Request.Headers.Origin.ToString();
-        if (string.IsNullOrEmpty(origin)) return true;
-        return Uri.TryCreate(origin, UriKind.Absolute, out var uri) &&
-            string.Equals(uri.Scheme, context.Request.Scheme, StringComparison.OrdinalIgnoreCase) &&
-            string.Equals(uri.Authority, context.Request.Host.Value, StringComparison.OrdinalIgnoreCase);
-    }
 }

@@ -46,9 +46,11 @@ public class RoomHub : Hub
 
         // 2. Join new room group & notify new room participants
         await Groups.AddToGroupAsync(Context.ConnectionId, result.Session.RoomId);
+        var snapshot = _sessionManager.GetSnapshot(Context.ConnectionId);
+        if (snapshot is null) return new ChangeRoomResultDto(false, "Session not found.", null);
         await Clients.GroupExcept(result.Session.RoomId, Context.ConnectionId).SendAsync("UserJoined", new UserJoinedDto(result.Session.ToDto(), result.Session.RoomId));
 
-        return new ChangeRoomResultDto(true, null, result.Snapshot);
+        return new ChangeRoomResultDto(true, null, snapshot);
     }
 
     public async Task<MoveResultDto> RequestMove(RequestMoveDto request)

@@ -152,6 +152,19 @@ public partial class RoomSessionManager : IRoomSessionManager
         }
     }
 
+    public RoomSnapshotDto? GetSnapshot(string connectionId)
+    {
+        lock (_lock)
+        {
+            if (!_sessionsByConnection.TryGetValue(connectionId, out var session)) return null;
+            var room = _roomService.GetRoom(session.RoomId);
+            if (room is null) return null;
+            var players = _sessionsByConnection.Values.Where(s => s.RoomId == session.RoomId).ToList();
+            foreach (var player in players) AdvanceMovement(player);
+            return new RoomSnapshotDto(session.RoomId, session.SessionId, players.Select(p => p.ToDto()).ToList(), Array.Empty<ChatMessageDto>(), room.ToDto());
+        }
+    }
+
     public PlayerSession? GetPlayer(string connectionId)
     {
         _sessionsByConnection.TryGetValue(connectionId, out var session);

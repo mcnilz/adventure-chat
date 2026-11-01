@@ -86,6 +86,7 @@ export class RoomState {
 
   public addOrUpdateRemotePlayer(player: PlayerDto): void {
     if (player.sessionId === this.sessionId) return;
+    if (this.remotePlayers.has(player.sessionId) && (this.movementRevisions.get(player.sessionId) ?? -1) >= player.movementRevision) return;
     this.movementRevisions.set(player.sessionId, player.movementRevision);
 
     const char: Character = {

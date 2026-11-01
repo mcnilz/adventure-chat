@@ -6,6 +6,57 @@ namespace AdventureChat.E2ETests;
 [TestFixture]
 public class RoomTransitionTests
 {
+    [Test]
+    public async Task SmallExitRadius_ClickStartsWalkingWhenOutsideRadius()
+    {
+        await using var context = await _browser.NewContextAsync();
+        var page = await context.NewPageAsync();
+        await page.GotoAsync(_server.BaseUrl);
+        await page.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__?.connectionStatus === 'connected'");
+        await page.EvaluateAsync("() => window.__ADVENTURE_GAME__.setTarget({x: 560, y: 300})");
+        await page.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.character.state === 'idle'", null, new PageWaitForFunctionOptions { Timeout = 10000 });
+        await page.EvaluateAsync("""
+            () => {
+                const game = window.__ADVENTURE_GAME__;
+                game.room = {...game.room, exits: game.room.exits.map(exit => ({...exit, radius: 5}))};
+                const rect = document.getElementById('game-canvas').getBoundingClientRect();
+                return game.handleCanvasClick(rect.left + 580 * rect.width / 640, rect.top + 300 * rect.height / 360);
+            }
+            """);
+        await page.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.character.state === 'walk'");
+        Assert.That(await page.EvaluateAsync<double>("() => window.__ADVENTURE_GAME__.character.target.x"), Is.EqualTo(580));
+    }
+    [Test]
+    public async Task JoinDuringRoomChange_IsAppliedAfterSnapshot()
+    {
+        await using var first = await _browser.NewContextAsync();
+        await using var second = await _browser.NewContextAsync();
+        var page1 = await first.NewPageAsync();
+        await page1.GotoAsync($"{_server.BaseUrl}?name=First");
+        await page1.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__?.connectionStatus === 'connected'");
+        await page1.EvaluateAsync("() => window.__ADVENTURE_GAME__.setTarget({x: 580, y: 300})");
+        await page1.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.character.state === 'idle'", null, new PageWaitForFunctionOptions { Timeout = 10000 });
+        await page1.EvaluateAsync("""
+            () => {
+                const original = window.signalR.HubConnection.prototype.invoke;
+                window.signalR.HubConnection.prototype.invoke = async function(method, ...args) {
+                    const result = await original.call(this, method, ...args);
+                    if (method === 'ChangeRoom' && result.success) {
+                        window.transitionHeld = true;
+                        await new Promise(resolve => { window.releaseTransition = resolve; });
+                    }
+                    return result;
+                };
+                void window.__ADVENTURE_GAME__.changeRoom('to-garden');
+            }
+            """);
+        await page1.WaitForFunctionAsync("() => window.transitionHeld === true");
+        var page2 = await second.NewPageAsync();
+        await page2.GotoAsync($"{_server.BaseUrl}?name=Second&room=garden");
+        await page2.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__?.connectionStatus === 'connected'");
+        await page1.EvaluateAsync("() => window.releaseTransition()");
+        await page1.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.room.id === 'garden' && window.__ADVENTURE_GAME__.remotePlayers.size === 1");
+    }
     private TestServerFixture _server = null!;
     private IPlaywright _playwright = null!;
     private IBrowser _browser = null!;
