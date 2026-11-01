@@ -20,6 +20,8 @@ public interface IEditorService
     RoomYamlDto? GetRoom(string roomId);
     string? GetRoomRawYaml(string roomId);
     ValidationResult ValidateRoom(RoomYamlDto dto);
+    ValidationResult ValidateWorld();
+    ValidationResult ValidateWorld(IReadOnlyList<RoomYamlDto> rooms);
     SaveRoomResult SaveRoom(RoomYamlDto dto);
     BackgroundsOverviewDto ListBackgrounds();
     UploadBackgroundResult SaveBackground(string fileName, Stream content);
@@ -118,6 +120,26 @@ public sealed class EditorService : IEditorService
     public ValidationResult ValidateRoom(RoomYamlDto dto)
     {
         return _validator.Validate(dto);
+    }
+
+    public ValidationResult ValidateWorld()
+    {
+        var summaries = ListRooms();
+        var roomDtos = new List<RoomYamlDto>();
+        foreach (var summary in summaries)
+        {
+            var dto = GetRoom(summary.Id);
+            if (dto is not null)
+            {
+                roomDtos.Add(dto);
+            }
+        }
+        return _validator.ValidateWorld(roomDtos);
+    }
+
+    public ValidationResult ValidateWorld(IReadOnlyList<RoomYamlDto> rooms)
+    {
+        return _validator.ValidateWorld(rooms);
     }
 
     public SaveRoomResult SaveRoom(RoomYamlDto dto)

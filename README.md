@@ -45,10 +45,28 @@ dotnet test
 ```
 
 ### 3. Server starten
+
+#### A. Regulärer Spielmodus (Multiplayer-Chat)
+Im regulären Spielmodus sind die Editor- und Autoren-APIs deaktiviert. Spieler können sich mit eigenem Namen in beliebige erstellte Räume einwählen, herumlaufen, chatten und Ausgänge benutzen.
 ```powershell
 dotnet run --project src\AdventureChat.Server\AdventureChat.Server.csproj
 ```
-Anschließend die Anwendung im Browser unter der in der Konsolenausgabe angezeigten URL (z. B. `http://localhost:5000`) öffnen.
+Browser öffnen: `http://localhost:5000` (oder angezeigte Portadresse).
+Mit URL-Parametern direkt einsteigen: `http://localhost:5000?name=Guybrush&room=lounge`
+
+#### B. Autorenmodus (Integrierter Raum- & Welteditor)
+Im Autorenmodus ist der Editor unter `/editor.html` aktiv. Räume können visuell modelliert, begehbare Flächen und Hindernisse gezeichnet, Spawns und Ausgänge platziert sowie Hintergrundbilder verwaltet und hochgeladen werden.
+```powershell
+dotnet run --project src\AdventureChat.Server\AdventureChat.Server.csproj -- --authoring
+```
+Editor im Browser aufrufen: `http://localhost:5000/editor.html`
+
+### 4. Kurzanleitung: Räume verbinden und Welt nutzen
+1. **Ersten Raum erstellen:** Im Editor `➕ Neu` anklicken, ID vergeben (z. B. `hub`), Bodenfläche aufziehen, Startpunkt (`📍 Spawn setzen`) mit ID `entry` platzieren.
+2. **Zweiten Raum erstellen:** `➕ Neu` anklicken, ID vergeben (z. B. `dungeon`), Bodenfläche aufziehen, Startpunkt mit ID `entry` und einen Spawn mit ID `from-hub` platzieren.
+3. **Ausgang verknüpfen:** Im ersten Raum `hub` das Werkzeug `🚪 Ausgang setzen` wählen, Zielraum `dungeon` und Ziel-Spawn `from-hub` im Dialog auswählen und auf der begehbaren Fläche platzieren.
+4. **Welt validieren:** Button `🌐 Welt prüfen` anklicken, um alle raumübergreifenden Referenzen und Erreichbarkeiten automatisch zu verifizieren.
+5. **Gemeinsam betreten:** Server im Spielmodus starten und mit mehreren Browserfenstern unter `http://localhost:5000?room=hub` gemeinsam den Chat-Raum betreten und durch den Ausgang wechseln.
 
 ## Festgelegt und noch offen
 

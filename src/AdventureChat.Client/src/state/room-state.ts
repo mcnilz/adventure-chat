@@ -28,6 +28,10 @@ export class RoomState {
 
     const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
     this.playerName = playerName || urlParams?.get('name') || `Player-${Math.floor(1000 + Math.random() * 9000)}`;
+    const roomParam = urlParams?.get('room');
+    if (roomParam) {
+      this.room = { ...this.room, id: roomParam };
+    }
 
     this.character = {
       id: this.sessionId,

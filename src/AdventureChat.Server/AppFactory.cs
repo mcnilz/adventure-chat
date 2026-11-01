@@ -228,6 +228,26 @@ public static class AppFactory
             });
         });
 
+        editorGroup.MapGet("/validate-world", (IEditorService editorService) =>
+        {
+            var result = editorService.ValidateWorld();
+            return Results.Ok(new
+            {
+                valid = result.IsValid,
+                errors = result.Errors
+            });
+        });
+
+        editorGroup.MapPost("/validate-world", (IReadOnlyList<RoomYamlDto> rooms, IEditorService editorService) =>
+        {
+            var result = editorService.ValidateWorld(rooms);
+            return Results.Ok(new
+            {
+                valid = result.IsValid,
+                errors = result.Errors
+            });
+        });
+
         editorGroup.MapGet("/backgrounds", (IEditorService editorService) =>
         {
             return Results.Ok(editorService.ListBackgrounds());

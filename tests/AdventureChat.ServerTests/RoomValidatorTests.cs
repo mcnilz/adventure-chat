@@ -188,6 +188,164 @@ public class RoomValidatorTests
         Assert.That(result.IsValid, Is.False);
     }
 
+    [Test]
+    public void Validate_UnreachableExit_ReturnsFailure()
+    {
+        var dto = CreateValidRoom();
+        // Create an obstacle that divides the floor completely, with spawn on left and exit on right
+        dto.Obstacles = [
+            new RoomPolygonYamlDto
+            {
+                Id = "barrier",
+                Points = [
+                    new RoomPointYamlDto { X = 200, Y = 200 },
+                    new RoomPointYamlDto { X = 220, Y = 200 },
+                    new RoomPointYamlDto { X = 220, Y = 350 },
+                    new RoomPointYamlDto { X = 200, Y = 350 }
+                ]
+            }
+        ];
+        dto.Exits = [
+            new RoomExitYamlDto
+            {
+                Id = "to-other",
+                Position = new RoomPointYamlDto { X = 500, Y = 300 },
+                Radius = 25,
+                Target = new RoomExitTargetYamlDto { Room = "other", Spawn = "entry" }
+            }
+        ];
+
+        var result = _validator.Validate(dto);
+
+        Assert.That(result.IsValid, Is.False);
+        Assert.That(string.Join("; ", result.Errors), Does.Contain("unreachable from any spawn point"));
+    }
+
+    [Test]
+    public void Validate_ReachableExit_ReturnsSuccess()
+    {
+        var dto = CreateValidRoom();
+        dto.Exits = [
+            new RoomExitYamlDto
+            {
+                Id = "to-other",
+                Position = new RoomPointYamlDto { X = 500, Y = 300 },
+                Radius = 25,
+                Target = new RoomExitTargetYamlDto { Room = "other", Spawn = "entry" }
+            }
+        ];
+
+        var result = _validator.Validate(dto);
+
+        Assert.That(result.IsValid, Is.True, string.Join("; ", result.Errors));
+    }
+
+    [Test]
+    public void ValidateWorld_ValidConnectedRooms_ReturnsSuccess()
+    {
+        var room1 = CreateValidRoom();
+        room1.Id = "room-a";
+        room1.Exits = [
+            new RoomExitYamlDto
+            {
+                Id = "to-b",
+                Position = new RoomPointYamlDto { X = 500, Y = 300 },
+                Radius = 25,
+                Target = new RoomExitTargetYamlDto { Room = "room-b", Spawn = "entry-b" }
+            }
+        ];
+
+        var room2 = CreateValidRoom();
+        room2.Id = "room-b";
+        room2.Spawns = [
+            new RoomSpawnYamlDto
+            {
+                Id = "entry-b",
+                Position = new RoomPointYamlDto { X = 150, Y = 300 }
+            }
+        ];
+        room2.Exits = [
+            new RoomExitYamlDto
+            {
+                Id = "to-a",
+                Position = new RoomPointYamlDto { X = 500, Y = 300 },
+                Radius = 25,
+                Target = new RoomExitTargetYamlDto { Room = "room-a", Spawn = "entry" }
+            }
+        ];
+
+        var result = _validator.ValidateWorld([room1, room2]);
+
+        Assert.That(result.IsValid, Is.True, string.Join("; ", result.Errors));
+    }
+
+    [Test]
+    public void ValidateWorld_MissingTargetRoom_ReturnsFailure()
+    {
+        var room1 = CreateValidRoom();
+        room1.Id = "room-a";
+        room1.Exits = [
+            new RoomExitYamlDto
+            {
+                Id = "to-unknown",
+                Position = new RoomPointYamlDto { X = 500, Y = 300 },
+                Radius = 25,
+                Target = new RoomExitTargetYamlDto { Room = "non-existent", Spawn = "entry" }
+            }
+        ];
+
+        var result = _validator.ValidateWorld([room1]);
+
+        Assert.That(result.IsValid, Is.False);
+        Assert.That(string.Join("; ", result.Errors), Does.Contain("references non-existent target room 'non-existent'"));
+    }
+
+    [Test]
+    public void ValidateWorld_MissingTargetSpawn_ReturnsFailure()
+    {
+        var room1 = CreateValidRoom();
+        room1.Id = "room-a";
+        room1.Exits = [
+            new RoomExitYamlDto
+            {
+                Id = "to-b",
+                Position = new RoomPointYamlDto { X = 500, Y = 300 },
+                Radius = 25,
+                Target = new RoomExitTargetYamlDto { Room = "room-b", Spawn = "non-existent-spawn" }
+            }
+        ];
+
+        var room2 = CreateValidRoom();
+        room2.Id = "room-b";
+        room2.Spawns = [
+            new RoomSpawnYamlDto
+            {
+                Id = "entry",
+                Position = new RoomPointYamlDto { X = 150, Y = 300 }
+            }
+        ];
+
+        var result = _validator.ValidateWorld([room1, room2]);
+
+        Assert.That(result.IsValid, Is.False);
+        Assert.That(string.Join("; ", result.Errors), Does.Contain("references non-existent target spawn 'non-existent-spawn' in room 'room-b'"));
+    }
+
+    [Test]
+    public void ValidateWorld_DuplicateRoomId_ReturnsFailure()
+    {
+        var room1 = CreateValidRoom();
+        room1.Id = "same-id";
+
+        var room2 = CreateValidRoom();
+        room2.Id = "same-id";
+
+        var result = _validator.ValidateWorld([room1, room2]);
+
+        Assert.That(result.IsValid, Is.False);
+        Assert.That(string.Join("; ", result.Errors), Does.Contain("Duplicate room ID 'same-id'"));
+    }
+
     private static RoomYamlDto CreateValidRoom()
     {
         return new RoomYamlDto

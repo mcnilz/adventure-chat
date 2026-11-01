@@ -18,6 +18,7 @@ export interface EditorElements {
   btnNewRoom: HTMLButtonElement;
   btnSave: HTMLButtonElement;
   btnValidate: HTMLButtonElement;
+  btnValidateWorld?: HTMLButtonElement | null;
   btnToggleMode: HTMLButtonElement;
   btnDeleteVertex: HTMLButtonElement;
   toolSelect: HTMLButtonElement;
@@ -138,6 +139,7 @@ export class EditorApp {
       onNewRoom: () => this.newRoom(),
       onSave: () => this.saveRoom().catch(() => {}),
       onValidate: () => this.validateRoom().catch(() => {}),
+      onValidateWorld: () => this.validateWorld().catch(() => {}),
       onToggleMode: () => this.toggleMode(),
       onDeleteSelected: () => this.deleteSelected(),
       onToolSelect: (tool) => this.setTool(tool)
@@ -321,6 +323,27 @@ export class EditorApp {
       }
     } catch (err) {
       this.setStatus(`Validierungsfehler: ${String(err)}`, 'error');
+      return false;
+    }
+  }
+
+  public async validateWorld(): Promise<boolean> {
+    this.form.clearValidationErrors();
+    this.setStatus('Validiere alle Räume und Übergänge der Welt...', 'info');
+
+    try {
+      const result = await EditorApi.validateWorld();
+      if (result.valid) {
+        this.form.clearValidationErrors();
+        this.setStatus('✅ Weltweit gültig! Alle Räume, Ausgänge und Ziel-Spawns sind konsistent.', 'success');
+        return true;
+      } else {
+        this.form.showValidationErrors(result.errors);
+        this.setStatus(`⚠️ Welt-Validierung: ${result.errors.length} Problem(e) gefunden.`, 'error');
+        return false;
+      }
+    } catch (err) {
+      this.setStatus(`Welt-Validierungsfehler: ${String(err)}`, 'error');
       return false;
     }
   }

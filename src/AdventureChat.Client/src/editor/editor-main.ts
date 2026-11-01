@@ -17,6 +17,7 @@ function initializeEditor(): void {
     btnNewRoom: document.getElementById('btn-new-room') as HTMLButtonElement,
     btnSave: document.getElementById('btn-save') as HTMLButtonElement,
     btnValidate: document.getElementById('btn-validate') as HTMLButtonElement,
+    btnValidateWorld: document.getElementById('btn-validate-world') as HTMLButtonElement | null,
     btnToggleMode: document.getElementById('btn-toggle-mode') as HTMLButtonElement,
     btnDeleteVertex: document.getElementById('btn-delete-vertex') as HTMLButtonElement,
     toolSelect: document.getElementById('tool-select') as HTMLButtonElement,

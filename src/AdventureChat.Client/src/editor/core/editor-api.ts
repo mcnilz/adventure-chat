@@ -53,6 +53,29 @@ export class EditorApi {
     return (await res.json()) as ValidationResponse;
   }
 
+  public static async validateWorld(): Promise<ValidationResponse> {
+    const res = await fetch('/api/editor/validate-world');
+    if (!res.ok) {
+      throw new Error(`Welt-Validierungsdienst antwortete mit Status ${res.status}`);
+    }
+
+    return (await res.json()) as ValidationResponse;
+  }
+
+  public static async validateWorldPayload(rooms: RoomYamlDto[]): Promise<ValidationResponse> {
+    const res = await fetch('/api/editor/validate-world', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(rooms)
+    });
+
+    if (!res.ok) {
+      throw new Error(`Welt-Validierungsdienst antwortete mit Status ${res.status}`);
+    }
+
+    return (await res.json()) as ValidationResponse;
+  }
+
   public static async saveRoom(room: RoomYamlDto): Promise<SaveRoomResponse> {
     const res = await fetch(`/api/editor/rooms/${encodeURIComponent(room.id)}`, {
       method: 'POST',

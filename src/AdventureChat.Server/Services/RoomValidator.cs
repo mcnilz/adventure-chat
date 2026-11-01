@@ -16,6 +16,7 @@ public sealed record ValidationResult(bool IsValid, IReadOnlyList<string> Errors
 public interface IRoomValidator
 {
     ValidationResult Validate(RoomYamlDto dto);
+    ValidationResult ValidateWorld(IReadOnlyList<RoomYamlDto> rooms);
     ValidationResult ValidateJson(string json);
 }
 
@@ -25,9 +26,11 @@ public sealed partial class RoomValidator : IRoomValidator
     private static partial Regex SafeIdRegex();
 
     private readonly JsonSchema? _jsonSchema;
+    private readonly IPathfindingService _pathfinder;
 
-    public RoomValidator(string? schemaPath = null)
+    public RoomValidator(string? schemaPath = null, IPathfindingService? pathfinder = null)
     {
+        _pathfinder = pathfinder ?? new PathfindingService();
         if (!string.IsNullOrEmpty(schemaPath) && File.Exists(schemaPath))
         {
             var schemaText = File.ReadAllText(schemaPath);
@@ -228,6 +231,100 @@ public sealed partial class RoomValidator : IRoomValidator
                     {
                         errors.Add($"Exit '{e.Id}' trigger position at ({p.X}, {p.Y}) is not located on a walkable area.");
                     }
+                }
+
+                // 11. Exit reachability check from room spawns
+                var validSpawns = roomDef.Spawns
+                    .Where(s => roomDef.Geometry.IsWalkable(s.Position))
+                    .ToList();
+
+                if (validSpawns.Count > 0)
+                {
+                    foreach (var e in dto.Exits)
+                    {
+                        var exitPos = new Point2D(e.Position.X, e.Position.Y);
+                        if (roomDef.Geometry.IsWalkable(exitPos))
+                        {
+                            bool isReachable = validSpawns.Any(s => _pathfinder.CalculatePath(roomDef.Geometry, s.Position, exitPos).Success);
+                            if (!isReachable)
+                            {
+                                errors.Add($"Exit '{e.Id}' at ({exitPos.X}, {exitPos.Y}) is unreachable from any spawn point in this room.");
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return errors.Count == 0 ? ValidationResult.Success() : ValidationResult.Failure(errors);
+    }
+
+    public ValidationResult ValidateWorld(IReadOnlyList<RoomYamlDto> rooms)
+    {
+        if (rooms is null || rooms.Count == 0)
+        {
+            return ValidationResult.Failure("World contains no room definitions.");
+        }
+
+        var errors = new List<string>();
+        var roomMap = new Dictionary<string, RoomYamlDto>(StringComparer.OrdinalIgnoreCase);
+
+        // 1. Individual room validations and duplicate ID check
+        foreach (var room in rooms)
+        {
+            if (string.IsNullOrWhiteSpace(room.Id))
+            {
+                errors.Add("Encountered room definition with empty ID.");
+                continue;
+            }
+
+            if (roomMap.ContainsKey(room.Id))
+            {
+                errors.Add($"Duplicate room ID '{room.Id}' found in world.");
+                continue;
+            }
+
+            roomMap[room.Id] = room;
+
+            var singleResult = Validate(room);
+            if (!singleResult.IsValid)
+            {
+                foreach (var err in singleResult.Errors)
+                {
+                    errors.Add($"Room '{room.Id}': {err}");
+                }
+            }
+        }
+
+        // 2. Cross-room exit and spawn reference validation
+        foreach (var room in rooms)
+        {
+            if (room.Exits is null) continue;
+
+            foreach (var exit in room.Exits)
+            {
+                if (string.IsNullOrWhiteSpace(exit.Target.Room))
+                {
+                    errors.Add($"Room '{room.Id}': Exit '{exit.Id}' has empty target room.");
+                    continue;
+                }
+
+                if (!roomMap.TryGetValue(exit.Target.Room, out var targetRoom))
+                {
+                    errors.Add($"Room '{room.Id}': Exit '{exit.Id}' references non-existent target room '{exit.Target.Room}'.");
+                    continue;
+                }
+
+                if (string.IsNullOrWhiteSpace(exit.Target.Spawn))
+                {
+                    errors.Add($"Room '{room.Id}': Exit '{exit.Id}' has empty target spawn for room '{exit.Target.Room}'.");
+                    continue;
+                }
+
+                var targetSpawnExists = targetRoom.Spawns?.Any(s => string.Equals(s.Id, exit.Target.Spawn, StringComparison.OrdinalIgnoreCase)) ?? false;
+                if (!targetSpawnExists)
+                {
+                    errors.Add($"Room '{room.Id}': Exit '{exit.Id}' references non-existent target spawn '{exit.Target.Spawn}' in room '{exit.Target.Room}'.");
                 }
             }
         }

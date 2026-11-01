@@ -5,6 +5,7 @@ export interface ToolbarElements {
   btnNewRoom: HTMLButtonElement;
   btnSave: HTMLButtonElement;
   btnValidate: HTMLButtonElement;
+  btnValidateWorld?: HTMLButtonElement | null;
   btnToggleMode: HTMLButtonElement;
   btnDeleteVertex: HTMLButtonElement;
   toolSelect: HTMLButtonElement;
@@ -19,6 +20,7 @@ export interface ToolbarCallbacks {
   onNewRoom: () => void;
   onSave: () => void;
   onValidate: () => void;
+  onValidateWorld?: () => void;
   onToggleMode: () => void;
   onDeleteSelected: () => void;
   onToolSelect: (tool: EditorTool) => void;
@@ -63,6 +65,9 @@ export class EditorToolbar {
     el.btnNewRoom.addEventListener('click', () => cb.onNewRoom());
     el.btnSave.addEventListener('click', () => cb.onSave());
     el.btnValidate.addEventListener('click', () => cb.onValidate());
+    if (el.btnValidateWorld) {
+      el.btnValidateWorld.addEventListener('click', () => cb.onValidateWorld?.());
+    }
     el.btnToggleMode.addEventListener('click', () => cb.onToggleMode());
     el.btnDeleteVertex.addEventListener('click', () => cb.onDeleteSelected());
 

@@ -241,6 +241,60 @@ public class EditorEndpointTests
     }
 
     [Test]
+    public async Task ValidateWorld_Get_ReturnsValidForDefaultWorld()
+    {
+        var response = await _client.GetAsync("/api/editor/validate-world");
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        var result = await response.Content.ReadFromJsonAsync<ValidationResponseDto>();
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result!.Valid, Is.True, string.Join("; ", result.Errors));
+    }
+
+    [Test]
+    public async Task ValidateWorld_Post_WithBrokenExit_ReturnsValidFalse()
+    {
+        var brokenRoom = new RoomYamlDto
+        {
+            Version = 1,
+            Id = "world-test-room",
+            Name = "World Test",
+            Background = "assets/images/lounge.png",
+            Size = new RoomSizeYamlDto { Width = 640, Height = 360 },
+            Spawns = [new RoomSpawnYamlDto { Id = "entry", Position = new RoomPointYamlDto { X = 100, Y = 200 } }],
+            Walkable = [
+                new RoomPolygonYamlDto
+                {
+                    Id = "floor",
+                    Points = [
+                        new RoomPointYamlDto { X = 40, Y = 100 },
+                        new RoomPointYamlDto { X = 500, Y = 100 },
+                        new RoomPointYamlDto { X = 500, Y = 300 },
+                        new RoomPointYamlDto { X = 40, Y = 300 }
+                    ]
+                }
+            ],
+            Exits = [
+                new RoomExitYamlDto
+                {
+                    Id = "to-nowhere",
+                    Position = new RoomPointYamlDto { X = 400, Y = 200 },
+                    Radius = 25,
+                    Target = new RoomExitTargetYamlDto { Room = "non-existent-world-room", Spawn = "entry" }
+                }
+            ]
+        };
+
+        var response = await _client.PostAsJsonAsync("/api/editor/validate-world", new[] { brokenRoom });
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        var result = await response.Content.ReadFromJsonAsync<ValidationResponseDto>();
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result!.Valid, Is.False);
+        Assert.That(string.Join("; ", result.Errors), Does.Contain("references non-existent target room 'non-existent-world-room'"));
+    }
+
+    [Test]
     public async Task GetBackgrounds_ReturnsOverviewAndExistingImages()
     {
         var response = await _client.GetAsync("/api/editor/backgrounds");
