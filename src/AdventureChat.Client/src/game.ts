@@ -1,6 +1,7 @@
 import { moveTowards } from './math.js';
 import { RoomRenderer } from './renderer.js';
 import type {
+  ChangeRoomResultDto,
   Character,
   ChatMessageDto,
   JoinRoomResultDto,
@@ -9,6 +10,8 @@ import type {
   PlayerMovedDto,
   Point,
   RoomDefinition,
+  RoomExit,
+  RoomSnapshotDto,
   SendChatMessageResultDto,
   UserJoinedDto,
   UserLeftDto,
@@ -24,6 +27,13 @@ export const DEFAULT_ROOM: RoomDefinition = {
     x: 120,
     y: 300,
   },
+  spawns: [
+    { id: 'entry', position: { x: 120, y: 300 } },
+    { id: 'from-garden', position: { x: 540, y: 300 } },
+  ],
+  exits: [
+    { id: 'to-garden', position: { x: 580, y: 300 }, radius: 30, targetRoomId: 'garden', targetSpawnId: 'from-lounge' },
+  ],
   geometry: {
     outerBoundary: [
       { x: 40, y: 240 },
@@ -44,7 +54,7 @@ export const DEFAULT_ROOM: RoomDefinition = {
 };
 
 export class AdventureGame {
-  public readonly room: RoomDefinition;
+  public room: RoomDefinition;
   public readonly character: Character;
   public readonly remotePlayers: Map<string, Character> = new Map();
   public readonly chatMessages: ChatMessageDto[] = [];
@@ -52,8 +62,10 @@ export class AdventureGame {
   public connectionStatus: 'connected' | 'connecting' | 'disconnected' = 'disconnected';
   public sessionId = 'local-player';
   public playerName: string;
+  public pendingExit: RoomExit | null = null;
   public onChatMessage?: (message: ChatMessageDto) => void;
   public onConnectionStatusChanged?: (status: 'connected' | 'connecting' | 'disconnected') => void;
+  public onRoomChanged?: (room: RoomDefinition) => void;
 
   private lastTimestamp = 0;
   private isRunning = false;
@@ -183,21 +195,7 @@ export class AdventureGame {
         this.sessionId = result.snapshot.yourSessionId;
         this.character.id = this.sessionId;
 
-        this.remotePlayers.clear();
-        for (const p of result.snapshot.players) {
-          if (p.sessionId === this.sessionId) {
-            this.character.name = p.displayName;
-            this.playerName = p.displayName;
-            this.character.position = { ...p.position };
-            this.character.facing = p.direction;
-            this.character.state = p.state;
-            if (p.waypoints && p.waypoints.length > 0) {
-              this.applyPath(p.waypoints as Point[]);
-            }
-          } else {
-            this.handleUserJoined(p);
-          }
-        }
+        this.applyRoomSnapshot(result.snapshot);
 
         this.chatMessages.length = 0;
         if (result.snapshot.recentMessages) {
@@ -216,6 +214,55 @@ export class AdventureGame {
       console.error('Error invoking JoinRoom:', e);
       this.setConnectionStatus('disconnected');
     }
+  }
+
+  public async changeRoom(targetRoomId: string, targetSpawnId?: string | null): Promise<boolean> {
+    if (!this.hubConnection || this.connectionStatus !== 'connected') {
+      return false;
+    }
+
+    try {
+      const result: ChangeRoomResultDto = await this.hubConnection.invoke('ChangeRoom', {
+        targetRoomId,
+        targetSpawnId: targetSpawnId || null,
+      });
+
+      if (result.success && result.snapshot) {
+        this.applyRoomSnapshot(result.snapshot);
+        return true;
+      } else {
+        console.error('ChangeRoom failed:', result.error);
+        return false;
+      }
+    } catch (e) {
+      console.error('Error changing room:', e);
+      return false;
+    }
+  }
+
+  public applyRoomSnapshot(snapshot: RoomSnapshotDto): void {
+    if (snapshot.room) {
+      this.room = snapshot.room;
+      this.renderer.setRoom(snapshot.room);
+    }
+
+    this.remotePlayers.clear();
+    for (const p of snapshot.players) {
+      if (p.sessionId === this.sessionId) {
+        this.character.name = p.displayName;
+        this.playerName = p.displayName;
+        this.character.position = { ...p.position };
+        this.character.facing = p.direction;
+        this.character.state = p.state;
+        this.character.target = null;
+        this.character.waypoints = [];
+      } else {
+        this.handleUserJoined(p);
+      }
+    }
+
+    this.pendingExit = null;
+    this.onRoomChanged?.(this.room);
   }
 
   private handleUserJoined(player: PlayerDto): void {
@@ -303,16 +350,38 @@ export class AdventureGame {
     };
   }
 
+  public findClickedExit(point: Point): RoomExit | null {
+    if (!this.room.exits || this.room.exits.length === 0) return null;
+    for (const exit of this.room.exits) {
+      const dist = Math.hypot(point.x - exit.position.x, point.y - exit.position.y);
+      if (dist <= (exit.radius || 30)) {
+        return exit;
+      }
+    }
+    return null;
+  }
+
   public async handleCanvasClick(
     clientX: number,
     clientY: number
   ): Promise<{ accepted: boolean; point: Point; waypoints?: Point[] }> {
     const logical = this.screenToLogical(clientX, clientY);
-    const result = await this.setTarget(logical);
-    if (result.waypoints) {
-      return { accepted: result.accepted, point: logical, waypoints: result.waypoints };
+    const clickedExit = this.findClickedExit(logical);
+    if (clickedExit) {
+      this.pendingExit = clickedExit;
+      const result = await this.setTarget(clickedExit.position);
+      if (result.waypoints) {
+        return { accepted: result.accepted, point: logical, waypoints: result.waypoints };
+      }
+      return { accepted: result.accepted, point: logical };
+    } else {
+      this.pendingExit = null;
+      const result = await this.setTarget(logical);
+      if (result.waypoints) {
+        return { accepted: result.accepted, point: logical, waypoints: result.waypoints };
+      }
+      return { accepted: result.accepted, point: logical };
     }
-    return { accepted: result.accepted, point: logical };
   }
 
   public async setTarget(
@@ -465,6 +534,18 @@ export class AdventureGame {
     } else {
       char.state = 'idle';
       char.walkFrame = 0;
+    }
+
+    if (char.id === this.sessionId && this.pendingExit && char.state === 'idle') {
+      const dist = Math.hypot(
+        char.position.x - this.pendingExit.position.x,
+        char.position.y - this.pendingExit.position.y
+      );
+      if (dist <= 45) {
+        const exitToTrigger = this.pendingExit;
+        this.pendingExit = null;
+        void this.changeRoom(exitToTrigger.targetRoomId, exitToTrigger.targetSpawnId);
+      }
     }
   }
 

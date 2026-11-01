@@ -31,6 +31,19 @@ export interface Character {
   speechBubble?: SpeechBubble | null;
 }
 
+export interface RoomSpawn {
+  readonly id: string;
+  readonly position: Point;
+}
+
+export interface RoomExit {
+  readonly id: string;
+  readonly position: Point;
+  readonly radius: number;
+  readonly targetRoomId: string;
+  readonly targetSpawnId: string;
+}
+
 export interface RoomDefinition {
   readonly id: string;
   readonly name: string;
@@ -39,6 +52,8 @@ export interface RoomDefinition {
   readonly backgroundUrl: string;
   readonly geometry: RoomGeometry;
   readonly spawnPoint: Point;
+  readonly spawns?: ReadonlyArray<RoomSpawn>;
+  readonly exits?: ReadonlyArray<RoomExit>;
 }
 
 export interface ChatMessageDto {
@@ -75,6 +90,7 @@ export interface RoomSnapshotDto {
   readonly yourSessionId: string;
   readonly players: ReadonlyArray<PlayerDto>;
   readonly recentMessages?: ReadonlyArray<ChatMessageDto>;
+  readonly room?: RoomDefinition;
 }
 
 export interface PlayerMovedDto {
@@ -98,6 +114,17 @@ export interface JoinRoomRequestDto {
 }
 
 export interface JoinRoomResultDto {
+  readonly success: boolean;
+  readonly error: string | null;
+  readonly snapshot: RoomSnapshotDto | null;
+}
+
+export interface ChangeRoomRequestDto {
+  readonly targetRoomId: string;
+  readonly targetSpawnId?: string | null;
+}
+
+export interface ChangeRoomResultDto {
   readonly success: boolean;
   readonly error: string | null;
   readonly snapshot: RoomSnapshotDto | null;

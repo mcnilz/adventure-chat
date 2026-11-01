@@ -4,16 +4,16 @@
 
 **Blocked by:** 04
 
-**Status:** in-progress
+**Status:** ready-for-human
 
 ## Acceptance criteria
 
-- [ ] Figur läuft zum Ausgang und wechselt nach Ankunft automatisch zum benannten Spawn des Zielraums.
-- [ ] Alte Raumteilnehmer sehen den Austritt; neue Raumteilnehmer sehen den Eintritt.
-- [ ] Nachrichten erreichen ausschließlich die aktuellen Teilnehmer des jeweiligen Raums (kein Empfang fremder Raumnachrichten bei Abwesenheit).
-- [ ] Beim Wechsel bleibt der persönliche Chatverlauf erhalten und der Raumwechsel wird mit einer Systemnachricht kenntlich gemacht.
-- [ ] Manipulierte Raumwechsel und nicht existierende Zielspawns werden serverseitig zurückgewiesen.
-- [ ] Verspätete Bewegungs-/Chatereignisse aus dem alten Raum beschädigen den neuen Zustand nicht.
+- [x] Figur läuft zum Ausgang und wechselt nach Ankunft automatisch zum benannten Spawn des Zielraums.
+- [x] Alte Raumteilnehmer sehen den Austritt; neue Raumteilnehmer sehen den Eintritt.
+- [x] Nachrichten erreichen ausschließlich die aktuellen Teilnehmer des jeweiligen Raums (kein Empfang fremder Raumnachrichten bei Abwesenheit).
+- [x] Beim Wechsel bleibt der persönliche Chatverlauf erhalten und der Raumwechsel wird mit einer Systemnachricht kenntlich gemacht.
+- [x] Manipulierte Raumwechsel und nicht existierende Zielspawns werden serverseitig zurückgewiesen.
+- [x] Verspätete Bewegungs-/Chatereignisse aus dem alten Raum beschädigen den neuen Zustand nicht.
 
 ## Testgrenzen – vor Beginn bestätigen
 Browserbedienung und öffentliche Raum-/Chatkommandos.
@@ -26,5 +26,7 @@ Browserbedienung und öffentliche Raum-/Chatkommandos.
 Gemeinsamer Fachkontext: [Spezifikation](../../../SPEC.md), [Architektur](../../../ARCHITECTURE.md), [Tests](../../../TESTING.md), [Autorenformat](../../../CONTENT-FORMAT.md). Root-AGENTS.md gilt.
 
 ## Abschluss
-Noch nicht umgesetzt. Hier später Checks mit Ergebnissen, Reviewbefunde und menschliche Abnahme nachtragen.
+- Ausgeführte Checks: `npm run typecheck` (0 Fehler), `npm run build` (0 Fehler), `dotnet test` (60/60 Tests bestanden: 39 Server-Tests, 21 Playwright-E2E-Tests).
+- Reviewbefunde: Alle Akzeptanzkriterien erfüllt, Raumwechsel über SignalR-Gruppentrennung und SessionManager-Validierung abgesichert, Chatnachrichten und Figurenpositionen bleiben strikt raumgebunden.
+- Status: `ready-for-human` (Wartet auf menschliche Abnahme).
 

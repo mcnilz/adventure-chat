@@ -29,6 +29,28 @@ public class RoomHub : Hub
         return new JoinRoomResultDto(true, null, result.Snapshot);
     }
 
+    public async Task<ChangeRoomResultDto> ChangeRoom(ChangeRoomRequestDto request)
+    {
+        var result = _sessionManager.ChangeRoom(Context.ConnectionId, request.TargetRoomId, request.TargetSpawnId);
+        if (!result.Success || result.Session is null || result.Snapshot is null)
+        {
+            return new ChangeRoomResultDto(false, result.Error ?? "Could not change room.", null);
+        }
+
+        // 1. Leave old room group & notify old room participants
+        if (!string.IsNullOrEmpty(result.OldRoomId))
+        {
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, result.OldRoomId);
+            await Clients.Group(result.OldRoomId).SendAsync("UserLeft", new UserLeftDto(result.Session.SessionId, result.Session.DisplayName));
+        }
+
+        // 2. Join new room group & notify new room participants
+        await Groups.AddToGroupAsync(Context.ConnectionId, result.Session.RoomId);
+        await Clients.GroupExcept(result.Session.RoomId, Context.ConnectionId).SendAsync("UserJoined", new UserJoinedDto(result.Session.ToDto()));
+
+        return new ChangeRoomResultDto(true, null, result.Snapshot);
+    }
+
     public async Task<MoveResultDto> RequestMove(RequestMoveDto request)
     {
         var session = _sessionManager.GetPlayer(Context.ConnectionId);

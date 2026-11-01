@@ -53,6 +53,15 @@ function initialize() {
         // Auto-scroll to bottom
         chatMessages.scrollTop = chatMessages.scrollHeight;
     };
+    const appendSystemMessage = (text) => {
+        if (!chatMessages)
+            return;
+        const msgEl = document.createElement('div');
+        msgEl.className = 'chat-system-message';
+        msgEl.textContent = text;
+        chatMessages.appendChild(msgEl);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    };
     const appendSystemError = (errorMessage) => {
         if (!chatMessages)
             return;
@@ -67,6 +76,9 @@ function initialize() {
     };
     game.onChatMessage = (msg) => {
         appendChatMessage(msg);
+    };
+    game.onRoomChanged = (room) => {
+        appendSystemMessage(`--- Raum gewechselt: ${room.name} ---`);
     };
     updateInputState(game.connectionStatus);
     if (chatForm && chatInput) {

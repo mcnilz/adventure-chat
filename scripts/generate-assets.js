@@ -957,9 +957,155 @@ const charPng = createPng(charWidth, charHeight, (x, y) => {
   return [0, 0, 0, 0];
 });
 
+// 2. Generate Classic Lucasfilm Adventure Pirate Tavern Garden Background (640x360)
+// Inspired by Lucasfilm SCUMM aesthetics (Secret of Monkey Island / Scumm Bar Backyard / Melee Island)
+const gardenPng = createPng(640, 360, (x, y) => {
+  const dist = (x1, y1, x2, y2) => Math.hypot(x1 - x2, y1 - y2);
+
+  // -------------------------------------------------------------
+  // NIGHT SKY & MOON (y: 0 .. 150)
+  // -------------------------------------------------------------
+  if (y < 140 && x > 110) {
+    // Crescent Moon (center at x=520, y=50, radius=22)
+    const dMoon = dist(x, y, 520, 50);
+    const dMoonCut = dist(x, y, 512, 45);
+    if (dMoon <= 22 && dMoonCut > 18) {
+      if (dMoon <= 20) return [255, 250, 210, 255]; // Bright cream moon
+      return [220, 210, 160, 255]; // Moon edge
+    }
+
+    // Stars
+    if ((x * 37 + y * 91) % 197 === 0 && dMoon > 35) {
+      return [240, 245, 255, 255];
+    }
+    if ((x * 19 + y * 53) % 113 === 0 && dMoon > 35) {
+      return [180, 200, 240, 200];
+    }
+
+    // Deep night gradient
+    const skyGrad = Math.min(1, y / 140);
+    const r = Math.floor(8 * (1 - skyGrad) + 18 * skyGrad);
+    const g = Math.floor(12 * (1 - skyGrad) + 28 * skyGrad);
+    const b = Math.floor(32 * (1 - skyGrad) + 65 * skyGrad);
+    return [r, g, b, 255];
+  }
+
+  // -------------------------------------------------------------
+  // TAVERNE EXTERIOR WALL (x: 0 .. 110, y: 0 .. 240)
+  // -------------------------------------------------------------
+  if (x <= 110 && y < 240) {
+    // Tavern Roof overhang (y: 0..40, slopes down from x=0 to x=115)
+    if (y <= 30 + (x * 0.15)) {
+      const tile = (Math.floor(x / 12) + Math.floor(y / 8)) % 2;
+      return tile === 0 ? [75, 40, 30, 255] : [55, 28, 20, 255];
+    }
+
+    // Tavern Door to Lounge (x: 35..85, y: 110..240)
+    if (x >= 35 && x <= 85 && y >= 110) {
+      // Door frame arch (top y: 110..120)
+      if (y <= 118 || x === 35 || x === 36 || x === 84 || x === 85) {
+        return [30, 20, 15, 255]; // Dark stone arch
+      }
+      // Warm glowing open tavern doorway
+      const dDoorCenter = Math.abs(x - 60);
+      const glow = Math.max(0, 1 - dDoorCenter / 25);
+      return [
+        Math.floor(160 + 60 * glow),
+        Math.floor(100 + 40 * glow),
+        Math.floor(40 + 20 * glow),
+        255
+      ];
+    }
+
+    // Tavern Timbered Wall
+    const beam = (x <= 6 || x >= 104 || y % 45 <= 4 || (x >= 30 && x <= 34) || (x >= 86 && x <= 90));
+    if (beam) {
+      return [42, 24, 14, 255]; // Dark timber
+    }
+    // Plaster / dark wood wall
+    const wallNoise = (x * 7 + y * 13) % 11;
+    return [60 + wallNoise, 45 + wallNoise, 35 + wallNoise, 255];
+  }
+
+  // -------------------------------------------------------------
+  // DISTANT TREES & GARDEN FENCE (y: 120 .. 240, x > 110)
+  // -------------------------------------------------------------
+  if (y < 240) {
+    // Tree silhouette (y: 100 .. 180)
+    const treeTop = 130 + Math.sin(x * 0.03) * 15 + Math.cos(x * 0.08) * 8;
+    if (y >= treeTop && y < 195) {
+      const dDark = (x % 4 === 0) ? -8 : 0;
+      return [12 + dDark, 28 + dDark, 20 + dDark, 255];
+    }
+
+    // Wooden Garden Fence (y: 195 .. 238)
+    if (y >= 195) {
+      // Fence picket posts every 20px
+      const picket = (x % 20);
+      if (picket <= 6 && y <= 235) {
+        // Pointed picket top
+        if (y < 202 && Math.abs(picket - 3) > (y - 195)) {
+          // air above point
+        } else {
+          return [70, 50, 32, 255]; // Wood picket
+        }
+      }
+      // Horizontal fence rails (y: 208..212, y: 224..228)
+      if ((y >= 208 && y <= 212) || (y >= 224 && y <= 228)) {
+        return [55, 38, 24, 255];
+      }
+      // Grass behind fence
+      return [16, 38, 22, 255];
+    }
+
+    return [10, 20, 16, 255];
+  }
+
+  // -------------------------------------------------------------
+  // WALKABLE GARDEN GROUND / PATHWAY (y: 240 .. 360)
+  // -------------------------------------------------------------
+  // Baseboard / edge: y: 238 .. 242
+  if (y <= 242) {
+    return [24, 48, 28, 255];
+  }
+
+  // Walkable area: y: 242 .. 345, x: 40 .. 600
+  // Cobblestone path down the middle (x: 180 .. 460)
+  const isPath = (x >= 160 && x <= 480);
+  const stoneX = Math.floor(x / 24);
+  const stoneY = Math.floor(y / 14);
+  const isStoneJoint = ((x % 24 <= 1) && (y % 14 > 1)) || (y % 14 <= 1);
+
+  if (isPath) {
+    if (isStoneJoint) {
+      return [35, 42, 38, 255]; // Dark mortar
+    }
+    const stoneTone = ((stoneX * 17 + stoneY * 31) % 19) - 9;
+    return [
+      Math.max(0, Math.min(255, 75 + stoneTone)),
+      Math.max(0, Math.min(255, 82 + stoneTone)),
+      Math.max(0, Math.min(255, 78 + stoneTone)),
+      255
+    ];
+  }
+
+  // Grass / Lawn sides (x < 160 or x > 480)
+  const grassNoise = (x * 13 + y * 29) % 17;
+  const isEdge = (x < 40 || x > 600 || y > 345);
+  const shade = isEdge ? -20 : 0;
+
+  return [
+    Math.max(0, Math.min(255, 28 + grassNoise + shade)),
+    Math.max(0, Math.min(255, 62 + grassNoise + shade)),
+    Math.max(0, Math.min(255, 32 + grassNoise + shade)),
+    255
+  ];
+});
+
 const targetDir = path.join('src', 'AdventureChat.Server', 'wwwroot', 'assets', 'images');
 fs.mkdirSync(targetDir, { recursive: true });
 
 fs.writeFileSync(path.join(targetDir, 'lounge.png'), loungePng);
+fs.writeFileSync(path.join(targetDir, 'garden.png'), gardenPng);
 fs.writeFileSync(path.join(targetDir, 'character.png'), charPng);
 console.log('Assets created successfully in ' + targetDir);

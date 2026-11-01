@@ -71,6 +71,16 @@ function initialize(): void {
     chatMessages.scrollTop = chatMessages.scrollHeight;
   };
 
+  const appendSystemMessage = (text: string) => {
+    if (!chatMessages) return;
+
+    const msgEl = document.createElement('div');
+    msgEl.className = 'chat-system-message';
+    msgEl.textContent = text;
+    chatMessages.appendChild(msgEl);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  };
+
   const appendSystemError = (errorMessage: string) => {
     if (!chatMessages) return;
 
@@ -87,6 +97,10 @@ function initialize(): void {
 
   game.onChatMessage = (msg: ChatMessageDto) => {
     appendChatMessage(msg);
+  };
+
+  game.onRoomChanged = (room) => {
+    appendSystemMessage(`--- Raum gewechselt: ${room.name} ---`);
   };
 
   updateInputState(game.connectionStatus);

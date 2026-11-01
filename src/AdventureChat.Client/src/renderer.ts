@@ -19,7 +19,7 @@ export class RoomRenderer {
 
   public constructor(
     private readonly canvas: HTMLCanvasElement,
-    private readonly room: RoomDefinition
+    private room: RoomDefinition
   ) {
     const context = this.canvas.getContext('2d');
     if (!context) {
@@ -39,6 +39,14 @@ export class RoomRenderer {
     this.characterSprite.onload = () => {
       this.spriteLoaded = true;
     };
+  }
+
+  public setRoom(newRoom: RoomDefinition): void {
+    this.room = newRoom;
+    if (!this.backgroundImage.src.endsWith(newRoom.backgroundUrl)) {
+      this.backgroundLoaded = false;
+      this.backgroundImage.src = newRoom.backgroundUrl;
+    }
   }
 
   public addClickMarker(x: number, y: number, type: 'valid' | 'invalid'): void {

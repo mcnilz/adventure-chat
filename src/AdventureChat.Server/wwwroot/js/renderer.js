@@ -28,6 +28,13 @@ export class RoomRenderer {
             this.spriteLoaded = true;
         };
     }
+    setRoom(newRoom) {
+        this.room = newRoom;
+        if (!this.backgroundImage.src.endsWith(newRoom.backgroundUrl)) {
+            this.backgroundLoaded = false;
+            this.backgroundImage.src = newRoom.backgroundUrl;
+        }
+    }
     addClickMarker(x, y, type) {
         this.clickMarkers.push({
             x,

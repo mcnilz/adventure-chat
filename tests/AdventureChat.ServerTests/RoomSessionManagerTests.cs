@@ -256,4 +256,89 @@ public class RoomSessionManagerTests
         Assert.That(result.Success, Is.False);
         Assert.That(result.Error, Does.Contain("not found"));
     }
+
+    [Test]
+    public void ChangeRoom_ValidTarget_MovesPlayerToTargetRoomAndReturnsSnapshot()
+    {
+        _manager.JoinRoom("conn-1", "lounge", "Guybrush");
+
+        var result = _manager.ChangeRoom("conn-1", "garden");
+
+        Assert.That(result.Success, Is.True);
+        Assert.That(result.OldRoomId, Is.EqualTo("lounge"));
+        Assert.That(result.Session, Is.Not.Null);
+        Assert.That(result.Session!.RoomId, Is.EqualTo("garden"));
+        Assert.That(result.Snapshot, Is.Not.Null);
+        Assert.That(result.Snapshot!.RoomId, Is.EqualTo("garden"));
+        Assert.That(result.Snapshot.Room, Is.Not.Null);
+        Assert.That(result.Snapshot.Room!.Name, Is.EqualTo("Tavernen-Garten"));
+
+        var loungePlayers = _manager.GetPlayersInRoom("lounge");
+        var gardenPlayers = _manager.GetPlayersInRoom("garden");
+
+        Assert.That(loungePlayers.Count, Is.EqualTo(0));
+        Assert.That(gardenPlayers.Count, Is.EqualTo(1));
+        Assert.That(gardenPlayers[0].DisplayName, Is.EqualTo("Guybrush"));
+    }
+
+    [Test]
+    public void ChangeRoom_WithTargetSpawn_PositionsPlayerAtSpecifiedSpawn()
+    {
+        _manager.JoinRoom("conn-1", "lounge", "Guybrush");
+
+        var result = _manager.ChangeRoom("conn-1", "garden", "from-lounge");
+
+        Assert.That(result.Success, Is.True);
+        Assert.That(result.Session!.Position, Is.EqualTo(new Point2D(80, 300)));
+    }
+
+    [Test]
+    public void ChangeRoom_TargetRoomNotFound_FailsAndKeepsPlayerInOldRoom()
+    {
+        _manager.JoinRoom("conn-1", "lounge", "Guybrush");
+
+        var result = _manager.ChangeRoom("conn-1", "non-existent-room");
+
+        Assert.That(result.Success, Is.False);
+        Assert.That(result.Error, Does.Contain("not found"));
+
+        var player = _manager.GetPlayer("conn-1");
+        Assert.That(player!.RoomId, Is.EqualTo("lounge"));
+    }
+
+    [Test]
+    public void ChangeRoom_UnknownConnection_Fails()
+    {
+        var result = _manager.ChangeRoom("unknown-conn", "garden");
+
+        Assert.That(result.Success, Is.False);
+        Assert.That(result.Error, Does.Contain("not found"));
+    }
+
+    [Test]
+    public void ChangeRoom_IsolatesChatMessagesBetweenRooms()
+    {
+        _manager.JoinRoom("conn-1", "lounge", "Guybrush");
+        _manager.JoinRoom("conn-2", "lounge", "Elaine");
+
+        // Elaine moves to garden
+        _manager.ChangeRoom("conn-2", "garden");
+
+        // Guybrush chats in lounge
+        var loungeMsg = _manager.SendChatMessage("conn-1", "Hello Lounge!");
+        Assert.That(loungeMsg.Success, Is.True);
+
+        // Elaine chats in garden
+        var gardenMsg = _manager.SendChatMessage("conn-2", "Hello Garden!");
+        Assert.That(gardenMsg.Success, Is.True);
+
+        var loungeHistory = _manager.GetRecentMessages("lounge");
+        var gardenHistory = _manager.GetRecentMessages("garden");
+
+        Assert.That(loungeHistory.Count, Is.EqualTo(1));
+        Assert.That(loungeHistory[0].Text, Is.EqualTo("Hello Lounge!"));
+
+        Assert.That(gardenHistory.Count, Is.EqualTo(1));
+        Assert.That(gardenHistory[0].Text, Is.EqualTo("Hello Garden!"));
+    }
 }

@@ -37,11 +37,42 @@ public record PlayerDto(
     IReadOnlyList<PointDto> Waypoints
 );
 
+public record RoomSpawnDto(
+    string Id,
+    PointDto Position
+);
+
+public record RoomExitDto(
+    string Id,
+    PointDto Position,
+    double Radius,
+    string TargetRoomId,
+    string TargetSpawnId
+);
+
+public record RoomGeometryDto(
+    IReadOnlyList<PointDto> OuterBoundary,
+    IReadOnlyList<IReadOnlyList<PointDto>> Obstacles
+);
+
+public record RoomDefinitionDto(
+    string Id,
+    string Name,
+    int Width,
+    int Height,
+    string BackgroundUrl,
+    PointDto SpawnPoint,
+    RoomGeometryDto Geometry,
+    IReadOnlyList<RoomSpawnDto> Spawns,
+    IReadOnlyList<RoomExitDto> Exits
+);
+
 public record RoomSnapshotDto(
     string RoomId,
     string YourSessionId,
     IReadOnlyList<PlayerDto> Players,
-    IReadOnlyList<ChatMessageDto> RecentMessages
+    IReadOnlyList<ChatMessageDto> RecentMessages,
+    RoomDefinitionDto? Room = null
 );
 
 public record ChatMessageDto(
@@ -74,6 +105,17 @@ public record JoinRoomResultDto(
     RoomSnapshotDto? Snapshot
 );
 
+public record ChangeRoomRequestDto(
+    string TargetRoomId,
+    string? TargetSpawnId = null
+);
+
+public record ChangeRoomResultDto(
+    bool Success,
+    string? Error,
+    RoomSnapshotDto? Snapshot
+);
+
 public record MoveResultDto(
     bool Success,
     string? Error
@@ -98,3 +140,24 @@ public record UserLeftDto(
     string SessionId,
     string DisplayName
 );
+
+public static class RoomDtoExtensions
+{
+    public static RoomDefinitionDto ToDto(this RoomDefinition room)
+    {
+        return new RoomDefinitionDto(
+            room.Id,
+            room.Name,
+            room.Width,
+            room.Height,
+            room.BackgroundUrl,
+            new PointDto(room.SpawnPoint.X, room.SpawnPoint.Y),
+            new RoomGeometryDto(
+                room.Geometry.OuterBoundary.Vertices.Select(v => new PointDto(v.X, v.Y)).ToList(),
+                room.Geometry.Obstacles.Select(o => (IReadOnlyList<PointDto>)o.Vertices.Select(v => new PointDto(v.X, v.Y)).ToList()).ToList()
+            ),
+            room.Spawns.Select(s => new RoomSpawnDto(s.Id, new PointDto(s.Position.X, s.Position.Y))).ToList(),
+            room.Exits.Select(e => new RoomExitDto(e.Id, new PointDto(e.Position.X, e.Position.Y), e.Radius, e.TargetRoomId, e.TargetSpawnId)).ToList()
+        );
+    }
+}

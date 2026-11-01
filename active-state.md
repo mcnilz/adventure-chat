@@ -1,5 +1,5 @@
 # Aktueller Stand
-Revision 8 · 30.10.2026.
+Revision 9 · 30.10.2026.
 
 ## Vorhanden
 - [x] Gespräch in Spezifikation, Architektur, Autorenformat und Tickets überführt.
@@ -13,21 +13,22 @@ Revision 8 · 30.10.2026.
 - [x] Ticket 03 (Echtzeit-Multiplayer mit SignalR) vollständig umgesetzt, getestet und menschlich abgenommen (Status: `done`).
 - [x] Wegfindungs-Optimierungen umgesetzt: 14px Ecksicherheitsabstand und dynamische Zwischenweg-Neuberechnung bei Klicks im Lauf.
 - [x] Ticket 04 (Raumchat mit Verlauf und Sprechblasen) vollständig umgesetzt, getestet und menschlich abgenommen (Status: `done`).
-- [ ] Ticket 05 (Raumübergänge und Türen) umsetzen.
+- [x] UI-Layout-Fix: Chatleiste als eigenständiger Bereich unterhalb des Canvas angedockt (kein transparentes Overlay auf Gehbereich).
+- [x] Ticket 05 (Raumübergänge und Türen) vollständig umgesetzt und getestet (Status: `ready-for-human`).
 - [ ] Skills installiert oder im Zielprojekt geprüft.
 - [ ] Git-Repository und endgültiger Projektname festgelegt.
 - [ ] MVP abgenommen.
 
 ## Aktives Ticket
 - **Ticket:** `05-room-transitions.md` (Zwischen zwei Räumen wechseln und getrennt chatten)
-- **Status:** `in-progress` (Parameter und Testgrenzen bestätigt, Implementierung gestartet)
-- **Geplanter Umfang:** Zweiter Beispielraum ("Tavernen-Garten"), Ausgänge/Türen mit Navigation & automatischem Raumwechsel bei Ankunft, SignalR-Raumgruppenwechsel, persönlicher Chatverlauf mit Raumwechsel-Systemnachrichten, strikte Trennung von Chat & Bewegung zwischen Räumen.
-- **Letzter Stand:** Parameter mit Benutzer abgestimmt (Laufen & Wechseln, persönlicher Verlauf mit Systemmeldungen, Tavernen-Garten als 2. Raum).
+- **Status:** `ready-for-human` (wartet auf menschliche Abnahme durch den Benutzer)
+- **Letzter Stand:** Zweiter Raum ("Tavernen-Garten"), Ausgangs-Navigation mit automatischem Raumwechsel bei Ankunft, SignalR-Gruppenmigration, persönliche Chatverlaufserhaltung mit Raumwechsel-Systemmeldungen und vollständige Raum-Isolation für Chat und Spielerbewegungen implementiert.
+- **Ausgeführte Checks:** `npm run typecheck` (0 Fehler), `npm run build` (0 Fehler), `dotnet test` (60/60 Tests erfolgreich: 39 ServerTests + 21 E2ETests).
 
 ## Nächste Aktion
-1. Implementierung von Ticket 05 (Modelle, Server-Hub/Manager, Renderer, Client-Navigation, Tests).
-2. Ausführung von Build, Typecheck und automatisierten Tests (NUnit & Playwright).
-3. Bereitstellung der Ergebnisse zur menschlichen Abnahme (`ready-for-human`).
+1. Menschliche Abnahme von Ticket 05 durch den Benutzer.
+2. Nach Abnahme: Ticket 05 auf `done` setzen.
+3. Vorbereitung und Start von Ticket 06 (`06-room-editor.md`).
 
 ## Offene Annahmen
 Privater Testbetrieb, ca. zehn Personen, Desktop-Mausbedienung; keine kollidierenden Figuren; Reconnect als frischer Eintritt.
@@ -36,7 +37,7 @@ Privater Testbetrieb, ca. zehn Personen, Desktop-Mausbedienung; keine kollidiere
 - `npm run typecheck` in `src/AdventureChat.Client`: 0 Fehler.
 - `npm run build`: 0 Fehler (SignalR Client-Bundle nach wwwroot kopiert).
 - `dotnet build`: 0 Fehler, 0 Warnungen.
-- `dotnet test`: 53 Tests erfolgreich bestanden (34 ServerTests, 19 E2ETests).
+- `dotnet test`: 60 Tests erfolgreich bestanden (39 ServerTests, 21 E2ETests).
 
 ## Übergabeformat für spätere Änderungen
 Aktives Ticket, letzter nachgewiesener Stand, ausgeführte Checks und Ergebnisse, konkrete Blocker, nächster Schritt sowie Referenz auf Benutzerabnahme hier knapp festhalten. Erledigte Detailhistorie gehört ins jeweilige Ticket.

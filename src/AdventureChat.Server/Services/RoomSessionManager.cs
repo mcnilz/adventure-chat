@@ -69,8 +69,48 @@ public partial class RoomSessionManager : IRoomSessionManager
                 ? list.ToList()
                 : new List<ChatMessageDto>();
 
-            var snapshot = new RoomSnapshotDto(roomId, sessionId, players, recentMessages);
+            var snapshot = new RoomSnapshotDto(roomId, sessionId, players, recentMessages, room.ToDto());
             return new JoinResult(true, null, session, snapshot);
+        }
+    }
+
+    public ChangeRoomResult ChangeRoom(string connectionId, string targetRoomId, string? targetSpawnId = null)
+    {
+        if (!_sessionsByConnection.TryGetValue(connectionId, out var session))
+        {
+            return new ChangeRoomResult(false, "Player session not found.", null, null, null);
+        }
+
+        var targetRoom = _roomService.GetRoom(targetRoomId);
+        if (targetRoom is null)
+        {
+            return new ChangeRoomResult(false, $"Target room '{targetRoomId}' not found.", session.RoomId, session, null);
+        }
+
+        var oldRoomId = session.RoomId;
+        var targetSpawnPos = targetRoom.GetSpawnPosition(targetSpawnId);
+        if (!targetRoom.Geometry.IsWalkable(targetSpawnPos))
+        {
+            targetSpawnPos = targetRoom.SpawnPoint;
+        }
+
+        lock (_lock)
+        {
+            session.RoomId = targetRoomId;
+            session.Position = targetSpawnPos;
+            session.Direction = "down";
+            session.State = "idle";
+            session.Target = null;
+            session.Waypoints.Clear();
+            session.LastActivity = DateTime.UtcNow;
+
+            var players = _sessionsByConnection.Values
+                .Where(s => s.RoomId == targetRoomId)
+                .Select(s => s.ToDto())
+                .ToList();
+
+            var snapshot = new RoomSnapshotDto(targetRoomId, session.SessionId, players, Array.Empty<ChatMessageDto>(), targetRoom.ToDto());
+            return new ChangeRoomResult(true, null, oldRoomId, session, snapshot);
         }
     }
 
