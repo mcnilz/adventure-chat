@@ -1,5 +1,5 @@
 # Aktueller Stand
-Revision 20 · 01.11.2026.
+Revision 21 · 01.11.2026.
 
 ## Vorhanden
 - [x] Gespräch in Spezifikation, Architektur, Autorenformat und Tickets überführt.
@@ -26,17 +26,18 @@ Revision 20 · 01.11.2026.
 - [x] Generierte Client-Build-Artefakte (`wwwroot/js/`) in `.gitignore` aufgenommen und aus dem Git-Tracking entfernt.
 - [x] Ticket 06 (Raumeditor und YAML-Speicherung) vollständig umgesetzt, getestet und menschlich abgenommen (Status: `done`).
 - [x] Ticket 07 (Selbst erstellte Räume verbinden und gemeinsam nutzen) vollständig umgesetzt, getestet und menschlich abgenommen (Status: `done`).
+- [x] Ticket 08 (Multiplayer-Stabilisierung und Autorenbetrieb) menschlich abgenommen (Status: `done`; Benutzer: „passt“, 01.11.2026).
 - [x] MVP-Gesamtumfang gemäß SPEC.md vollständig implementiert und getestet.
 - [ ] Skills installiert oder im Zielprojekt geprüft.
 - [ ] Git-Repository und endgültiger Projektname festgelegt.
 
 ## Aktives Ticket
-- **Ticket 08:** `ready-for-human`; Basis `ef43f41`. Bewegung, Raumwechsel, Reconnect, Autorenmodus und YAML-Startprüfung implementiert. Locked Restore, Client-Typcheck und Build, .NET-Build sowie 87 Server- und 43 Browsertests bestanden. Standards- und Spec-Review durchgeführt, Befunde korrigiert und nachgeprüft. Nachweise und Grenzen im Ticket `.scratch/adventure-chat/issues/08-mvp-stabilization.md`.
+- **Kein aktives Ticket.** Ticket 08 ist `done`; Benutzerabnahme „passt“ am 01.11.2026. Basis `ef43f41`; Nachweise und Grenzen im Ticket `.scratch/adventure-chat/issues/08-mvp-stabilization.md`.
 - **Vorherige Tickets:** 01 bis 07 sind menschlich abgenommen (`done`).
 - **Historischer Stand vor Ticket 08:** 106 Tests wurden für Tickets 01–07 gemeldet. Diese Zahl ist kein Nachweis für den aktuellen Arbeitsstand.
 
 ## Nächste Aktion
-Menschliche Abnahme von Ticket 08 anhand der Schritte im Ticket; erst ausdrückliche Abnahme setzt es auf `done`.
+Bei einem neuen Auftrag das nächste nicht blockierte Ticket prüfen und vor der Umsetzung gemäß Arbeitsregeln vorstellen.
 
 ## Offene Annahmen
 Privater Testbetrieb, ca. zehn Personen, Desktop-Mausbedienung; keine kollidierenden Figuren; Reconnect als frischer Eintritt.

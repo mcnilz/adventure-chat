@@ -4,7 +4,7 @@
 
 **Blocked by:** 07 (laut vorhandenem Tracker done)
 
-**Status:** ready-for-human
+**Status:** done
 
 **Revision:** 1 · 01.11.2026
 
@@ -117,9 +117,10 @@ Inventar, Dialoge, Skripting, neue Grafiken, neue Räume, persistente Chatarchiv
 
 ## Abschlussbelege
 
-- Basis `ef43f41`; Umsetzung `5e14aaf`, Reviewkorrekturen `07ae33b` und `a3e8de5`, Hintergrundtab-Test `e47f0ce`. Die abschließende Dokumentation und der ergänzte Uploadtest folgen in einem lokalen Commit.
+- Basis `ef43f41`; Umsetzung `5e14aaf`, Reviewkorrekturen `07ae33b` und `a3e8de5`, Hintergrundtab-Test `e47f0ce`, Abschlussdokumentation und Uploadtest `49f2976`.
 - Rot und anschließend grün nachgewiesen: gefälschte Startposition (X=200 statt 120), Snapshot während Bewegung (X=120 statt 185), zweiter Join, freier Zielraumwechsel, langer Browserframe (X=133 statt 220), Editor-API im Standardstart, fremder Host, fehlendes Autorentoken, falsche PNG-Signatur, ungültiges YAML und fehlende Pflichtversion. Weitere gezielte Tests prüfen unter anderem echte SignalR-Manipulation, verspätete Ereignisse, Reconnect über eine unterbrochene lokale TCP-Verbindung, eingefrorenen Browsertab, Ausgangsradius, fehlende Zielreferenz und unveränderte Datei bei ungültigem Upload. Für die Reviewkorrekturen wurden die Tests nach der Korrektur ergänzt; ein roter Vorlauf wurde für diese nicht behauptet.
 - Checks: `npm ci --ignore-scripts --offline`, Client-Typcheck und Clientbuild erfolgreich; `dotnet restore --locked-mode` mit lokalem Paketcache und separatem NuGet-Scratch erfolgreich; .NET-Build ohne Warnungen; NUnit-Serversuite 87/87 und Playwright-Browsersuite 43/43 erfolgreich. Tests verwenden isolierte temporäre Inhalte. Ein vorheriger gemeinsamer Lauf scheiterte beim Browserstart mit `EPERM`; separate Läufe bestanden. Ein Offline-Reconnect-Test war instabil und wurde durch eine echte Verbindungsunterbrechung ersetzt.
 - Review mit zwei parallelen Subagenten gegen `ef43f41`: Standards fand doppelte Zugriffskontrolle; Spec fand Snapshot-/Ereignisverluste beim Wechsel und zu große Client-Ausgangsschwelle. Die Nachprüfung fand denselben Snapshot-Fall beim Join/Reconnect. Alle Befunde wurden korrigiert und von den jeweiligen Reviewern nachgeprüft; keine weiteren konkreten Befunde gemeldet.
 - Manuelle Abnahme: Zwei Browser öffnen; während und nach einer Bewegung beitreten, Ziel im Lauf ändern und einen Tab pausieren/fortsetzen. Durch einen Ausgang wechseln, Chat und Teilnehmer in beiden Räumen beobachten und eine Verbindung tatsächlich unterbrechen. Ohne `--authoring` Editor und API prüfen; mit Schalter lokal PNG-Raum bearbeiten, speichern und nach Neustart betreten. Eine Kopie der YAML-Datei absichtlich beschädigen, Fehlermeldung prüfen und Datei wiederherstellen.
-- Grenzen: Browser- und Transporttests decken nicht jede mögliche Ereignisreihenfolge oder Produktionsinfrastruktur ab. Kein Test ersetzt die menschliche Prüfung von Bewegung, Darstellung und Editorbedienung. Keine menschliche Abnahme wurde erteilt.
+- Grenzen: Browser- und Transporttests decken nicht jede mögliche Ereignisreihenfolge oder Produktionsinfrastruktur ab. Kein Test ersetzt die menschliche Prüfung von Bewegung, Darstellung und Editorbedienung.
+- Menschliche Abnahme: Am 01.11.2026 bestätigte der Benutzer das vorgestellte Ergebnis mit „passt“. Einzelne manuelle Prüfschritte wurden dabei nicht gesondert dokumentiert.
