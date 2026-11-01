@@ -7,6 +7,29 @@ namespace AdventureChat.E2ETests;
 public class MultiplayerRoomTests
 {
     [Test]
+    public async Task FrozenBackgroundTab_CatchesUpWithServerAfterResume()
+    {
+        await using var first = await _browser.NewContextAsync();
+        await using var second = await _browser.NewContextAsync();
+        var page1 = await first.NewPageAsync();
+        await page1.GotoAsync($"{_server.BaseUrl}?name=First");
+        await page1.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__?.connectionStatus === 'connected'");
+        var page2 = await second.NewPageAsync();
+        await page2.GotoAsync($"{_server.BaseUrl}?name=Second");
+        await page2.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__?.connectionStatus === 'connected'");
+        await page1.EvaluateAsync("() => window.__ADVENTURE_GAME__.setTarget({x: 220, y: 300})");
+        Assert.That(await page1.EvaluateAsync<string>("() => window.__ADVENTURE_GAME__.character.state"), Is.EqualTo("walk"));
+        await page2.BringToFrontAsync();
+        var cdp = await first.NewCDPSessionAsync(page1);
+        await cdp.SendAsync("Page.setWebLifecycleState", new Dictionary<string, object> { ["state"] = "frozen" });
+        await Task.Delay(1100);
+        await cdp.SendAsync("Page.setWebLifecycleState", new Dictionary<string, object> { ["state"] = "active" });
+        await page1.BringToFrontAsync();
+        await page1.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.character.state === 'idle'");
+        Assert.That(await page1.EvaluateAsync<double>("() => window.__ADVENTURE_GAME__.character.position.x"), Is.EqualTo(220).Within(1));
+        await page2.WaitForFunctionAsync("() => [...window.__ADVENTURE_GAME__.remotePlayers.values()].some(p => p.name === 'First' && p.state === 'idle' && Math.abs(p.position.x - 220) < 1)");
+    }
+    [Test]
     public async Task JoinWhileInitialSnapshotIsInFlight_IsAppliedAfterSnapshot()
     {
         await using var first = await _browser.NewContextAsync();
