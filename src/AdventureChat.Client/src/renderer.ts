@@ -1,4 +1,4 @@
-import type { Character, RoomDefinition } from './types.js';
+import type { Character, RoomDefinition, RoomExit } from './types.js';
 
 export interface ClickMarker {
   x: number;
@@ -15,6 +15,7 @@ export class RoomRenderer {
   private backgroundLoaded = false;
   private spriteLoaded = false;
   private clickMarkers: ClickMarker[] = [];
+  private hoveredExit: RoomExit | null = null;
   public showDebugOverlay = false;
 
   public constructor(
@@ -39,6 +40,10 @@ export class RoomRenderer {
     this.characterSprite.onload = () => {
       this.spriteLoaded = true;
     };
+  }
+
+  public setHoveredExit(exit: RoomExit | null): void {
+    this.hoveredExit = exit;
   }
 
   public setRoom(newRoom: RoomDefinition): void {
@@ -77,6 +82,9 @@ export class RoomRenderer {
       ctx.fillRect(0, 0, room.width, room.height);
     }
 
+    // 1b. Draw subtle exit doorway highlights
+    this.drawExits();
+
     const allCharacters = [localCharacter, ...remoteCharacters];
 
     // 2. Debug Overlay (Polygons, Obstacles, Waypoint paths)
@@ -105,7 +113,12 @@ export class RoomRenderer {
       this.drawSpeechBubble(char, now);
     }
 
-    // 7. Connection Status Indicator (if not connected)
+    // 7. Hovered Exit Hotspot Action Bar (SCUMM style)
+    if (this.hoveredExit) {
+      this.drawHoveredExitAction(this.hoveredExit);
+    }
+
+    // 8. Connection Status Indicator (if not connected)
     if (connectionStatus !== 'connected') {
       this.drawConnectionStatus(connectionStatus);
     }
@@ -190,6 +203,26 @@ export class RoomRenderer {
       ctx.stroke();
     }
 
+    // D. Exits and Door Hitboxes
+    if (room.exits) {
+      for (const exit of room.exits) {
+        ctx.strokeStyle = 'rgba(236, 201, 75, 0.9)';
+        ctx.fillStyle = 'rgba(236, 201, 75, 0.2)';
+        ctx.lineWidth = 1.5;
+        if (exit.bounds) {
+          ctx.strokeRect(exit.bounds.x, exit.bounds.y, exit.bounds.width, exit.bounds.height);
+          ctx.fillRect(exit.bounds.x, exit.bounds.y, exit.bounds.width, exit.bounds.height);
+        }
+        ctx.beginPath();
+        ctx.arc(exit.position.x, exit.position.y, exit.radius || 40, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.fillStyle = '#ecc94b';
+        ctx.font = '10px monospace';
+        ctx.fillText(`Exit: ${exit.label || exit.id}`, exit.position.x - 25, exit.position.y - 10);
+      }
+    }
+
     // E. Debug Badge
     ctx.font = '10px monospace';
     ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
@@ -198,6 +231,58 @@ export class RoomRenderer {
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
     ctx.fillText('Debug: AN [D = Umschalten]', 14, 17);
+
+    ctx.restore();
+  }
+
+  private drawExits(): void {
+    const { ctx, room } = this;
+    if (!room.exits || room.exits.length === 0) return;
+
+    const now = performance.now();
+    for (const exit of room.exits) {
+      const isHovered = this.hoveredExit?.id === exit.id;
+      if (isHovered && exit.bounds) {
+        ctx.save();
+        const pulse = 0.5 + 0.5 * Math.sin(now * 0.008);
+        ctx.fillStyle = `rgba(255, 220, 100, ${0.12 + 0.1 * pulse})`;
+        ctx.fillRect(exit.bounds.x, exit.bounds.y, exit.bounds.width, exit.bounds.height);
+
+        ctx.strokeStyle = `rgba(255, 230, 110, ${0.45 + 0.45 * pulse})`;
+        ctx.lineWidth = 2;
+        ctx.strokeRect(exit.bounds.x, exit.bounds.y, exit.bounds.width, exit.bounds.height);
+        ctx.restore();
+      }
+    }
+  }
+
+  private drawHoveredExitAction(exit: RoomExit): void {
+    const { ctx } = this;
+    ctx.save();
+
+    const labelText = exit.label ? `🚪 Gehe zu: ${exit.label}` : '🚪 Ausgang (Raum wechseln)';
+    ctx.font = 'bold 12px "Courier New", monospace, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    const textWidth = ctx.measureText(labelText).width;
+    const badgeWidth = textWidth + 28;
+    const badgeHeight = 26;
+    const x = 320;
+    const y = 22;
+
+    // Translucent dark box with golden border
+    ctx.fillStyle = 'rgba(15, 20, 30, 0.88)';
+    ctx.strokeStyle = 'rgba(236, 201, 75, 0.85)';
+    ctx.lineWidth = 1.5;
+
+    ctx.beginPath();
+    ctx.rect(x - badgeWidth / 2, y - badgeHeight / 2, badgeWidth, badgeHeight);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#ffe066';
+    ctx.fillText(labelText, x, y);
 
     ctx.restore();
   }

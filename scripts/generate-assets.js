@@ -316,19 +316,60 @@ const loungePng = createPng(640, 360, (x, y) => {
     }
 
     // -------------------------------------------------------------
-    // ARCHED DOORWAY TO DOCKS / HARBOR ON RIGHT (x in 542..598, y in 80..235)
+    // ARCHED DOORWAY TO GARTEN ON RIGHT (x in 535..605, y in 55..235)
     // -------------------------------------------------------------
-    if (x >= 542 && x <= 598 && y >= 80) {
+    // 1. Hanging Wooden Sign above Doorway (x: 540..600, y: 55..75)
+    if (x >= 540 && x <= 600 && y >= 55 && y <= 75) {
+      if ((x === 548 || x === 592) && y <= 61) {
+        return [140, 110, 40, 255]; // Brass/iron chain link
+      }
+      if (y >= 61) {
+        const isBorder = (y === 61 || y === 75 || x === 540 || x === 600);
+        if (isBorder) return [200, 160, 60, 255]; // Gold frame
+
+        // Carved arrow pointing right
+        const isArrow = (y === 68 && x >= 582 && x <= 594) ||
+                        (Math.abs(x - 592) === Math.abs(y - 68) && x <= 593 && x >= 589);
+        if (isArrow) return [255, 235, 120, 255]; // Bright gold arrow
+
+        return [85, 45, 22, 255]; // Dark polished oak sign
+      }
+    }
+
+    // 2. Doorway Arch, Lantern & Outdoor Garden View (x: 540..600, y: 78..235)
+    if (x >= 540 && x <= 600 && y >= 78) {
       const doorArchY = 120;
       const doorCenterX = 570;
-      const isDoorArch = (y >= doorArchY) || (dist(x, y, doorCenterX, doorArchY) <= 28);
+      const isDoorArch = (y >= doorArchY && x >= 544 && x <= 596) || (dist(x, y, doorCenterX, doorArchY) <= 26);
       const isDoorFrame = (Math.abs(x - 542) <= 3 || Math.abs(x - 598) <= 3 || (y <= doorArchY && Math.abs(dist(x, y, doorCenterX, doorArchY) - 28) <= 3));
 
-      if (isDoorFrame) return [100, 60, 30, 255]; // Oak doorframe
+      // Brass lantern on left side of frame (x: 530..538, y: 105..125)
+      if (x >= 530 && x <= 538 && y >= 105 && y <= 125) {
+        const isLanternFrame = x === 530 || x === 538 || y === 105 || y === 125;
+        if (isLanternFrame) return [180, 140, 40, 255];
+        return [255, 225, 120, 255]; // Glowing lantern
+      }
+
+      if (isDoorFrame) return [120, 75, 38, 255]; // Sturdy Oak doorframe
       if (isDoorArch) {
-        // Deep warm lantern glow from outside tavern
-        const glow = Math.floor((y - 80) * 0.3);
-        return [30 + glow, 22 + Math.floor(glow * 0.8), 18, 255];
+        // Moonlit garden view through open doorway
+        if (y < 155) {
+          const skyGrad = (y - 85) / 70;
+          const sR = Math.floor(12 + skyGrad * 10);
+          const sG = Math.floor(22 + skyGrad * 18);
+          const sB = Math.floor(48 + skyGrad * 24);
+          if ((x * 31 + y * 67) % 73 === 0) return [255, 255, 220, 255]; // Stars
+          return [sR, sG, sB, 255];
+        }
+        if (y < 185) {
+          const treeH = 165 + Math.sin(x * 0.15) * 6;
+          if (y >= treeH) return [18, 42, 28, 255]; // Garden bushes
+          return [18, 30, 55, 255];
+        }
+        // Cobblestones
+        const isStone = ((x + y * 2) % 10 < 2);
+        if (isStone) return [38, 48, 44, 255];
+        return [65, 75, 70, 255];
       }
     }
 
@@ -1000,21 +1041,50 @@ const gardenPng = createPng(640, 360, (x, y) => {
       return tile === 0 ? [75, 40, 30, 255] : [55, 28, 20, 255];
     }
 
-    // Tavern Door to Lounge (x: 35..85, y: 110..240)
-    if (x >= 35 && x <= 85 && y >= 110) {
-      // Door frame arch (top y: 110..120)
-      if (y <= 118 || x === 35 || x === 36 || x === 84 || x === 85) {
-        return [30, 20, 15, 255]; // Dark stone arch
+    // Tavern Hanging Wooden Sign above Doorway (x: 25..95, y: 68..90)
+    if (x >= 25 && x <= 95 && y >= 68 && y <= 90) {
+      if ((x === 35 || x === 85) && y <= 74) {
+        return [140, 110, 40, 255]; // Brass brackets
       }
-      // Warm glowing open tavern doorway
-      const dDoorCenter = Math.abs(x - 60);
-      const glow = Math.max(0, 1 - dDoorCenter / 25);
-      return [
-        Math.floor(160 + 60 * glow),
-        Math.floor(100 + 40 * glow),
-        Math.floor(40 + 20 * glow),
-        255
-      ];
+      if (y >= 74) {
+        const isSignBorder = (y === 74 || y === 90 || x === 25 || x === 95);
+        if (isSignBorder) return [210, 170, 60, 255]; // Gold frame
+        // Carved arrow pointing left towards door (x: 32..44, y: 79..85)
+        const isLeftArrow = (y === 82 && x >= 32 && x <= 44) ||
+                            (Math.abs(x - 34) === Math.abs(y - 82) && x >= 33 && x <= 37);
+        if (isLeftArrow) return [255, 240, 130, 255]; // Gold arrow
+        return [85, 45, 22, 255]; // Warm wood sign
+      }
+    }
+
+    // Tavern Door to Lounge (x: 28..88, y: 92..240)
+    if (x >= 28 && x <= 88 && y >= 92) {
+      const doorArchY = 125;
+      const doorCenterX = 58;
+      const isArch = (y >= doorArchY && x >= 32 && x <= 84) || (dist(x, y, doorCenterX, doorArchY) <= 26);
+      const isFrame = (Math.abs(x - 30) <= 3 || Math.abs(x - 86) <= 3 || (y <= doorArchY && Math.abs(dist(x, y, doorCenterX, doorArchY) - 27) <= 3));
+
+      // Lantern on right side of tavern door (x: 88..98, y: 105..128)
+      if (x >= 88 && x <= 98 && y >= 105 && y <= 128) {
+        const isLFrame = x === 88 || x === 98 || y === 105 || y === 128;
+        if (isLFrame) return [180, 140, 40, 255];
+        return [255, 230, 110, 255]; // Glowing lantern
+      }
+
+      if (isFrame) return [50, 32, 22, 255]; // Dark timber arch
+
+      if (isArch) {
+        // Glowing warm tavern interior (spilling golden light)
+        const dCenter = Math.abs(x - 58);
+        const glow = Math.max(0, 1 - dCenter / 26);
+        const yGlow = (y - 92) / 140;
+        return [
+          Math.min(255, Math.floor(205 + 50 * glow + 10 * yGlow)),
+          Math.min(255, Math.floor(135 + 40 * glow + 10 * yGlow)),
+          Math.min(255, Math.floor(55 + 30 * glow)),
+          255
+        ];
+      }
     }
 
     // Tavern Timbered Wall

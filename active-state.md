@@ -1,5 +1,5 @@
 # Aktueller Stand
-Revision 9 · 30.10.2026.
+Revision 10 · 30.10.2026.
 
 ## Vorhanden
 - [x] Gespräch in Spezifikation, Architektur, Autorenformat und Tickets überführt.
@@ -14,6 +14,8 @@ Revision 9 · 30.10.2026.
 - [x] Wegfindungs-Optimierungen umgesetzt: 14px Ecksicherheitsabstand und dynamische Zwischenweg-Neuberechnung bei Klicks im Lauf.
 - [x] Ticket 04 (Raumchat mit Verlauf und Sprechblasen) vollständig umgesetzt, getestet und menschlich abgenommen (Status: `done`).
 - [x] UI-Layout-Fix: Chatleiste als eigenständiger Bereich unterhalb des Canvas angedockt (kein transparentes Overlay auf Gehbereich).
+- [x] SCUMM-Aktionszeile ("Walk to" / "Go to [Raumname]") direkt unterhalb des Spielfelds implementiert.
+- [x] Visuelle Erkennbarkeit von Raumübergängen geschärft (beleuchtete Holzschilder, Laternen, pulsierende Türrahmen bei Mouseover, vollflächige Tür-Hitboxen).
 - [x] Ticket 05 (Raumübergänge und Türen) vollständig umgesetzt und getestet (Status: `ready-for-human`).
 - [ ] Skills installiert oder im Zielprojekt geprüft.
 - [ ] Git-Repository und endgültiger Projektname festgelegt.
@@ -22,8 +24,8 @@ Revision 9 · 30.10.2026.
 ## Aktives Ticket
 - **Ticket:** `05-room-transitions.md` (Zwischen zwei Räumen wechseln und getrennt chatten)
 - **Status:** `ready-for-human` (wartet auf menschliche Abnahme durch den Benutzer)
-- **Letzter Stand:** Zweiter Raum ("Tavernen-Garten"), Ausgangs-Navigation mit automatischem Raumwechsel bei Ankunft, SignalR-Gruppenmigration, persönliche Chatverlaufserhaltung mit Raumwechsel-Systemmeldungen und vollständige Raum-Isolation für Chat und Spielerbewegungen implementiert.
-- **Ausgeführte Checks:** `npm run typecheck` (0 Fehler), `npm run build` (0 Fehler), `dotnet test` (60/60 Tests erfolgreich: 39 ServerTests + 21 E2ETests).
+- **Letzter Stand:** Zweiter Raum ("Tavernen-Garten"), Ausgangs-Navigation mit automatischem Raumwechsel bei Ankunft, SCUMM-Aktionszeile ("Go to [Raumname]"), beleuchtete Schilder und Laternen an Durchgängen, interaktive Tür-Hitboxen mit Mouseover-Highlighting, SignalR-Gruppenmigration und Chat-Isolation implementiert.
+- **Ausgeführte Checks:** `npm run typecheck` (0 Fehler), `npm run build` (0 Fehler), `dotnet test` (61/61 Tests erfolgreich: 39 ServerTests + 22 E2ETests).
 
 ## Nächste Aktion
 1. Menschliche Abnahme von Ticket 05 durch den Benutzer.
@@ -37,7 +39,7 @@ Privater Testbetrieb, ca. zehn Personen, Desktop-Mausbedienung; keine kollidiere
 - `npm run typecheck` in `src/AdventureChat.Client`: 0 Fehler.
 - `npm run build`: 0 Fehler (SignalR Client-Bundle nach wwwroot kopiert).
 - `dotnet build`: 0 Fehler, 0 Warnungen.
-- `dotnet test`: 60 Tests erfolgreich bestanden (39 ServerTests, 21 E2ETests).
+- `dotnet test`: 61 Tests erfolgreich bestanden (39 ServerTests, 22 E2ETests).
 
 ## Übergabeformat für spätere Änderungen
 Aktives Ticket, letzter nachgewiesener Stand, ausgeführte Checks und Ergebnisse, konkrete Blocker, nächster Schritt sowie Referenz auf Benutzerabnahme hier knapp festhalten. Erledigte Detailhistorie gehört ins jeweilige Ticket.

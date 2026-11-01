@@ -36,10 +36,19 @@ export interface RoomSpawn {
   readonly position: Point;
 }
 
+export interface Rect {
+  readonly x: number;
+  readonly y: number;
+  readonly width: number;
+  readonly height: number;
+}
+
 export interface RoomExit {
   readonly id: string;
   readonly position: Point;
-  readonly radius: number;
+  readonly radius?: number;
+  readonly bounds?: Rect;
+  readonly label?: string;
   readonly targetRoomId: string;
   readonly targetSpawnId: string;
 }

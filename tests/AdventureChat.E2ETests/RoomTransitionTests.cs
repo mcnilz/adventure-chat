@@ -88,6 +88,59 @@ public class RoomTransitionTests
     }
 
     [Test]
+    public async Task ActionBar_HoverOverDoorway_DisplaysLucasfilmActionSentence()
+    {
+        var context = await _browser.NewContextAsync();
+        var page = await context.NewPageAsync();
+
+        await page.GotoAsync($"{_server.BaseUrl}?name=Guybrush");
+        await page.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.connectionStatus === 'connected'");
+
+        var canvas = await page.QuerySelectorAsync("#game-canvas");
+        Assert.That(canvas, Is.Not.Null);
+
+        var box = await canvas!.BoundingBoxAsync();
+        Assert.That(box, Is.Not.Null);
+
+        // 1. Hover over empty floor (x=200, y=280)
+        var floorX = (float)(box!.X + (box.Width * (200.0 / 640.0)));
+        var floorY = (float)(box.Y + (box.Height * (280.0 / 360.0)));
+        await page.Mouse.MoveAsync(floorX, floorY);
+
+        await page.WaitForFunctionAsync("() => document.getElementById('action-text').innerText === 'Walk to'");
+        var floorAction = await page.InnerTextAsync("#action-text");
+        Assert.That(floorAction, Is.EqualTo("Walk to"));
+
+        // 2. Hover over the doorway to garden (x=570, y=160 - door archway)
+        var doorX = (float)(box.X + (box.Width * (570.0 / 640.0)));
+        var doorY = (float)(box.Y + (box.Height * (160.0 / 360.0)));
+        await page.Mouse.MoveAsync(doorX, doorY);
+
+        await page.WaitForFunctionAsync("() => document.getElementById('action-text').innerText.includes('Go to Tavernen-Garten')");
+        var doorAction = await page.InnerTextAsync("#action-text");
+        Assert.That(doorAction, Is.EqualTo("Go to Tavernen-Garten"));
+
+        // 3. Clicking on the door arch should trigger the transition
+        await page.Mouse.ClickAsync(doorX, doorY);
+
+        await page.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.room.id === 'garden'", new PageWaitForFunctionOptions
+        {
+            Timeout = 10000
+        });
+
+        // 4. In garden, hover over tavern door on the left (x=60, y=160)
+        var gDoorX = (float)(box.X + (box.Width * (60.0 / 640.0)));
+        var gDoorY = (float)(box.Y + (box.Height * (160.0 / 360.0)));
+        await page.Mouse.MoveAsync(gDoorX, gDoorY);
+
+        await page.WaitForFunctionAsync("() => document.getElementById('action-text').innerText.includes('Go to Lounge')");
+        var gardenDoorAction = await page.InnerTextAsync("#action-text");
+        Assert.That(gardenDoorAction, Is.EqualTo("Go to Lounge"));
+
+        await context.DisposeAsync();
+    }
+
+    [Test]
     public async Task Multiplayer_RoomTransition_NotifiesParticipantsAndIsolatesChat()
     {
         var context1 = await _browser.NewContextAsync();

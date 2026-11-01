@@ -39,7 +39,15 @@ public sealed class RoomService : IRoomService
             new RoomSpawn("from-garden", new Point2D(540, 300))
         ],
         Exits: [
-            new RoomExit("to-garden", new Point2D(580, 300), 30.0, "garden", "from-lounge")
+            new RoomExit(
+                "to-garden",
+                new Point2D(580, 300),
+                45.0,
+                "garden",
+                "from-lounge",
+                new Rect2D(535, 75, 80, 260),
+                "Tavernen-Garten"
+            )
         ]
     );
 
@@ -71,7 +79,15 @@ public sealed class RoomService : IRoomService
             new RoomSpawn("from-lounge", new Point2D(80, 300))
         ],
         Exits: [
-            new RoomExit("to-lounge", new Point2D(60, 300), 30.0, "lounge", "from-garden")
+            new RoomExit(
+                "to-lounge",
+                new Point2D(60, 300),
+                45.0,
+                "lounge",
+                "from-garden",
+                new Rect2D(25, 95, 75, 240),
+                "Lounge"
+            )
         ]
     );
 

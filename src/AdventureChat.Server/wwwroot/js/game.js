@@ -15,7 +15,15 @@ export const DEFAULT_ROOM = {
         { id: 'from-garden', position: { x: 540, y: 300 } },
     ],
     exits: [
-        { id: 'to-garden', position: { x: 580, y: 300 }, radius: 30, targetRoomId: 'garden', targetSpawnId: 'from-lounge' },
+        {
+            id: 'to-garden',
+            position: { x: 580, y: 300 },
+            radius: 45,
+            bounds: { x: 535, y: 75, width: 80, height: 260 },
+            label: 'Tavernen-Garten',
+            targetRoomId: 'garden',
+            targetSpawnId: 'from-lounge',
+        },
     ],
     geometry: {
         outerBoundary: [
@@ -49,6 +57,7 @@ export class AdventureGame {
     onChatMessage;
     onConnectionStatusChanged;
     onRoomChanged;
+    onActionChanged;
     lastTimestamp = 0;
     isRunning = false;
     animationFrameId = null;
@@ -302,18 +311,51 @@ export class AdventureGame {
         if (!this.room.exits || this.room.exits.length === 0)
             return null;
         for (const exit of this.room.exits) {
+            if (exit.bounds) {
+                if (point.x >= exit.bounds.x &&
+                    point.x <= exit.bounds.x + exit.bounds.width &&
+                    point.y >= exit.bounds.y &&
+                    point.y <= exit.bounds.y + exit.bounds.height) {
+                    return exit;
+                }
+            }
             const dist = Math.hypot(point.x - exit.position.x, point.y - exit.position.y);
-            if (dist <= (exit.radius || 30)) {
+            if (dist <= (exit.radius || 40)) {
                 return exit;
             }
         }
         return null;
+    }
+    handleMouseMove(clientX, clientY) {
+        const logical = this.screenToLogical(clientX, clientY);
+        const exit = this.findClickedExit(logical);
+        this.renderer.setHoveredExit(exit);
+        if (exit) {
+            this.canvas.style.cursor = 'pointer';
+            const label = exit.label || exit.targetRoomId;
+            this.onActionChanged?.(`Go to ${label}`);
+        }
+        else {
+            this.canvas.style.cursor = 'default';
+            this.onActionChanged?.('Walk to');
+        }
+    }
+    handleMouseLeave() {
+        this.renderer.setHoveredExit(null);
+        this.canvas.style.cursor = 'default';
+        this.onActionChanged?.('');
     }
     async handleCanvasClick(clientX, clientY) {
         const logical = this.screenToLogical(clientX, clientY);
         const clickedExit = this.findClickedExit(logical);
         if (clickedExit) {
             this.pendingExit = clickedExit;
+            const currentDist = Math.hypot(this.character.position.x - clickedExit.position.x, this.character.position.y - clickedExit.position.y);
+            if (currentDist <= 45) {
+                this.pendingExit = null;
+                void this.changeRoom(clickedExit.targetRoomId, clickedExit.targetSpawnId);
+                return { accepted: true, point: logical };
+            }
             const result = await this.setTarget(clickedExit.position);
             if (result.waypoints) {
                 return { accepted: result.accepted, point: logical, waypoints: result.waypoints };
@@ -487,6 +529,12 @@ export class AdventureGame {
         this.animationFrameId = requestAnimationFrame(this.loop);
     }
     setupEvents() {
+        this.canvas.addEventListener('mousemove', (e) => {
+            this.handleMouseMove(e.clientX, e.clientY);
+        });
+        this.canvas.addEventListener('mouseleave', () => {
+            this.handleMouseLeave();
+        });
         this.canvas.addEventListener('click', (e) => {
             this.handleCanvasClick(e.clientX, e.clientY);
         });

@@ -9,6 +9,7 @@ function initialize() {
     const chatForm = document.getElementById('chat-form');
     const chatInput = document.getElementById('chat-input');
     const chatSend = document.getElementById('chat-send');
+    const actionText = document.getElementById('action-text');
     const game = new AdventureGame(canvas);
     window.__ADVENTURE_GAME__ = game;
     // Prevent chat interactions from triggering canvas movement or keyboard shortcuts
@@ -79,6 +80,11 @@ function initialize() {
     };
     game.onRoomChanged = (room) => {
         appendSystemMessage(`--- Raum gewechselt: ${room.name} ---`);
+    };
+    game.onActionChanged = (text) => {
+        if (actionText) {
+            actionText.textContent = text;
+        }
     };
     updateInputState(game.connectionStatus);
     if (chatForm && chatInput) {

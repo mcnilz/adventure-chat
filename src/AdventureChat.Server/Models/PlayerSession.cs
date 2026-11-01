@@ -42,12 +42,16 @@ public record RoomSpawnDto(
     PointDto Position
 );
 
+public record RectDto(double X, double Y, double Width, double Height);
+
 public record RoomExitDto(
     string Id,
     PointDto Position,
     double Radius,
     string TargetRoomId,
-    string TargetSpawnId
+    string TargetSpawnId,
+    RectDto? Bounds = null,
+    string? Label = null
 );
 
 public record RoomGeometryDto(
@@ -157,7 +161,15 @@ public static class RoomDtoExtensions
                 room.Geometry.Obstacles.Select(o => (IReadOnlyList<PointDto>)o.Vertices.Select(v => new PointDto(v.X, v.Y)).ToList()).ToList()
             ),
             room.Spawns.Select(s => new RoomSpawnDto(s.Id, new PointDto(s.Position.X, s.Position.Y))).ToList(),
-            room.Exits.Select(e => new RoomExitDto(e.Id, new PointDto(e.Position.X, e.Position.Y), e.Radius, e.TargetRoomId, e.TargetSpawnId)).ToList()
+            room.Exits.Select(e => new RoomExitDto(
+                e.Id,
+                new PointDto(e.Position.X, e.Position.Y),
+                e.Radius,
+                e.TargetRoomId,
+                e.TargetSpawnId,
+                e.Bounds != null ? new RectDto(e.Bounds.X, e.Bounds.Y, e.Bounds.Width, e.Bounds.Height) : null,
+                e.Label
+            )).ToList()
         );
     }
 }

@@ -5,12 +5,16 @@ public sealed record RoomSpawn(
     Point2D Position
 );
 
+public sealed record Rect2D(double X, double Y, double Width, double Height);
+
 public sealed record RoomExit(
     string Id,
     Point2D Position,
     double Radius,
     string TargetRoomId,
-    string TargetSpawnId
+    string TargetSpawnId,
+    Rect2D? Bounds = null,
+    string? Label = null
 );
 
 public sealed record RoomDefinition(

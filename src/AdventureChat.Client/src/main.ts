@@ -18,6 +18,7 @@ function initialize(): void {
   const chatForm = document.getElementById('chat-form') as HTMLFormElement | null;
   const chatInput = document.getElementById('chat-input') as HTMLInputElement | null;
   const chatSend = document.getElementById('chat-send') as HTMLButtonElement | null;
+  const actionText = document.getElementById('action-text');
 
   const game = new AdventureGame(canvas);
   window.__ADVENTURE_GAME__ = game;
@@ -101,6 +102,12 @@ function initialize(): void {
 
   game.onRoomChanged = (room) => {
     appendSystemMessage(`--- Raum gewechselt: ${room.name} ---`);
+  };
+
+  game.onActionChanged = (text) => {
+    if (actionText) {
+      actionText.textContent = text;
+    }
   };
 
   updateInputState(game.connectionStatus);
