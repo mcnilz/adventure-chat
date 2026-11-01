@@ -66,8 +66,10 @@ export class RoomRenderer {
             ctx.fillStyle = '#2d3748';
             ctx.fillRect(0, 0, room.width, room.height);
         }
-        // 1b. Exit doorway ambient lighting
-        this.overlayRenderer.drawExits(ctx, room);
+        // 1b. Exit doorway debug rendering (only in debug mode)
+        if (this.showDebugOverlay) {
+            this.overlayRenderer.drawExits(ctx, room);
+        }
         const allCharacters = [localCharacter, ...remoteCharacters];
         // 2. Debug Overlay
         if (this.showDebugOverlay) {
@@ -90,8 +92,8 @@ export class RoomRenderer {
         for (const char of allCharacters) {
             this.speechBubbleRenderer.drawSpeechBubble(ctx, char, room.width, now);
         }
-        // 7. Hovered Exit Highlight
-        if (this.hoveredExit) {
+        // 7. Hovered Exit Highlight (only in debug mode to keep screen clean)
+        if (this.hoveredExit && this.showDebugOverlay) {
             this.overlayRenderer.drawHoveredExitAction(ctx, this.hoveredExit);
         }
         // 8. Connection Status Indicator
