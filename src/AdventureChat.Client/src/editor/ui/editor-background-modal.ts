@@ -21,7 +21,8 @@ export class EditorBackgroundModal {
   public constructor(
     private readonly elements: BackgroundModalElements,
     private readonly onSelectBackground: (path: string) => void,
-    private readonly onStatusMessage: (message: string, type: 'info' | 'success' | 'error') => void
+    private readonly onStatusMessage: (message: string, type: 'info' | 'success' | 'error') => void,
+    private readonly getCurrentBackground?: () => string
   ) {
     this.bindEvents();
   }
@@ -133,27 +134,52 @@ export class EditorBackgroundModal {
       return;
     }
 
+    const currentBg = this.getCurrentBackground?.() ?? '';
+
     for (const item of items) {
       const card = document.createElement('div');
       card.className = 'bg-gallery-card';
+      if (currentBg && (currentBg === item.path || currentBg.endsWith(`/${item.name}`))) {
+        card.classList.add('active');
+      }
       card.setAttribute('data-path', item.path);
       card.title = `Klicken, um '${item.name}' als Hintergrund zu wählen`;
 
       const thumbWrapper = document.createElement('div');
-      thumbWrapper.className = 'bg-gallery-thumb-wrapper';
+      thumbWrapper.className = 'bg-gallery-thumb-wrapper bg-thumbnail-wrap';
 
       const img = document.createElement('img');
+      img.className = 'bg-thumbnail-img';
       img.src = item.path;
       img.alt = item.name;
       img.loading = 'lazy';
       thumbWrapper.appendChild(img);
 
+      if (card.classList.contains('active')) {
+        const activeTag = document.createElement('div');
+        activeTag.className = 'bg-active-tag';
+        activeTag.textContent = 'Aktiv';
+        thumbWrapper.appendChild(activeTag);
+      }
+
+      const infoBox = document.createElement('div');
+      infoBox.className = 'bg-card-info';
+
       const nameLabel = document.createElement('div');
-      nameLabel.className = 'bg-gallery-name';
+      nameLabel.className = 'bg-gallery-name bg-card-title';
       nameLabel.textContent = item.name;
+      infoBox.appendChild(nameLabel);
+
+      if (item.sizeBytes) {
+        const metaLabel = document.createElement('div');
+        metaLabel.className = 'bg-card-meta';
+        const kb = Math.max(1, Math.round(item.sizeBytes / 1024));
+        metaLabel.textContent = `${kb} KB`;
+        infoBox.appendChild(metaLabel);
+      }
 
       card.appendChild(thumbWrapper);
-      card.appendChild(nameLabel);
+      card.appendChild(infoBox);
 
       card.addEventListener('click', () => {
         this.onSelectBackground(item.path);

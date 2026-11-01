@@ -59,6 +59,21 @@ public class RoomEditorTests
         }
     }
 
+    private void RegisterForCleanup(string roomId)
+    {
+        var current = AppContext.BaseDirectory;
+        while (!string.IsNullOrEmpty(current))
+        {
+            var contentDir = Path.Combine(current, "content", "rooms", $"{roomId}.yaml");
+            if (File.Exists(contentDir))
+            {
+                _createdRoomFiles.Add(contentDir);
+                break;
+            }
+            current = Directory.GetParent(current)?.FullName;
+        }
+    }
+
     [Test]
     public async Task EditorPage_LoadsAndDisplaysExistingRooms()
     {
@@ -129,17 +144,7 @@ public class RoomEditorTests
         Assert.That(roomContent, Does.Contain("Authored by Playwright E2E test."));
 
         // Register for cleanup
-        var current = AppContext.BaseDirectory;
-        while (!string.IsNullOrEmpty(current))
-        {
-            var contentDir = Path.Combine(current, "content", "rooms", $"{customId}.yaml");
-            if (File.Exists(contentDir))
-            {
-                _createdRoomFiles.Add(contentDir);
-                break;
-            }
-            current = Directory.GetParent(current)?.FullName;
-        }
+        RegisterForCleanup(customId);
 
         await context.DisposeAsync();
     }
@@ -320,6 +325,17 @@ public class RoomEditorTests
         var galleryCards = await page.Locator(".bg-gallery-card").CountAsync();
         Assert.That(galleryCards, Is.GreaterThanOrEqualTo(5)); // lounge, garden, library, courtyard, cafe
 
+        // Verify thumbnail scaling properties
+        var firstImgFit = await page.EvaluateAsync<string>(
+            "() => window.getComputedStyle(document.querySelector('.bg-gallery-card .bg-thumbnail-img')).objectFit");
+        Assert.That(firstImgFit, Is.EqualTo("contain"));
+
+        var imgWidth = await page.EvaluateAsync<double>(
+            "() => document.querySelector('.bg-gallery-card .bg-thumbnail-img').getBoundingClientRect().width");
+        var cardWidth = await page.EvaluateAsync<double>(
+            "() => document.querySelector('.bg-gallery-card').getBoundingClientRect().width");
+        Assert.That(imgWidth, Is.LessThanOrEqualTo(cardWidth + 1), "Thumbnail image should be scaled down to fit card width.");
+
         // Click on library background card
         var libraryCard = page.Locator(".bg-gallery-card[data-path='assets/images/library.png']");
         await libraryCard.ClickAsync();
@@ -452,6 +468,65 @@ public class RoomEditorTests
         await page.WaitForSelectorAsync("#inspector-exit", new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible });
         var inspectorRoomVal = await page.InputValueAsync("#inspector-exit-room");
         Assert.That(inspectorRoomVal, Is.Not.Empty);
+
+        await context.DisposeAsync();
+    }
+
+    [Test]
+    public async Task Editor_NewlyCreatedRoom_AppearsInExitDialogTargetRoomListWhenSwitchingRooms()
+    {
+        var context = await _browser.NewContextAsync();
+        var page = await context.NewPageAsync();
+
+        await page.GotoAsync($"{_server.BaseUrl}/editor.html");
+        await page.WaitForSelectorAsync("#editor-canvas");
+        await page.WaitForFunctionAsync("() => document.querySelectorAll('#room-select option').length >= 2");
+
+        // 1. Create a new room
+        await page.ClickAsync("#btn-new-room");
+
+        var newRoomId = $"e2e-target-{Guid.NewGuid():N}";
+        await page.FillAsync("#input-id", newRoomId);
+        await page.FillAsync("#input-name", "Zielraum E2E");
+        await page.FillAsync("#input-bg", "assets/images/lounge.png");
+
+        // Add a spawn point inside walkable area
+        await page.ClickAsync("#tool-spawn");
+        var canvasBounding = await page.Locator("#editor-canvas").BoundingBoxAsync();
+        Assert.That(canvasBounding, Is.Not.Null);
+        await page.Mouse.ClickAsync(canvasBounding!.X + 300, canvasBounding.Y + 280);
+
+        // Save room
+        await page.ClickAsync("#btn-save");
+        await page.WaitForFunctionAsync("() => document.getElementById('unsaved-badge')?.style.display === 'none'");
+
+        RegisterForCleanup(newRoomId);
+
+        // 2. Switch back to lounge
+        await page.SelectOptionAsync("#room-select", "lounge");
+        await page.WaitForFunctionAsync("() => document.getElementById('input-id')?.value === 'lounge'");
+
+        // 3. Try to add an exit in lounge
+        await page.ClickAsync("#tool-exit");
+        await page.Mouse.ClickAsync(canvasBounding.X + 220, canvasBounding.Y + 280);
+
+        // Verify Exit dialog opens
+        await page.WaitForSelectorAsync("#modal-exit-dialog[open]");
+
+        // Verify the newly created room is in the target room select options
+        var roomOptions = await page.Locator("#modal-exit-room option").AllInnerTextsAsync();
+        Assert.That(roomOptions.Any(opt => opt.Contains(newRoomId, StringComparison.OrdinalIgnoreCase)), Is.True,
+            $"Expected newly saved room '{newRoomId}' to be available in exit target room options, but found: {string.Join(", ", roomOptions)}");
+
+        // Select the new room and verify its spawn point is populated
+        await page.SelectOptionAsync("#modal-exit-room", newRoomId);
+        await page.WaitForTimeoutAsync(200);
+
+        var spawnOptions = await page.Locator("#modal-exit-target-spawn option").AllInnerTextsAsync();
+        Assert.That(spawnOptions.Count, Is.GreaterThanOrEqualTo(1), "Target spawn dropdown should contain spawns of the selected new room.");
+
+        // Close modal
+        await page.ClickAsync("#btn-cancel-exit-modal");
 
         await context.DisposeAsync();
     }

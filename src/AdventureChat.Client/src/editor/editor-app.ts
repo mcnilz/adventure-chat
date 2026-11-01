@@ -129,7 +129,8 @@ export class EditorApp {
         this.editorRenderer.setBackground(bgPath);
         this.render();
       },
-      (msg, type) => this.setStatus(msg, type)
+      (msg, type) => this.setStatus(msg, type),
+      () => this.state.getRoom().background
     );
 
     this.toolbar = new EditorToolbar(this.elements, {
@@ -290,6 +291,8 @@ export class EditorApp {
       this.form.setUnsaved(false);
       this.form.clearValidationErrors();
       await this.loadRoomList(room.id);
+      this.exitDialog.updateCachedRoom(room);
+      await this.exitDialog.refreshRooms();
       this.setStatus(`Raum '${room.name}' (${room.id}) erfolgreich atomar gespeichert!`, 'success');
       return true;
     } catch (err) {

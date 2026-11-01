@@ -26,18 +26,35 @@ export class EditorExitDialog {
     this.bindEvents();
   }
 
-  public async initRooms(): Promise<void> {
+  public async refreshRooms(): Promise<void> {
     try {
       this.roomSummaries = await EditorApi.fetchRooms();
-      for (const r of this.roomSummaries) {
-        if (!this.roomCache.has(r.id)) {
-          const fullRoom = await EditorApi.fetchRoom(r.id).catch(() => null);
-          if (fullRoom) this.roomCache.set(r.id, fullRoom);
-        }
-      }
     } catch {
-      // Ignore initial load failure; will retry on open
+      // Ignore network failure, keep previous summaries
     }
+  }
+
+  public updateCachedRoom(room: RoomYamlDto): void {
+    this.roomCache.set(room.id, JSON.parse(JSON.stringify(room)) as RoomYamlDto);
+    const existingSummary = this.roomSummaries.find(r => r.id === room.id);
+    if (existingSummary) {
+      existingSummary.name = room.name;
+      existingSummary.background = room.background;
+      existingSummary.width = room.size.width;
+      existingSummary.height = room.size.height;
+    } else {
+      this.roomSummaries.push({
+        id: room.id,
+        name: room.name,
+        background: room.background,
+        width: room.size.width,
+        height: room.size.height
+      });
+    }
+  }
+
+  public async initRooms(): Promise<void> {
+    await this.refreshRooms();
   }
 
   public async populateRoomsSelect(
@@ -46,7 +63,7 @@ export class EditorExitDialog {
     excludeRoomId?: string
   ): Promise<void> {
     if (this.roomSummaries.length === 0) {
-      await this.initRooms();
+      await this.refreshRooms();
     }
 
     selectEl.innerHTML = '';
@@ -80,7 +97,9 @@ export class EditorExitDialog {
       if (room) this.roomCache.set(targetRoomId, room);
     }
 
-    const spawns = room?.spawns ?? [{ id: 'entry', position: { x: 320, y: 240 } }];
+    const spawns = (room?.spawns && room.spawns.length > 0)
+      ? room.spawns
+      : [{ id: 'entry', position: { x: 320, y: 240 } }];
 
     for (const sp of spawns) {
       const opt = document.createElement('option');
@@ -103,6 +122,9 @@ export class EditorExitDialog {
   ): Promise<void> {
     this.pendingPos = pos;
     this.onConfirmCallback = onConfirm;
+
+    // Always fetch latest list of rooms so newly saved rooms are instantly available
+    await this.refreshRooms();
 
     const { elements: el } = this;
     const defaultTarget = currentRoomId === 'lounge' ? 'garden' : 'lounge';
