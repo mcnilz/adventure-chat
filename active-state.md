@@ -1,5 +1,5 @@
 # Aktueller Stand
-Revision 10 · 30.10.2026.
+Revision 11 · 01.11.2026.
 
 ## Vorhanden
 - [x] Gespräch in Spezifikation, Architektur, Autorenformat und Tickets überführt.
@@ -17,6 +17,8 @@ Revision 10 · 30.10.2026.
 - [x] SCUMM-Aktionszeile ("Walk to" / "Go to [Raumname]") direkt unterhalb des Spielfelds implementiert.
 - [x] Visuelle Erkennbarkeit von Raumübergängen geschärft (beleuchtete Holzschilder, Laternen, pulsierende Türrahmen bei Mouseover, vollflächige Tür-Hitboxen).
 - [x] Ticket 05 (Raumübergänge und Türen) vollständig umgesetzt und getestet (Status: `ready-for-human`).
+- [x] Client-Codebase modularisiert (Single-Responsibility-Module für Netzwerk, Zustand, Simulation, Input, Renderer-Ebenen und UI).
+- [x] Clean Code & AI-Agent Guidelines in `docs/agents/coding-standards.md`, `AGENTS.md` und `ARCHITECTURE.md` hinterlegt.
 - [ ] Skills installiert oder im Zielprojekt geprüft.
 - [ ] Git-Repository und endgültiger Projektname festgelegt.
 - [ ] MVP abgenommen.
@@ -24,7 +26,7 @@ Revision 10 · 30.10.2026.
 ## Aktives Ticket
 - **Ticket:** `05-room-transitions.md` (Zwischen zwei Räumen wechseln und getrennt chatten)
 - **Status:** `ready-for-human` (wartet auf menschliche Abnahme durch den Benutzer)
-- **Letzter Stand:** Zweiter Raum ("Tavernen-Garten"), Ausgangs-Navigation mit automatischem Raumwechsel bei Ankunft, SCUMM-Aktionszeile ("Go to [Raumname]"), beleuchtete Schilder und Laternen an Durchgängen, interaktive Tür-Hitboxen mit Mouseover-Highlighting, SignalR-Gruppenmigration und Chat-Isolation implementiert.
+- **Letzter Stand:** Modularisierung des TypeScript-Clients abgeschlossen, Clean-Code- und Agenten-Richtlinien hinterlegt. Zweiter Raum ("Tavernen-Garten"), Ausgangs-Navigation mit automatischem Raumwechsel bei Ankunft, SCUMM-Aktionszeile ("Go to [Raumname]"), beleuchtete Schilder und Laternen an Durchgängen, interaktive Tür-Hitboxen mit Mouseover-Highlighting, SignalR-Gruppenmigration und Chat-Isolation implementiert.
 - **Ausgeführte Checks:** `npm run typecheck` (0 Fehler), `npm run build` (0 Fehler), `dotnet test` (61/61 Tests erfolgreich: 39 ServerTests + 22 E2ETests).
 
 ## Nächste Aktion

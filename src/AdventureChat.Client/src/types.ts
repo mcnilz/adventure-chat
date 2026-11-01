@@ -9,6 +9,7 @@ export interface RoomGeometry {
 }
 
 export type FacingDirection = 'left' | 'right' | 'up' | 'down';
+export type Direction = FacingDirection;
 export type CharacterState = 'idle' | 'walk';
 
 export interface SpeechBubble {

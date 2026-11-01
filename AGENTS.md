@@ -32,6 +32,8 @@ Keine parallele Umsetzung voraussetzen; implement-spec erst bei explizitem Wunsc
 Lokale Markdown-Tickets; siehe [Trackerregeln](docs/agents/issue-tracker.md).
 ### Domain docs
 Ein Glossar und gezielte ADRs; siehe [Fachkontext](docs/agents/domain.md).
+### Coding Standards & Clean Code
+Regeln für modulare Struktur, Single Responsibility und AI-Agenten; siehe [Coding Standards](docs/agents/coding-standards.md).
 ### Workflow
 [SKILLS.md](SKILLS.md) beschreibt geprüfte Quellen, optionale Skills und Startprompts. Projektvorgaben und konkrete Benutzeranweisungen haben Vorrang vor Skill-Defaults.
 

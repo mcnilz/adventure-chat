@@ -48,3 +48,19 @@ TypeScript strict; erste Option tsc plus Browser-ES-Module, ein zusätzlicher Bu
 SignalR-Client ist vorgeschlagen; genauen Versionsbaum vor Aufnahme prüfen. YAML-Verarbeitung auf .NET-Seite, keinen Browser-YAML-Parser voraussetzen. YAML- und Schema-Pakete ebenso prüfen.
 Keine eigene YAML-Implementierung aus Sicherheitsgründen bauen. Tests benötigen ebenfalls überprüfte Werkzeuge. Lockfiles umfassen Build- und Testabhängigkeiten.
 
+## Client-Modulstruktur (TypeScript)
+Der Browser-Client ist nach dem Single-Responsibility-Prinzip in saubere, entkoppelte Module gegliedert (siehe auch `docs/agents/coding-standards.md`):
+- `types.ts` & `constants.ts`: Strikte Domänentypen, DTO-Verträge und Konfigurationskonstanten.
+- `math.ts`: Reine Geometrie- und Vektorfunktionen (Polygon-Einschlusstests, Distanzen).
+- `simulation/movement.ts`: Seiteneffektfreie Bewegungsberechnung, Wegpunktfortschritt und Schritt-Animationen.
+- `state/room-state.ts`: Entitätenverwaltung (`RoomState`, lokale und entfernte Spieler, Chatverlauf).
+- `network/room-client.ts`: SignalR-Verbindungslebenszyklus, Server-Invokes und HTTP-Fallback.
+- `input/input-handler.ts`: Koordinatentransformation (`screenToLogical`), Tür-Hit-Testing und Mausevents.
+- `rendering/`:
+  - `renderer.ts`: Master `RoomRenderer` als Kompositions-Schicht.
+  - `character-renderer.ts`: Richtungsabhängiges Figuren- und Namensschild-Rendering.
+  - `speech-bubble-renderer.ts`: Mehrzeilige Sprechblasen und Textumbruch.
+  - `overlay-renderer.ts`: Debug-Geometrien, Klick-Ripples, Tür-Highlights und Verbindungsstatus.
+- `ui/chat-ui.ts`: XSS-sicheres Chat-Panel, Aktionszeile und DOM-Ereignisentkopplung.
+- `game.ts`: `AdventureGame`-Fassade zur Orchestrierung aller Teilsysteme unter Wahrung stabiler E2E-Hooks.
+
