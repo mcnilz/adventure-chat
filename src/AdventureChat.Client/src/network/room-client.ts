@@ -9,6 +9,11 @@ import type {
   UserJoinedDto,
   UserLeftDto,
 } from '../types.js';
+import type { HubConnection } from '@microsoft/signalr';
+
+declare global {
+  interface Window { signalR?: typeof import('@microsoft/signalr'); }
+}
 
 export interface RoomClientEvents {
   onUserJoined: (dto: UserJoinedDto) => void;
@@ -21,14 +26,12 @@ export interface RoomClientEvents {
 
 export class RoomNetworkClient {
   public connectionStatus: 'connected' | 'connecting' | 'disconnected' = 'disconnected';
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private hubConnection: any = null;
+  private hubConnection: HubConnection | null = null;
 
   public constructor(private readonly events: RoomClientEvents) {}
 
   public async connect(): Promise<boolean> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const signalR = typeof window !== 'undefined' ? (window as any).signalR : null;
+    const signalR = typeof window !== 'undefined' ? window.signalR : null;
     if (!signalR) {
       console.warn('SignalR library not found on window. Running in standalone mode.');
       return false;
@@ -116,15 +119,14 @@ export class RoomNetworkClient {
     }
   }
 
-  public async changeRoom(targetRoomId: string, targetSpawnId?: string | null): Promise<ChangeRoomResultDto> {
+  public async changeRoom(exitId: string): Promise<ChangeRoomResultDto> {
     if (!this.hubConnection || this.connectionStatus !== 'connected') {
       return { success: false, error: 'Not connected', snapshot: null };
     }
 
     try {
       const result: ChangeRoomResultDto = await this.hubConnection.invoke('ChangeRoom', {
-        targetRoomId,
-        targetSpawnId: targetSpawnId || null,
+        exitId,
       });
       return result;
     } catch (e) {

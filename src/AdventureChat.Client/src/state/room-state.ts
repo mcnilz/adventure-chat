@@ -19,6 +19,7 @@ export class RoomState {
   public readonly remotePlayers: Map<string, Character> = new Map();
   public readonly chatMessages: ChatMessageDto[] = [];
   public pendingExit: RoomExit | null = null;
+  private readonly movementRevisions = new Map<string, number>();
 
   public onRoomChanged?: (room: RoomDefinition) => void;
   public onChatMessage?: (message: ChatMessageDto) => void;
@@ -62,7 +63,9 @@ export class RoomState {
     }
 
     this.remotePlayers.clear();
+    this.movementRevisions.clear();
     for (const player of snapshot.players) {
+      this.movementRevisions.set(player.sessionId, player.movementRevision);
       if (player.sessionId === this.sessionId) {
         this.character.name = player.displayName;
         this.playerName = player.displayName;
@@ -71,6 +74,7 @@ export class RoomState {
         this.character.state = player.state;
         this.character.target = null;
         this.character.waypoints = [];
+        if (player.waypoints.length > 1) assignPathToCharacter(this.character, player.waypoints as Point[]);
       } else {
         this.addOrUpdateRemotePlayer(player);
       }
@@ -82,6 +86,7 @@ export class RoomState {
 
   public addOrUpdateRemotePlayer(player: PlayerDto): void {
     if (player.sessionId === this.sessionId) return;
+    this.movementRevisions.set(player.sessionId, player.movementRevision);
 
     const char: Character = {
       id: player.sessionId,
@@ -108,18 +113,23 @@ export class RoomState {
   }
 
   public handlePlayerMoved(dto: PlayerMovedDto): void {
+    if (dto.roomId !== this.room.id || dto.revision <= (this.movementRevisions.get(dto.sessionId) ?? -1)) return;
+    this.movementRevisions.set(dto.sessionId, dto.revision);
     const waypoints = dto.waypoints as Point[];
     if (dto.sessionId === this.sessionId) {
+      if (waypoints[0]) this.character.position = { ...waypoints[0] };
       assignPathToCharacter(this.character, waypoints);
     } else {
       const remote = this.remotePlayers.get(dto.sessionId);
       if (remote) {
+        if (waypoints[0]) remote.position = { ...waypoints[0] };
         assignPathToCharacter(remote, waypoints);
       }
     }
   }
 
   public handleChatMessage(msg: ChatMessageDto): void {
+    if (msg.roomId !== this.room.id) return;
     this.chatMessages.push(msg);
 
     const bubble = {

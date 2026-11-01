@@ -1,4 +1,5 @@
 using AdventureChat.Server.Models;
+using YamlDotNet.Serialization;
 
 namespace AdventureChat.Server.Services;
 
@@ -97,13 +98,15 @@ public sealed class RoomService : IRoomService
 
     private readonly IContentPathProvider? _pathProvider;
     private readonly IRoomYamlSerializer? _yamlSerializer;
+    private readonly IRoomValidator? _validator;
     private readonly Dictionary<string, RoomDefinition> _rooms = new(StringComparer.OrdinalIgnoreCase);
     private readonly object _lock = new();
 
-    public RoomService(IContentPathProvider? pathProvider = null, IRoomYamlSerializer? yamlSerializer = null)
+    public RoomService(IContentPathProvider? pathProvider = null, IRoomYamlSerializer? yamlSerializer = null, IRoomValidator? validator = null)
     {
         _pathProvider = pathProvider;
         _yamlSerializer = yamlSerializer;
+        _validator = validator;
 
         // Seed with built-in defaults
         _rooms[DefaultLounge.Id] = DefaultLounge;
@@ -151,22 +154,42 @@ public sealed class RoomService : IRoomService
         }
 
         var yamlFiles = Directory.GetFiles(roomsDir, "*.yaml");
+        var candidates = new List<(string File, RoomYamlDto Dto)>();
+        foreach (var file in yamlFiles)
+        {
+            try
+            {
+                var yaml = File.ReadAllText(file);
+                var dto = _yamlSerializer.Deserialize(yaml);
+                var raw = new DeserializerBuilder().WithDuplicateKeyChecking().WithAttemptingUnquotedStringTypeDeserialization().Build().Deserialize<object>(yaml);
+                var json = new SerializerBuilder().JsonCompatible().Build().Serialize(raw);
+                var schema = _validator?.ValidateJson(json);
+                var validation = _validator?.Validate(dto);
+                if (schema is { IsValid: false } || validation is { IsValid: false })
+                    throw new InvalidOperationException(string.Join("; ", (schema?.Errors ?? []).Concat(validation?.Errors ?? [])));
+                candidates.Add((file, dto));
+            }
+            catch (Exception ex) { throw new InvalidOperationException($"Invalid room file '{file}': {ex.Message}", ex); }
+        }
+        if (candidates.Count > 0 && _validator is not null)
+        {
+            var world = _validator.ValidateWorld(candidates.Select(c => c.Dto).ToList());
+            if (!world.IsValid) throw new InvalidOperationException($"Invalid world ({string.Join(", ", candidates.Select(c => c.File))}): {string.Join("; ", world.Errors)}");
+        }
         lock (_lock)
         {
-            foreach (var file in yamlFiles)
-            {
-                try
-                {
-                    var yaml = File.ReadAllText(file);
-                    var dto = _yamlSerializer.Deserialize(yaml);
-                    var roomDef = dto.ToRoomDefinition();
-                    _rooms[roomDef.Id] = roomDef;
-                }
-                catch
-                {
-                    // Ignore bad files during bulk load
-                }
-            }
+            foreach (var candidate in candidates)
+                _rooms[candidate.Dto.Id] = candidate.Dto.ToRoomDefinition();
         }
     }
+}
+
+public sealed class RoomStartupValidation(IRoomService rooms) : IHostedService
+{
+    public Task StartAsync(CancellationToken cancellationToken)
+    {
+        _ = rooms.GetAllRooms();
+        return Task.CompletedTask;
+    }
+    public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 }

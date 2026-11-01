@@ -4,6 +4,7 @@ using AdventureChat.Server.Hubs;
 using AdventureChat.Server.Models;
 using AdventureChat.Server.Services;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.AspNetCore.Antiforgery;
 
 namespace AdventureChat.Server;
 
@@ -11,9 +12,19 @@ public static class AppFactory
 {
     public static WebApplication CreateApp(string[] args, WebApplicationOptions? options = null)
     {
+        var suppliedArgs = options?.Args ?? args;
+        var authoring = suppliedArgs.Contains("--authoring", StringComparer.Ordinal);
+        var filteredArgs = suppliedArgs.Where(arg => arg != "--authoring").ToArray();
         var builder = options is not null 
-            ? WebApplication.CreateBuilder(options) 
-            : WebApplication.CreateBuilder(args);
+            ? WebApplication.CreateBuilder(new WebApplicationOptions
+            {
+                Args = filteredArgs,
+                ApplicationName = options.ApplicationName,
+                EnvironmentName = options.EnvironmentName,
+                ContentRootPath = options.ContentRootPath,
+                WebRootPath = options.WebRootPath
+            })
+            : WebApplication.CreateBuilder(filteredArgs);
 
         builder.Services.ConfigureHttpJsonOptions(opt =>
         {
@@ -21,15 +32,20 @@ public static class AppFactory
         });
 
         builder.Services.AddSignalR();
-        builder.Services.AddSingleton<IContentPathProvider, ContentPathProvider>();
+        builder.Services.AddAntiforgery(o => o.HeaderName = "X-Author-Token");
+        builder.Services.AddSingleton<IContentPathProvider>(_ => new ContentPathProvider(
+            builder.Configuration["Content:Root"], builder.Configuration["Content:Schema"], builder.Configuration["Content:WebRoot"]));
         builder.Services.AddSingleton<IRoomYamlSerializer, RoomYamlSerializer>();
         builder.Services.AddSingleton<IRoomValidator>(sp =>
         {
             var pathProvider = sp.GetRequiredService<IContentPathProvider>();
+            if (!File.Exists(pathProvider.GetSchemaFilePath()))
+                throw new InvalidOperationException($"Required room schema not found: {pathProvider.GetSchemaFilePath()}");
             return new RoomValidator(pathProvider.GetSchemaFilePath());
         });
         builder.Services.AddSingleton<IPathfindingService, PathfindingService>();
         builder.Services.AddSingleton<IRoomService, RoomService>();
+        builder.Services.AddHostedService<RoomStartupValidation>();
         builder.Services.AddSingleton<IRoomSessionManager, RoomSessionManager>();
         builder.Services.AddSingleton<IEditorService>(sp =>
         {
@@ -37,11 +53,39 @@ public static class AppFactory
             var yamlSerializer = sp.GetRequiredService<IRoomYamlSerializer>();
             var validator = sp.GetRequiredService<IRoomValidator>();
             var roomService = sp.GetRequiredService<IRoomService>();
-            var editorEnabled = builder.Configuration.GetValue<bool?>("Features:EditorEnabled") ?? true;
-            return new EditorService(pathProvider, yamlSerializer, validator, roomService, editorEnabled);
+            return new EditorService(pathProvider, yamlSerializer, validator, roomService, authoring);
         });
 
         var app = builder.Build();
+
+        app.Use(async (context, next) =>
+        {
+            if (context.Request.Path.Equals("/editor.html", StringComparison.OrdinalIgnoreCase) &&
+                (!authoring || context.Connection.RemoteIpAddress is not { } editorIp || !IPAddress.IsLoopback(editorIp) || !IsLocalAuthorRequest(context)))
+            {
+                context.Response.StatusCode = StatusCodes.Status404NotFound;
+                return;
+            }
+            if (context.Request.Path.StartsWithSegments("/api/editor"))
+            {
+                var ip = context.Connection.RemoteIpAddress;
+                if (!authoring || ip is null || !IPAddress.IsLoopback(ip) || !IsLocalAuthorRequest(context))
+                {
+                    context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                    return;
+                }
+                if (!HttpMethods.IsGet(context.Request.Method) && !HttpMethods.IsHead(context.Request.Method))
+                {
+                    var antiforgery = context.RequestServices.GetRequiredService<IAntiforgery>();
+                    if (!await antiforgery.IsRequestValidAsync(context))
+                    {
+                        context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                        return;
+                    }
+                }
+            }
+            await next();
+        });
 
         app.UseDefaultFiles();
         app.UseStaticFiles(new StaticFileOptions
@@ -154,7 +198,7 @@ public static class AppFactory
                 }
 
                 var remoteIp = context.HttpContext.Connection.RemoteIpAddress;
-                if (remoteIp is not null && !IPAddress.IsLoopback(remoteIp))
+                if (remoteIp is null || !IPAddress.IsLoopback(remoteIp) || !IsLocalAuthorRequest(context.HttpContext))
                 {
                     return Results.Json(new { error = "Editor endpoints are restricted to local loopback connections." }, statusCode: StatusCodes.Status403Forbidden);
                 }
@@ -162,12 +206,13 @@ public static class AppFactory
                 return await next(context);
             });
 
-        editorGroup.MapGet("/status", (IEditorService editorService) =>
+        editorGroup.MapGet("/status", (HttpContext context, IEditorService editorService, IAntiforgery antiforgery) =>
         {
             return Results.Ok(new
             {
                 enabled = editorService.IsEditorEnabled,
-                schemaUrl = "/schemas/room.schema.json"
+                schemaUrl = "/schemas/room.schema.json",
+                token = antiforgery.GetAndStoreTokens(context).RequestToken
             });
         });
 
@@ -336,5 +381,17 @@ public static class AppFactory
         });
 
         return app;
+    }
+
+    private static bool IsLocalAuthorRequest(HttpContext context)
+    {
+        var host = context.Request.Host.Host;
+        if (!string.Equals(host, "localhost", StringComparison.OrdinalIgnoreCase) &&
+            !(IPAddress.TryParse(host, out var address) && IPAddress.IsLoopback(address))) return false;
+        var origin = context.Request.Headers.Origin.ToString();
+        if (string.IsNullOrEmpty(origin)) return true;
+        return Uri.TryCreate(origin, UriKind.Absolute, out var uri) &&
+            string.Equals(uri.Scheme, context.Request.Scheme, StringComparison.OrdinalIgnoreCase) &&
+            string.Equals(uri.Authority, context.Request.Host.Value, StringComparison.OrdinalIgnoreCase);
     }
 }

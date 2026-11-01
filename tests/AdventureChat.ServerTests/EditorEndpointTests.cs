@@ -13,6 +13,121 @@ namespace AdventureChat.ServerTests;
 [TestFixture]
 public class EditorEndpointTests
 {
+    [Test]
+    public void Start_WithInvalidYaml_FailsWithFileDiagnostic()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "adventure_invalid_" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(Path.Combine(root, "rooms"));
+        File.WriteAllText(Path.Combine(root, "rooms", "broken.yaml"), "version: [invalid\n");
+        var serverDir = Path.Combine(FindSolutionDirectory(), "src", "AdventureChat.Server");
+        var app = AppFactory.CreateApp([], new WebApplicationOptions
+        {
+            ContentRootPath = serverDir,
+            WebRootPath = Path.Combine(serverDir, "wwwroot"),
+            Args = ["--urls", $"http://127.0.0.1:{GetFreePort()}", "--Content:Root", root, "--Content:WebRoot", Path.Combine(root, "web")]
+        });
+        try
+        {
+            var error = Assert.ThrowsAsync<InvalidOperationException>(async () => await app.StartAsync());
+            Assert.That(error!.Message, Does.Contain("broken.yaml"));
+        }
+        finally
+        {
+            app.DisposeAsync().AsTask().GetAwaiter().GetResult();
+            Directory.Delete(root, true);
+        }
+    }
+
+    [Test]
+    public void Start_WithMissingRequiredVersion_FailsWithFileDiagnostic()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "adventure_missing_version_" + Guid.NewGuid().ToString("N"));
+        var rooms = Path.Combine(root, "rooms");
+        Directory.CreateDirectory(rooms);
+        var source = Path.Combine(FindSolutionDirectory(), "content", "rooms");
+        foreach (var file in Directory.GetFiles(source, "*.yaml"))
+        {
+            var contents = File.ReadAllText(file);
+            if (Path.GetFileName(file) == "lounge.yaml") contents = contents.Replace("version: 1", "");
+            File.WriteAllText(Path.Combine(rooms, Path.GetFileName(file)), contents);
+        }
+        var serverDir = Path.Combine(FindSolutionDirectory(), "src", "AdventureChat.Server");
+        var app = AppFactory.CreateApp([], new WebApplicationOptions
+        {
+            ContentRootPath = serverDir,
+            WebRootPath = Path.Combine(serverDir, "wwwroot"),
+            Args = ["--urls", $"http://127.0.0.1:{GetFreePort()}", "--Content:Root", root, "--Content:WebRoot", Path.Combine(root, "web")]
+        });
+        try
+        {
+            var error = Assert.ThrowsAsync<InvalidOperationException>(async () => await app.StartAsync());
+            Assert.That(error!.Message, Does.Contain("lounge.yaml"));
+        }
+        finally
+        {
+            app.DisposeAsync().AsTask().GetAwaiter().GetResult();
+            Directory.Delete(root, true);
+        }
+    }
+
+    [Test]
+    public void Start_WithMissingExitDestination_FailsWithFileDiagnostic()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "adventure_missing_target_" + Guid.NewGuid().ToString("N"));
+        var rooms = Path.Combine(root, "rooms");
+        Directory.CreateDirectory(rooms);
+        var source = Path.Combine(FindSolutionDirectory(), "content", "rooms");
+        foreach (var file in Directory.GetFiles(source, "*.yaml"))
+        {
+            var contents = File.ReadAllText(file);
+            if (Path.GetFileName(file) == "lounge.yaml") contents = contents.Replace("room: garden", "room: missing-room");
+            File.WriteAllText(Path.Combine(rooms, Path.GetFileName(file)), contents);
+        }
+        var serverDir = Path.Combine(FindSolutionDirectory(), "src", "AdventureChat.Server");
+        var app = AppFactory.CreateApp([], new WebApplicationOptions
+        {
+            ContentRootPath = serverDir,
+            WebRootPath = Path.Combine(serverDir, "wwwroot"),
+            Args = ["--urls", $"http://127.0.0.1:{GetFreePort()}", "--Content:Root", root, "--Content:WebRoot", Path.Combine(root, "web")]
+        });
+        try
+        {
+            var error = Assert.ThrowsAsync<InvalidOperationException>(async () => await app.StartAsync());
+            Assert.That(error!.Message, Does.Contain("lounge.yaml").And.Contain("missing-room"));
+        }
+        finally
+        {
+            app.DisposeAsync().AsTask().GetAwaiter().GetResult();
+            Directory.Delete(root, true);
+        }
+    }
+    [Test]
+    public async Task DefaultStart_RejectsEditorApi()
+    {
+        var port = GetFreePort();
+        var url = $"http://127.0.0.1:{port}";
+        var serverDir = Path.Combine(FindSolutionDirectory(), "src", "AdventureChat.Server");
+        var app = AppFactory.CreateApp([], new WebApplicationOptions
+        {
+            ContentRootPath = serverDir,
+            WebRootPath = Path.Combine(serverDir, "wwwroot"),
+            Args = ["--urls", url]
+        });
+        await app.StartAsync();
+        try
+        {
+            using var client = new HttpClient { BaseAddress = new Uri(url) };
+            var response = await client.GetAsync("/api/editor/status");
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Forbidden));
+            var page = await client.GetAsync("/editor.html");
+            Assert.That(page.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
+        }
+        finally
+        {
+            await app.StopAsync();
+            await app.DisposeAsync();
+        }
+    }
     private IHost _host = null!;
     private HttpClient _client = null!;
     private string _baseUrl = string.Empty;
@@ -29,12 +144,19 @@ public class EditorEndpointTests
 
         var solutionDir = FindSolutionDirectory();
         var serverDir = Path.Combine(solutionDir, "src", "AdventureChat.Server");
+        foreach (var file in Directory.GetFiles(Path.Combine(solutionDir, "content", "rooms"), "*.yaml"))
+            File.Copy(file, Path.Combine(_tempContentDir, "rooms", Path.GetFileName(file)));
+        var testWebRoot = Path.Combine(_tempContentDir, "webroot");
+        var images = Path.Combine(testWebRoot, "assets", "images");
+        Directory.CreateDirectory(images);
+        foreach (var file in Directory.GetFiles(Path.Combine(serverDir, "wwwroot", "assets", "images")))
+            File.Copy(file, Path.Combine(images, Path.GetFileName(file)));
 
         var app = AppFactory.CreateApp([], new WebApplicationOptions
         {
             ContentRootPath = serverDir,
             WebRootPath = Path.Combine(serverDir, "wwwroot"),
-            Args = ["--urls", _baseUrl]
+            Args = ["--urls", _baseUrl, "--authoring", "--Content:Root", _tempContentDir, "--Content:WebRoot", testWebRoot]
         });
 
         _host = app;
@@ -44,6 +166,8 @@ public class EditorEndpointTests
         {
             BaseAddress = new Uri(_baseUrl)
         };
+        var status = await _client.GetFromJsonAsync<JsonElement>("/api/editor/status");
+        _client.DefaultRequestHeaders.Add("X-Author-Token", status.GetProperty("token").GetString());
     }
 
     private readonly List<string> _createdFiles = new();
@@ -89,6 +213,53 @@ public class EditorEndpointTests
         var json = await response.Content.ReadFromJsonAsync<JsonElement>();
         Assert.That(json.GetProperty("enabled").GetBoolean(), Is.True);
         Assert.That(json.GetProperty("schemaUrl").GetString(), Is.EqualTo("/schemas/room.schema.json"));
+    }
+
+    [Test]
+    public async Task EditorApi_RejectsForeignHostAndOrigin()
+    {
+        using var foreignHost = new HttpRequestMessage(HttpMethod.Get, "/api/editor/status");
+        foreignHost.Headers.Host = "evil.example";
+        var hostResponse = await _client.SendAsync(foreignHost);
+        Assert.That(hostResponse.StatusCode, Is.EqualTo(HttpStatusCode.Forbidden));
+
+        using var foreignOrigin = new HttpRequestMessage(HttpMethod.Get, "/api/editor/status");
+        foreignOrigin.Headers.Add("Origin", "https://evil.example");
+        var originResponse = await _client.SendAsync(foreignOrigin);
+        Assert.That(originResponse.StatusCode, Is.EqualTo(HttpStatusCode.Forbidden));
+    }
+
+    [Test]
+    public async Task EditorWrite_WithoutAuthorToken_IsForbidden()
+    {
+        using var client = new HttpClient { BaseAddress = new Uri(_baseUrl) };
+        var response = await client.PostAsJsonAsync("/api/editor/rooms/test", new { id = "test" });
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Forbidden));
+    }
+
+    [Test]
+    public async Task UploadBackground_InvalidPngSignature_IsRejected()
+    {
+        var status = await _client.GetFromJsonAsync<JsonElement>("/api/editor/status");
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/api/editor/backgrounds");
+        var form = new MultipartFormDataContent();
+        form.Add(new ByteArrayContent([1, 2, 3, 4]), "file", "invalid-signature.png");
+        request.Content = form;
+        var response = await _client.SendAsync(request);
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+    }
+
+    [TestCase("image.svg", false)]
+    [TestCase("large.png", true)]
+    public async Task UploadBackground_SvgOrOversize_IsRejected(string name, bool large)
+    {
+        using var form = new MultipartFormDataContent();
+        var bytes = new byte[large ? 10 * 1024 * 1024 + 1 : 8];
+        new byte[] { 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a }.CopyTo(bytes, 0);
+        form.Add(new ByteArrayContent(bytes), "file", name);
+        var response = await _client.PostAsync("/api/editor/backgrounds", form);
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+        Assert.That(File.Exists(Path.Combine(_tempContentDir, "webroot", "assets", "images", name)), Is.False);
     }
 
     [Test]
@@ -175,8 +346,7 @@ public class EditorEndpointTests
         var runtimeResponse = await _client.GetAsync("/api/rooms/custom-created-room");
         Assert.That(runtimeResponse.StatusCode, Is.EqualTo(HttpStatusCode.OK));
 
-        var solutionDir = FindSolutionDirectory();
-        var targetFile = Path.Combine(solutionDir, "content", "rooms", "custom-created-room.yaml");
+        var targetFile = Path.Combine(_tempContentDir, "rooms", "custom-created-room.yaml");
         _createdFiles.Add(targetFile);
     }
 
@@ -329,8 +499,7 @@ public class EditorEndpointTests
         Assert.That(result.Name, Is.EqualTo("test-uploaded-bg.png"));
         Assert.That(result.Path, Is.EqualTo("assets/images/test-uploaded-bg.png"));
 
-        var solutionDir = FindSolutionDirectory();
-        var targetFile = Path.Combine(solutionDir, "src", "AdventureChat.Server", "wwwroot", "assets", "images", "test-uploaded-bg.png");
+        var targetFile = Path.Combine(_tempContentDir, "webroot", "assets", "images", "test-uploaded-bg.png");
         _createdFiles.Add(targetFile);
     }
 

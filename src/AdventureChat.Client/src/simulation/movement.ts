@@ -57,25 +57,30 @@ export function assignPathToCharacter(char: Character, waypoints: Point[]): void
  */
 export function updateCharacterMovement(char: Character, dt: number): void {
   if (char.target && char.state === 'walk') {
-    const maxDistance = char.speed * dt;
-    const { position, reached } = moveTowards(char.position, char.target, maxDistance);
+    let maxDistance = char.speed * dt;
+    while (char.target && char.state === 'walk') {
+      const distance = Math.hypot(char.target.x - char.position.x, char.target.y - char.position.y);
+      const { position, reached } = moveTowards(char.position, char.target, maxDistance);
 
-    char.position = position;
+      char.position = position;
 
-    if (reached) {
-      if (char.waypoints.length > 0) {
-        advanceToNextWaypoint(char);
+      if (reached) {
+        maxDistance = Math.max(0, maxDistance - distance);
+        if (char.waypoints.length > 0) {
+          advanceToNextWaypoint(char);
+        } else {
+          char.target = null;
+          char.state = 'idle';
+          char.walkFrame = 0;
+          char.frameTimer = 0;
+        }
       } else {
-        char.target = null;
-        char.state = 'idle';
-        char.walkFrame = 0;
-        char.frameTimer = 0;
-      }
-    } else {
-      char.frameTimer += dt;
-      if (char.frameTimer >= WALK_FRAME_INTERVAL) {
-        char.frameTimer = 0;
-        char.walkFrame = (char.walkFrame + 1) % 4;
+        char.frameTimer += dt;
+        if (char.frameTimer >= WALK_FRAME_INTERVAL) {
+          char.frameTimer = 0;
+          char.walkFrame = (char.walkFrame + 1) % 4;
+        }
+        break;
       }
     }
   } else {

@@ -4,13 +4,13 @@ namespace AdventureChat.Server.Services;
 
 public record JoinResult(bool Success, string? Error, PlayerSession? Session, RoomSnapshotDto? Snapshot);
 public record ChangeRoomResult(bool Success, string? Error, string? OldRoomId, PlayerSession? Session, RoomSnapshotDto? Snapshot);
-public record MoveResult(bool Success, string? Error, string? SessionId, PointDto? Target, IReadOnlyList<PointDto>? Waypoints);
+public record MoveResult(bool Success, string? Error, string? SessionId, PointDto? Target, IReadOnlyList<PointDto>? Waypoints, string? RoomId = null, long Revision = 0);
 public record SendChatMessageResult(bool Success, string? Error, ChatMessageDto? Message);
 
 public interface IRoomSessionManager
 {
     JoinResult JoinRoom(string connectionId, string roomId, string? displayName, Point2D? initialPosition = null);
-    ChangeRoomResult ChangeRoom(string connectionId, string targetRoomId, string? targetSpawnId = null);
+    ChangeRoomResult ChangeRoom(string connectionId, string exitId);
     PlayerSession? Leave(string connectionId);
     PlayerSession? GetPlayer(string connectionId);
     IReadOnlyList<PlayerSession> GetPlayersInRoom(string roomId);

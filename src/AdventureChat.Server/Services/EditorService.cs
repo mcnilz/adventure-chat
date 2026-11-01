@@ -229,15 +229,24 @@ public sealed class EditorService : IEditorService
         }
 
         var ext = Path.GetExtension(fileName).ToLowerInvariant();
-        var allowedExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        if (ext != ".png")
         {
-            ".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg"
-        };
-
-        if (!allowedExtensions.Contains(ext))
-        {
-            return new UploadBackgroundResult(false, Error: $"Ungültiges Dateiformat '{ext}'. Erlaubt sind .png, .jpg, .jpeg, .webp, .gif, .svg.");
+            return new UploadBackgroundResult(false, Error: "Nur PNG-Dateien sind erlaubt.");
         }
+
+        using var buffer = new MemoryStream();
+        var chunk = new byte[81920];
+        int count;
+        while ((count = content.Read(chunk, 0, chunk.Length)) > 0)
+        {
+            if (buffer.Length + count > 10 * 1024 * 1024)
+                return new UploadBackgroundResult(false, Error: "Die Datei überschreitet 10 MB.");
+            buffer.Write(chunk, 0, count);
+        }
+        byte[] signature = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+        if (buffer.Length < signature.Length || !buffer.GetBuffer().AsSpan(0, signature.Length).SequenceEqual(signature))
+            return new UploadBackgroundResult(false, Error: "Ungültige PNG-Signatur.");
+        buffer.Position = 0;
 
         var nameWithoutExt = Path.GetFileNameWithoutExtension(fileName);
         var sanitizedBase = Regex.Replace(nameWithoutExt, @"[^a-zA-Z0-9_-]", "-").Trim('-');
@@ -262,7 +271,7 @@ public sealed class EditorService : IEditorService
         {
             using (var fileStream = new FileStream(targetFile, FileMode.Create, FileAccess.Write, FileShare.None))
             {
-                content.CopyTo(fileStream);
+                buffer.CopyTo(fileStream);
             }
 
             var rel = _pathProvider.GetBackgroundsRelativePath();

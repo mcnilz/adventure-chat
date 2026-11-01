@@ -160,7 +160,9 @@ public class RoomTransitionTests
         await page2.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.remotePlayers.size === 1");
 
         // Guybrush (page1) transitions to Garden
-        await page1.EvaluateAsync("() => window.__ADVENTURE_GAME__.changeRoom('garden')");
+        await page1.EvaluateAsync("() => window.__ADVENTURE_GAME__.setTarget({x: 580, y: 300})");
+        await page1.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.character.state === 'idle'", null, new PageWaitForFunctionOptions { Timeout = 10000 });
+        await page1.EvaluateAsync("() => window.__ADVENTURE_GAME__.changeRoom('to-garden')");
         await page1.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.room.id === 'garden'");
 
         // Elaine (page2) in Lounge should see Guybrush leave
@@ -190,7 +192,7 @@ public class RoomTransitionTests
         Assert.That(p1ChatAfter, Does.Not.Contain("Enjoying my grog inside the tavern."));
 
         // Guybrush returns to Lounge
-        await page1.EvaluateAsync("() => window.__ADVENTURE_GAME__.changeRoom('lounge')");
+        await page1.EvaluateAsync("() => window.__ADVENTURE_GAME__.changeRoom('to-lounge')");
         await page1.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.room.id === 'lounge'");
 
         // Both players see each other again in Lounge

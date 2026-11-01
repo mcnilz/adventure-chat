@@ -1,5 +1,5 @@
 # Aktueller Stand
-Revision 18 · 01.11.2026.
+Revision 19 · 01.11.2026.
 
 ## Vorhanden
 - [x] Gespräch in Spezifikation, Architektur, Autorenformat und Tickets überführt.
@@ -31,21 +31,18 @@ Revision 18 · 01.11.2026.
 - [ ] Git-Repository und endgültiger Projektname festgelegt.
 
 ## Aktives Ticket
-- **Status:** Alle 7 geplanten Tickets (01 bis 07) sind vollständig umgesetzt, getestet und menschlich abgenommen (`done`).
-- **Letzter Stand:** MVP ist lauffähig, modularisiert, typgeprüft und mit 106 automatisierten Tests (71 Server-Unit/Integrationstests + 35 Playwright-E2E-Tests) vollständig abgesichert.
-- **Ausgeführte Checks:** `npm run typecheck` (0 Fehler), `npm run build` (0 Fehler), `dotnet test` (106/106 Tests erfolgreich: 71 ServerTests + 35 E2ETests).
+- **Ticket 08:** `in-progress`; Basis `ef43f41`. Bewegung, Ausgangsprüfung, Ereignisbezug, Reconnect, Autorenmodus und YAML-Startprüfung bearbeitet. Einzelne Regressionen einschließlich echter Wiederverbindung bestanden. Locked Restore, Clientbuild und Server-Suite (87 Tests) bestanden; Browser-Gesamtsuite und Review nach letzten Änderungen laufen noch. Details im Ticket `.scratch/adventure-chat/issues/08-mvp-stabilization.md`.
+- **Vorherige Tickets:** 01 bis 07 sind menschlich abgenommen (`done`).
+- **Historischer Stand vor Ticket 08:** 106 Tests wurden für Tickets 01–07 gemeldet. Diese Zahl ist kein Nachweis für den aktuellen Arbeitsstand.
 
 ## Nächste Aktion
-MVP-Gesamtabnahme / Projektabschluss.
+Ticket 08: laufende Browser-Gesamtsuite abschließen, vollständigen Review gegen `ef43f41` durchführen und dessen Befunde bearbeiten; erst danach menschliche Abnahme vorbereiten.
 
 ## Offene Annahmen
 Privater Testbetrieb, ca. zehn Personen, Desktop-Mausbedienung; keine kollidierenden Figuren; Reconnect als frischer Eintritt.
 
 ## Checks
-- `npm run typecheck` in `src/AdventureChat.Client`: 0 Fehler.
-- `npm run build`: 0 Fehler (TypeScript kompiliert und SignalR-Bundle kopiert).
-- `dotnet build`: 0 Fehler, 0 Warnungen.
-- `dotnet test`: 106 Tests erfolgreich bestanden (71 ServerTests, 35 E2ETests).
+- Ticket 08: Client-Typcheck und Build, Locked Restore sowie .NET-Build erfolgreich; Server-Suite zuletzt 87 Tests erfolgreich. Browser-Gesamtlauf nach Änderungen und Review sind noch offen.
 
 ## Übergabeformat für spätere Änderungen
 Aktives Ticket, letzter nachgewiesener Stand, ausgeführte Checks und Ergebnisse, konkrete Blocker, nächster Schritt sowie Referenz auf Benutzerabnahme hier knapp festhalten. Erledigte Detailhistorie gehört ins jeweilige Ticket.

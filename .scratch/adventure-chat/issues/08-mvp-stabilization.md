@@ -4,7 +4,7 @@
 
 **Blocked by:** 07 (laut vorhandenem Tracker done)
 
-**Status:** draft
+**Status:** in-progress
 
 **Revision:** 1 · 01.11.2026
 
@@ -116,6 +116,12 @@ Inventar, Dialoge, Skripting, neue Grafiken, neue Räume, persistente Chatarchiv
 [SPEC.md](../../../SPEC.md), [ARCHITECTURE.md](../../../ARCHITECTURE.md), [TESTING.md](../../../TESTING.md), [CONTENT-FORMAT.md](../../../CONTENT-FORMAT.md), [GLOSSARY.md](../../../GLOSSARY.md). AGENTS.md gilt.
 
 ## Abschlussbelege – erst während Umsetzung ausfüllen
+
+- Arbeitsstand: Ausgangscommit `ef43f41`; erste TDD-Regression zur manipulierten Client-Startposition reproduziert (erwartet X=120, tatsächlich X=200) und korrigiert. Einzeltest und Client-Typcheck erfolgreich. Serverseitige zeitabhängige Bewegung und alle weiteren Anforderungen sind noch offen; kein vollständiger Review.
+- Fortschritt: Snapshot-Test mit kontrollierter Zeit zunächst rot (X=120 statt X=185), danach grün einschließlich Ankunft; Fortschrittsmeldungen können Positionen nicht mehr überschreiben. Wiederholter Join zunächst rot, danach grün. `RoomSessionManagerTests`: 26 erfolgreich vor dem zusätzlich hinzugefügten Join-Test; dieser Einzeltest ebenfalls erfolgreich. Die Bewegung ist noch nicht vollständig integriert oder auf Nebenläufigkeit geprüft; Browser, Raumwechsel, Autorenmodus, YAML und Übergabe sind offen.
+- Ergänzung: Raumwechsel über frei vorgegebenen Zielraum zunächst reproduziert und abgewiesen; Ausgangs-ID, Servernähe und Zielreferenz werden geprüft. Server-Suite: 77 Tests bestanden. Browser-Test für langen Frame zunächst rot (X=133 statt 220), nach Korrektur grün; Client-Build und Typcheck erfolgreich. SignalR-Isolation, verspätete Ereignisse, Reconnect, Autorenmodus und YAML bleiben offen.
+- Weiterer Stand: Raum-/Bewegungsbezug für verspätete Ereignisse, tatsächlicher Reconnect und SignalR-Manipulation gezielt geprüft; lokaler Autorenmodus mit Host-/Origin- und Antiforgery-Prüfung sowie PNG-Signatur-/Größenprüfung ergänzt. YAML-Start mit fehlerhafter Datei, fehlender Version und fehlendem Ziel reproduziert bzw. geprüft. E2E-Datenverzeichnisse isoliert. Locked Restore mit lokalem Paketcache, `npm ci --ignore-scripts --offline`, Clientbuild und .NET-Build erfolgreich; Server-Suite zuletzt 87 bestanden. Ein erster Gesamtlauf scheiterte mit Browser-Startfehler `EPERM`, separater Browserlauf anschließend 39 bestanden; Wiederholung nach späterer Clientänderung läuft. Review ausstehend.
+- Nachtrag: Wiederholung ergab 37/39; der Offline-Schalter unterbrach WebSocket nicht zuverlässig und der fehlgeschlagene Test ließ Kontexte offen. Der Test nutzt nun einen tatsächlichen Neustart des isolierten Servers und garantiert Bereinigung; der gezielte Reconnect-Lauf besteht. Gesamtsuite erneut gestartet.
 
 - Tatsächlicher Basis-Commit und Umsetzungscommits:
 - Je Regression: roter Nachweis und Ergebnis nach Korrektur:

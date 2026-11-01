@@ -24,14 +24,14 @@ public class RoomHub : Hub
         await Groups.AddToGroupAsync(Context.ConnectionId, request.RoomId);
 
         // Notify other players in the room about the new participant
-        await Clients.OthersInGroup(request.RoomId).SendAsync("UserJoined", new UserJoinedDto(result.Session.ToDto()));
+        await Clients.OthersInGroup(request.RoomId).SendAsync("UserJoined", new UserJoinedDto(result.Session.ToDto(), request.RoomId));
 
         return new JoinRoomResultDto(true, null, result.Snapshot);
     }
 
     public async Task<ChangeRoomResultDto> ChangeRoom(ChangeRoomRequestDto request)
     {
-        var result = _sessionManager.ChangeRoom(Context.ConnectionId, request.TargetRoomId, request.TargetSpawnId);
+        var result = _sessionManager.ChangeRoom(Context.ConnectionId, request.ExitId);
         if (!result.Success || result.Session is null || result.Snapshot is null)
         {
             return new ChangeRoomResultDto(false, result.Error ?? "Could not change room.", null);
@@ -41,12 +41,12 @@ public class RoomHub : Hub
         if (!string.IsNullOrEmpty(result.OldRoomId))
         {
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, result.OldRoomId);
-            await Clients.Group(result.OldRoomId).SendAsync("UserLeft", new UserLeftDto(result.Session.SessionId, result.Session.DisplayName));
+            await Clients.Group(result.OldRoomId).SendAsync("UserLeft", new UserLeftDto(result.Session.SessionId, result.Session.DisplayName, result.OldRoomId));
         }
 
         // 2. Join new room group & notify new room participants
         await Groups.AddToGroupAsync(Context.ConnectionId, result.Session.RoomId);
-        await Clients.GroupExcept(result.Session.RoomId, Context.ConnectionId).SendAsync("UserJoined", new UserJoinedDto(result.Session.ToDto()));
+        await Clients.GroupExcept(result.Session.RoomId, Context.ConnectionId).SendAsync("UserJoined", new UserJoinedDto(result.Session.ToDto(), result.Session.RoomId));
 
         return new ChangeRoomResultDto(true, null, result.Snapshot);
     }
@@ -66,8 +66,8 @@ public class RoomHub : Hub
             return new MoveResultDto(false, moveResult.Error ?? "Move request rejected.");
         }
 
-        var message = new PlayerMovedDto(session.SessionId, moveResult.Target, moveResult.Waypoints);
-        await Clients.Group(session.RoomId).SendAsync("PlayerMoved", message);
+        var message = new PlayerMovedDto(moveResult.SessionId!, moveResult.Target, moveResult.Waypoints, moveResult.RoomId!, moveResult.Revision);
+        await Clients.Group(moveResult.RoomId!).SendAsync("PlayerMoved", message);
 
         return new MoveResultDto(true, null);
     }
@@ -97,7 +97,7 @@ public class RoomHub : Hub
         var left = _sessionManager.Leave(Context.ConnectionId);
         if (left is not null)
         {
-            var userLeft = new UserLeftDto(left.SessionId, left.DisplayName);
+            var userLeft = new UserLeftDto(left.SessionId, left.DisplayName, left.RoomId);
             await Clients.Group(left.RoomId).SendAsync("UserLeft", userLeft);
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, left.RoomId);
         }

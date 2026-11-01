@@ -93,6 +93,7 @@ export interface PlayerDto {
   readonly state: CharacterState;
   readonly target: Point | null;
   readonly waypoints: ReadonlyArray<Point>;
+  readonly movementRevision: number;
 }
 
 export interface RoomSnapshotDto {
@@ -107,15 +108,19 @@ export interface PlayerMovedDto {
   readonly sessionId: string;
   readonly target: Point;
   readonly waypoints: ReadonlyArray<Point>;
+  readonly roomId: string;
+  readonly revision: number;
 }
 
 export interface UserJoinedDto {
   readonly player: PlayerDto;
+  readonly roomId: string;
 }
 
 export interface UserLeftDto {
   readonly sessionId: string;
   readonly displayName: string;
+  readonly roomId: string;
 }
 
 export interface JoinRoomRequestDto {
@@ -130,8 +135,7 @@ export interface JoinRoomResultDto {
 }
 
 export interface ChangeRoomRequestDto {
-  readonly targetRoomId: string;
-  readonly targetSpawnId?: string | null;
+  readonly exitId: string;
 }
 
 export interface ChangeRoomResultDto {

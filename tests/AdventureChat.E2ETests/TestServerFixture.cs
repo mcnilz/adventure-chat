@@ -9,7 +9,11 @@ namespace AdventureChat.E2ETests;
 public sealed class TestServerFixture : IAsyncDisposable
 {
     private IHost? _host;
+    private readonly bool _authoring;
+    public string TempRoot { get; } = Path.Combine(Path.GetTempPath(), "adventure_e2e_" + Guid.NewGuid().ToString("N"));
     public string BaseUrl { get; private set; } = string.Empty;
+
+    public TestServerFixture(bool authoring = false) => _authoring = authoring;
 
     public async Task StartAsync()
     {
@@ -18,16 +22,37 @@ public sealed class TestServerFixture : IAsyncDisposable
 
         var solutionDir = FindSolutionDirectory();
         var serverDir = Path.Combine(solutionDir, "src", "AdventureChat.Server");
+        var contentRoot = Path.Combine(TempRoot, "content");
+        var webRoot = Path.Combine(TempRoot, "wwwroot");
+        CopyDirectory(Path.Combine(solutionDir, "content"), contentRoot);
+        CopyDirectory(Path.Combine(serverDir, "wwwroot"), webRoot);
+        var args = new List<string> { "--urls", BaseUrl, "--Content:Root", contentRoot, "--Content:WebRoot", webRoot };
+        if (_authoring) args.Add("--authoring");
 
         var app = AppFactory.CreateApp([], new WebApplicationOptions
         {
             ContentRootPath = serverDir,
-            WebRootPath = Path.Combine(serverDir, "wwwroot"),
-            Args = ["--urls", BaseUrl]
+            WebRootPath = webRoot,
+            Args = args.ToArray()
         });
 
         _host = app;
         await app.StartAsync();
+    }
+
+    public async Task StopAsync()
+    {
+        if (_host is null) return;
+        await _host.StopAsync();
+        _host.Dispose();
+        _host = null;
+    }
+
+    private static void CopyDirectory(string source, string target)
+    {
+        Directory.CreateDirectory(target);
+        foreach (var file in Directory.GetFiles(source)) File.Copy(file, Path.Combine(target, Path.GetFileName(file)));
+        foreach (var dir in Directory.GetDirectories(source)) CopyDirectory(dir, Path.Combine(target, Path.GetFileName(dir)));
     }
 
     private static int GetFreePort()
@@ -57,10 +82,7 @@ public sealed class TestServerFixture : IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
-        if (_host != null)
-        {
-            await _host.StopAsync();
-            _host.Dispose();
-        }
+        await StopAsync();
+        if (Directory.Exists(TempRoot)) Directory.Delete(TempRoot, true);
     }
 }

@@ -6,6 +6,29 @@ namespace AdventureChat.E2ETests;
 [TestFixture]
 public class MultiplayerRoomTests
 {
+    [Test]
+    public async Task SignalR_RepeatedJoinAndForgedProgress_CannotChangeSession()
+    {
+        await using var context = await _browser.NewContextAsync();
+        var page = await context.NewPageAsync();
+        await page.GotoAsync(_server.BaseUrl);
+        await page.WaitForFunctionAsync("() => window.signalR && window.__ADVENTURE_GAME__?.connectionStatus === 'connected'");
+        var result = await page.EvaluateAsync<System.Text.Json.JsonElement>("""
+            async () => {
+                const connection = new window.signalR.HubConnectionBuilder().withUrl('/hub/room').build();
+                await connection.start();
+                const first = await connection.invoke('JoinRoom', {roomId: 'lounge', displayName: 'Probe'});
+                const second = await connection.invoke('JoinRoom', {roomId: 'garden', displayName: 'Probe'});
+                await connection.invoke('UpdateProgress', {x: 540, y: 300}, 'right', 'idle');
+                const transition = await connection.invoke('ChangeRoom', {exitId: 'to-garden', targetRoomId: 'garden', targetSpawnId: 'forged'});
+                await connection.stop();
+                return {first: first.success, second: second.success, transition: transition.success};
+            }
+            """);
+        Assert.That(result.GetProperty("first").GetBoolean(), Is.True);
+        Assert.That(result.GetProperty("second").GetBoolean(), Is.False);
+        Assert.That(result.GetProperty("transition").GetBoolean(), Is.False);
+    }
     private TestServerFixture _server = null!;
     private IPlaywright _playwright = null!;
     private IBrowser _browser = null!;
@@ -40,8 +63,8 @@ public class MultiplayerRoomTests
     [Test]
     public async Task TwoBrowserContexts_SeeBothCharacters_WithDistinctNames()
     {
-        var context1 = await _browser.NewContextAsync();
-        var context2 = await _browser.NewContextAsync();
+        await using var context1 = await _browser.NewContextAsync();
+        await using var context2 = await _browser.NewContextAsync();
 
         var page1 = await context1.NewPageAsync();
         var page2 = await context2.NewPageAsync();
@@ -158,13 +181,14 @@ public class MultiplayerRoomTests
     [Test]
     public async Task Reconnecting_LeavesNoDuplicateGhosts()
     {
-        var context1 = await _browser.NewContextAsync();
-        var context2 = await _browser.NewContextAsync();
+        await using var proxy = new InterruptibleProxy(_server.BaseUrl);
+        await using var context1 = await _browser.NewContextAsync();
+        await using var context2 = await _browser.NewContextAsync();
 
         var page1 = await context1.NewPageAsync();
         var page2 = await context2.NewPageAsync();
 
-        await page1.GotoAsync($"{_server.BaseUrl}?name=Guybrush");
+        await page1.GotoAsync($"{proxy.BaseUrl}?name=Guybrush");
         await page1.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.connectionStatus === 'connected'");
 
         await page2.GotoAsync($"{_server.BaseUrl}?name=Elaine");
@@ -172,15 +196,16 @@ public class MultiplayerRoomTests
 
         await page2.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.remotePlayers.size === 1");
 
-        // Reload page1 (fresh reconnect)
-        await page1.ReloadAsync();
-        await page1.WaitForSelectorAsync("#game-canvas");
-        await page1.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.connectionStatus === 'connected'");
+        var oldSession = await page1.EvaluateAsync<string>("() => window.__ADVENTURE_GAME__.sessionId");
+        await page1.EvaluateAsync("() => { window.reconnectObserved = false; const game = window.__ADVENTURE_GAME__; const previous = game.onConnectionStatusChanged; game.onConnectionStatusChanged = status => { if (status === 'connecting') window.reconnectObserved = true; previous?.(status); }; }");
+        proxy.Interrupt();
+        await page1.WaitForFunctionAsync("oldId => window.__ADVENTURE_GAME__.connectionStatus === 'connected' && window.__ADVENTURE_GAME__.sessionId !== oldId", oldSession, new PageWaitForFunctionOptions { Timeout = 30000 });
+        Assert.That(await page1.EvaluateAsync<bool>("() => window.reconnectObserved"), Is.True);
 
         // In page2, there should still be exactly 1 remote player (no duplicate ghost)
-        await page2.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.remotePlayers.size === 1", null, new PageWaitForFunctionOptions
+        await page2.WaitForFunctionAsync("oldId => window.__ADVENTURE_GAME__.remotePlayers.size === 1 && !window.__ADVENTURE_GAME__.remotePlayers.has(oldId)", oldSession, new PageWaitForFunctionOptions
         {
-            Timeout = 5000
+            Timeout = 30000
         });
 
         var remoteCountInP2 = await page2.EvaluateAsync<int>("() => window.__ADVENTURE_GAME__.remotePlayers.size");

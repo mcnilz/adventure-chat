@@ -17,21 +17,20 @@ Die Module unten sind Verantwortlichkeiten, keine Anweisung für je ein Projekt 
 ## Bewegung
 Vorgeschlagene MVP-Regel: logische Pixelkoordinaten im Hintergrundbild, Ursprung links oben, Fußpunkt als Figurenposition. Fenstergröße verändert keine Weltdaten.
 Ein Raum besitzt einfache, nicht selbstschneidende begehbare Polygone. Hindernisse werden zunächst durch nicht begehbare Bereiche ausgespart; separate Kollisionsobjekte entfallen.
-Der Client sendet ein Ziel und eine fortlaufende Befehlsnummer. Der Server prüft die Sitzung und berechnet einen erlaubten Weg. Ein neuer gültiger Befehl ersetzt den alten Weg. Während des Laufens bleiben Fußpunkte und Wegsegmente im erlaubten Bereich.
+Der Client sendet ein Ziel. Der Server berechnet die aktuelle Position aus Weg und Zeit und ermittelt den neuen Weg mit 130 logischen Pixeln pro Sekunde. Eine vom Client mitgesendete Startposition und Fortschrittsmeldungen verändern die Serverposition nicht. Ein neuer gültiger Befehl ersetzt den alten Weg.
 Außerhalb liegende oder unerreichbare Ziele werden für den MVP zurückgewiesen und sichtbar markiert; automatische Projektion auf den Rand ist später möglich.
 Andere Figuren sind keine Hindernisse. Route und Geschwindigkeit bestimmt der Server. Für die erste Version reicht bestätigte Bewegung mit flüssiger Interpolation; clientseitige Vorhersage nur bei gemessenem Bedarf.
 Vor Paket 02 Polygonregeln und Randtoleranzen präzisieren. Kein zweites abweichendes Wegfindungssystem im Browser schreiben.
 
 ## Synchronisierung
 Beim Betreten liefert der Server einen vollständigen Snapshot mit Raum, Teilnehmern und laufenden Bewegungen. Danach folgen geordnete Änderungen mit Raumrevision bzw. Sequenz und Sitzungsbezug.
+Raumwechsel verwenden die Ausgangs-ID; der Server löst das Ziel auf und akzeptiert den Wechsel innerhalb des Ausgangsradius zuzüglich fünf Pixeln Toleranz. Bewegungsereignisse tragen Raum-ID und eine laufende Bewegungsrevision.
 Bewegungsberechnung hängt an verstrichener Zeit, nicht an Anzahl empfangener Pakete. Takt und Bandbreite erst messen; keine vorsorgliche Hochfrequenzsimulation.
 Nach Wiederverbindung wird erneut ein Snapshot geladen. Vorgeschlagene MVP-Vereinfachung: abgebrochene Sitzung endet, erneuter Eintritt erzeugt genau eine neue Sitzung am gültigen Spawn. Fortsetzen alter Laufwege ist kein MVP-Ziel.
 Ziel-, Raum- und Absenderdaten gelten nur nach serverseitiger Prüfung. Nachrichten aus veralteten Raumsitzungen dürfen keinen aktuellen Raum verändern.
 
 ## Chat
-Nachrichten gelten nur für den aktuellen Raum. Vorschlag: maximal 500 Zeichen; Namen maximal 24 Zeichen; beide nicht leer. Plain Text sicher über Textknoten darstellen, nie als HTML interpretieren.
-Server vergibt Nachrichten-ID, Absender und Zeit. Vorschlag: maximal fünf Nachrichten in fünf Sekunden je Sitzung; konkrete Limits vor Paket 04 bestätigen.
-Verlauf ist begrenzt, z. B. 200 Nachrichten im Browser. Beim Raumwechsel wird er geleert und der Zielraum klar angezeigt. Keine Zustellung alter Raumhistorie an neue Besucher. Sprechblasen verschwinden vorgeschlagen nach fünf Sekunden, der Verlauf bleibt bis Raumwechsel/Neuladen.
+Nachrichten gelten nur für den aktuellen Raum. Sie sind auf 200 Zeichen und Namen auf 24 Zeichen begrenzt. Der Server vergibt Nachrichten-ID, Absender und Zeit und begrenzt den Versand auf fünf Nachrichten in drei Sekunden. Der Server hält die letzten 50 Nachrichten je Raum vor.
 
 ## Darstellung
 Original-Pixelart ohne Glättung skalieren, Seitenverhältnis erhalten. Zeichenreihenfolge nach Fußpunkt-Y; echte Vordergrundmasken und perspektivische Skalierung später.
@@ -40,6 +39,7 @@ Mausklicks auf Chat und Editorbedienung dürfen keine Bewegung auslösen.
 
 ## Editorzugriff
 Editor nur in explizitem lokalen Autorenmodus und am Loopback-Interface. Öffentlicher Spielmodus enthält keine schreibbaren Editorendpunkte. Origin/Host prüfen und Schreibzugriffe gegen fremde Webseiten absichern.
+Der Schalter `--authoring` aktiviert den Editor; ohne ihn antworten die Autoren-APIs mit 403 und die Editorseite mit 404. Host und Origin werden geprüft, Schreibzugriffe benötigen ein sitzungsgebundenes Antiforgery-Token. Uploads akzeptieren ausschließlich PNG mit geprüfter Signatur bis 10 MiB.
 Dateizugriffe auf ein festgelegtes Projektverzeichnis beschränken; keine freien absoluten Pfade akzeptieren. PNG-Inhalte und Größenlimits prüfen. Diese Prüfungen gehören in den Editor-Slice, nicht in eine spätere Sicherheitsphase.
 Speichern atomar; ungültige Daten überschreiben keine gültigen Dateien. Nicht gespeicherte Änderungen beim Wechsel melden.
 

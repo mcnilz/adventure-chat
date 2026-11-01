@@ -1,5 +1,5 @@
-# Qualität und vorgeschlagene Testgrenzen
-Status: Vorschlag. Vor dem ersten Paket und bei neu hinzukommenden Grenzen bestätigen lassen.
+# Qualität und Testgrenzen
+Neue Testgrenzen vor dem jeweiligen Paket bestätigen lassen. Die für Ticket 08 bestätigten Grenzen stehen im Ticket.
 
 | Öffentliche Grenze | Beobachtungen | Was sie nicht absichert |
 | --- | --- | --- |
@@ -29,5 +29,5 @@ Automatisierung für fachliche Regeln und Mehrbenutzerzustand; manuelle Prüfung
 
 ## MVP-Demo
 Zwei Räume im Editor neu erstellen und nach Neustart laden. Zwei Browser betreten dieselbe Welt, laufen, chatten und wechseln Räume. Eine Verbindung trennen und erneut verbinden. Anschließend Raumdatei im YAML-Editor mit zugeordnetem Schema bearbeiten und Fehleranzeige prüfen.
-Noch keine Tests ausgeführt: Dieses Paket enthält ausschließlich Planungsdokumente.
+Aktuelle tatsächliche Testläufe und Einschränkungen stehen im aktiven Ticket und in `active-state.md`.
 

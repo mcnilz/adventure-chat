@@ -8,6 +8,7 @@ public partial class RoomSessionManager : IRoomSessionManager
 {
     private readonly IRoomService _roomService;
     private readonly IPathfindingService _pathfinder;
+    private readonly TimeProvider _clock;
     private readonly ConcurrentDictionary<string, PlayerSession> _sessionsByConnection = new();
     private readonly ConcurrentDictionary<string, List<ChatMessageDto>> _roomChatHistory = new();
     private readonly ConcurrentDictionary<string, Queue<DateTime>> _messageTimestampsByConnection = new();
@@ -18,10 +19,11 @@ public partial class RoomSessionManager : IRoomSessionManager
     private const int RateLimitMaxMessages = 5;
     private static readonly TimeSpan RateLimitWindow = TimeSpan.FromSeconds(3);
 
-    public RoomSessionManager(IRoomService roomService, IPathfindingService pathfinder)
+    public RoomSessionManager(IRoomService roomService, IPathfindingService pathfinder, TimeProvider? clock = null)
     {
         _roomService = roomService;
         _pathfinder = pathfinder;
+        _clock = clock ?? TimeProvider.System;
     }
 
     public JoinResult JoinRoom(string connectionId, string roomId, string? displayName, Point2D? initialPosition = null)
@@ -56,9 +58,12 @@ public partial class RoomSessionManager : IRoomSessionManager
 
         lock (_lock)
         {
-            // Remove previous session on this connection if any
-            _sessionsByConnection.TryRemove(connectionId, out _);
+            if (_sessionsByConnection.ContainsKey(connectionId))
+                return new JoinResult(false, "Connection has already joined a room.", null, null);
             _sessionsByConnection[connectionId] = session;
+
+            foreach (var player in _sessionsByConnection.Values.Where(s => s.RoomId == roomId))
+                AdvanceMovement(player);
 
             var players = _sessionsByConnection.Values
                 .Where(s => s.RoomId == roomId)
@@ -74,21 +79,36 @@ public partial class RoomSessionManager : IRoomSessionManager
         }
     }
 
-    public ChangeRoomResult ChangeRoom(string connectionId, string targetRoomId, string? targetSpawnId = null)
+    public ChangeRoomResult ChangeRoom(string connectionId, string exitId)
     {
+        lock (_lock)
+        {
         if (!_sessionsByConnection.TryGetValue(connectionId, out var session))
         {
             return new ChangeRoomResult(false, "Player session not found.", null, null, null);
         }
 
-        var targetRoom = _roomService.GetRoom(targetRoomId);
-        if (targetRoom is null)
+        var currentRoom = _roomService.GetRoom(session.RoomId);
+        var exit = currentRoom?.Exits.FirstOrDefault(e => string.Equals(e.Id, exitId, StringComparison.OrdinalIgnoreCase));
+        if (exit is null)
         {
-            return new ChangeRoomResult(false, $"Target room '{targetRoomId}' not found.", session.RoomId, session, null);
+            return new ChangeRoomResult(false, "Exit not found.", session.RoomId, session, null);
         }
 
+        AdvanceMovement(session);
+        // Five pixels allow for small network and frame timing differences.
+        var dx = session.Position.X - exit.Position.X;
+        var dy = session.Position.Y - exit.Position.Y;
+        if (Math.Sqrt(dx * dx + dy * dy) > exit.Radius + 5)
+            return new ChangeRoomResult(false, "Exit is too far away.", session.RoomId, session, null);
+        var targetRoom = _roomService.GetRoom(exit.TargetRoomId);
+        var spawn = targetRoom?.Spawns.FirstOrDefault(s => string.Equals(s.Id, exit.TargetSpawnId, StringComparison.OrdinalIgnoreCase));
+        if (targetRoom is null || spawn is null || !targetRoom.Geometry.IsWalkable(spawn.Position))
+            return new ChangeRoomResult(false, "Exit destination is invalid.", session.RoomId, session, null);
+
         var oldRoomId = session.RoomId;
-        var targetSpawnPos = targetRoom.GetSpawnPosition(targetSpawnId);
+        var targetRoomId = targetRoom.Id;
+        var targetSpawnPos = spawn.Position;
         if (!targetRoom.Geometry.IsWalkable(targetSpawnPos))
         {
             targetSpawnPos = targetRoom.SpawnPoint;
@@ -100,9 +120,13 @@ public partial class RoomSessionManager : IRoomSessionManager
             session.Position = targetSpawnPos;
             session.Direction = "down";
             session.State = "idle";
+            session.MovementRevision++;
             session.Target = null;
             session.Waypoints.Clear();
             session.LastActivity = DateTime.UtcNow;
+
+            foreach (var player in _sessionsByConnection.Values.Where(s => s.RoomId == targetRoomId))
+                AdvanceMovement(player);
 
             var players = _sessionsByConnection.Values
                 .Where(s => s.RoomId == targetRoomId)
@@ -111,6 +135,7 @@ public partial class RoomSessionManager : IRoomSessionManager
 
             var snapshot = new RoomSnapshotDto(targetRoomId, session.SessionId, players, Array.Empty<ChatMessageDto>(), targetRoom.ToDto());
             return new ChangeRoomResult(true, null, oldRoomId, session, snapshot);
+        }
         }
     }
 
@@ -142,6 +167,8 @@ public partial class RoomSessionManager : IRoomSessionManager
 
     public MoveResult RequestMove(string connectionId, Point2D target, Point2D? currentPosition = null)
     {
+        lock (_lock)
+        {
         if (!_sessionsByConnection.TryGetValue(connectionId, out var session))
         {
             return new MoveResult(false, "Player session not found.", null, null, null);
@@ -158,15 +185,8 @@ public partial class RoomSessionManager : IRoomSessionManager
             return new MoveResult(false, "Target coordinates must be finite numbers.", null, null, null);
         }
 
+        AdvanceMovement(session);
         var start = session.Position;
-        if (currentPosition.HasValue && currentPosition.Value.IsFinite())
-        {
-            if (room.Geometry.IsWalkable(currentPosition.Value))
-            {
-                start = currentPosition.Value;
-            }
-        }
-
         var pathResult = _pathfinder.CalculatePath(room.Geometry, start, target);
         if (!pathResult.Success)
         {
@@ -180,6 +200,8 @@ public partial class RoomSessionManager : IRoomSessionManager
             session.Target = target;
             session.Waypoints = waypoints.ToList();
             session.State = "walk";
+            session.MovementRevision++;
+            session.MovementUpdatedAt = _clock.GetUtcNow();
             session.LastActivity = DateTime.UtcNow;
 
             if (waypoints.Count > 1)
@@ -199,25 +221,44 @@ public partial class RoomSessionManager : IRoomSessionManager
         }
 
         var waypointDtos = waypoints.Select(w => new PointDto(w.X, w.Y)).ToList();
-        return new MoveResult(true, null, session.SessionId, new PointDto(target.X, target.Y), waypointDtos);
+        return new MoveResult(true, null, session.SessionId, new PointDto(target.X, target.Y), waypointDtos, session.RoomId, session.MovementRevision);
+        }
     }
 
     public void UpdatePlayerProgress(string connectionId, Point2D position, string direction, string state)
     {
-        if (_sessionsByConnection.TryGetValue(connectionId, out var session))
+        // Progress is calculated exclusively by the server.
+    }
+
+    private void AdvanceMovement(PlayerSession session)
+    {
+        if (session.State != "walk") return;
+        var now = _clock.GetUtcNow();
+        var distance = Math.Max(0, (now - session.MovementUpdatedAt).TotalSeconds) * 130;
+        var position = session.Position;
+        var remaining = session.Waypoints.Skip(1).ToList();
+        while (remaining.Count > 0)
         {
-            lock (_lock)
+            var next = remaining[0];
+            var dx = next.X - position.X;
+            var dy = next.Y - position.Y;
+            var length = Math.Sqrt(dx * dx + dy * dy);
+            if (length > distance && length > 0)
             {
-                session.Position = position;
-                session.Direction = direction;
-                session.State = state;
-                session.LastActivity = DateTime.UtcNow;
-                if (state == "idle")
-                {
-                    session.Target = null;
-                    session.Waypoints.Clear();
-                }
+                position = new Point2D(position.X + dx * distance / length, position.Y + dy * distance / length);
+                break;
             }
+            position = next;
+            distance -= length;
+            remaining.RemoveAt(0);
+        }
+        session.Position = position;
+        session.MovementUpdatedAt = now;
+        session.Waypoints = remaining.Count == 0 ? new List<Point2D>() : new[] { position }.Concat(remaining).ToList();
+        if (remaining.Count == 0)
+        {
+            session.State = "idle";
+            session.Target = null;
         }
     }
 

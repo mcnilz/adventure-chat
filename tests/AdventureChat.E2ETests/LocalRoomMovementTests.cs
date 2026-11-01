@@ -6,6 +6,60 @@ namespace AdventureChat.E2ETests;
 [TestFixture]
 public class LocalRoomMovementTests
 {
+    [Test]
+    public async Task DelayedMovementFromAnotherRoom_DoesNotChangeCurrentPlayer()
+    {
+        await using var context = await _browser.NewContextAsync();
+        var page = await context.NewPageAsync();
+        await page.GotoAsync(_server.BaseUrl);
+        await page.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__?.connectionStatus === 'connected'");
+        var target = await page.EvaluateAsync<object?>("""
+            () => {
+                const game = window.__ADVENTURE_GAME__;
+                game.state.handlePlayerMoved({roomId: 'old-room', revision: 999, sessionId: game.sessionId,
+                    target: {x: 220, y: 300}, waypoints: [{x: 120, y: 300}, {x: 220, y: 300}]});
+                return game.character.target;
+            }
+            """);
+        Assert.That(target, Is.Null);
+    }
+
+    [Test]
+    public async Task OlderMovement_DoesNotReplaceNewerMovement()
+    {
+        await using var context = await _browser.NewContextAsync();
+        var page = await context.NewPageAsync();
+        await page.GotoAsync(_server.BaseUrl);
+        await page.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__?.connectionStatus === 'connected'");
+        var x = await page.EvaluateAsync<double>("""
+            () => {
+                const game = window.__ADVENTURE_GAME__, state = game.state;
+                const message = (revision, x) => ({roomId: game.room.id, revision, sessionId: game.sessionId,
+                    target: {x, y: 300}, waypoints: [{x: 120, y: 300}, {x, y: 300}]});
+                state.handlePlayerMoved(message(2, 200));
+                state.handlePlayerMoved(message(1, 220));
+                return game.character.target.x;
+            }
+            """);
+        Assert.That(x, Is.EqualTo(200));
+    }
+    [Test]
+    public async Task LongFrame_ConsumesElapsedTimeAcrossWaypoints()
+    {
+        await using var context = await _browser.NewContextAsync();
+        var page = await context.NewPageAsync();
+        await page.GotoAsync(_server.BaseUrl);
+        await page.WaitForSelectorAsync("#game-canvas");
+        var x = await page.EvaluateAsync<double>("""
+            () => {
+                const game = window.__ADVENTURE_GAME__;
+                game.applyPath([{x: 120, y: 300}, {x: 150, y: 300}, {x: 220, y: 300}]);
+                game.update(1);
+                return game.character.position.x;
+            }
+            """);
+        Assert.That(x, Is.EqualTo(220).Within(0.1));
+    }
     private TestServerFixture _server = null!;
     private IPlaywright _playwright = null!;
     private IBrowser _browser = null!;

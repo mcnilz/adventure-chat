@@ -31,6 +31,9 @@ export class AdventureGame {
   private isRunning = false;
   private animationFrameId: number | null = null;
   private currentRequestId = 0;
+  private exitRequestInFlight = false;
+  private exitRetries = 0;
+  private nextExitAttempt = 0;
 
   public constructor(
     private readonly canvas: HTMLCanvasElement,
@@ -50,8 +53,8 @@ export class AdventureGame {
     };
 
     this.networkClient = new RoomNetworkClient({
-      onUserJoined: (dto) => this.state.addOrUpdateRemotePlayer(dto.player),
-      onUserLeft: (dto) => this.state.removeRemotePlayer(dto.sessionId),
+      onUserJoined: (dto) => { if (dto.roomId === this.state.room.id) this.state.addOrUpdateRemotePlayer(dto.player); },
+      onUserLeft: (dto) => { if (dto.roomId === this.state.room.id) this.state.removeRemotePlayer(dto.sessionId); },
       onPlayerMoved: (dto) => this.state.handlePlayerMoved(dto),
       onChatMessageReceived: (dto) => this.state.handleChatMessage(dto),
       onConnectionStatusChanged: (status) => this.onConnectionStatusChanged?.(status),
@@ -69,9 +72,12 @@ export class AdventureGame {
         },
         onNavigateToExit: async (exit, isImmediate) => {
           if (isImmediate) {
-            this.state.pendingExit = null;
-            void this.changeRoom(exit.targetRoomId, exit.targetSpawnId);
+            this.exitRetries = 0;
+            this.nextExitAttempt = 0;
+            this.state.pendingExit = exit;
           } else {
+            this.exitRetries = 0;
+            this.nextExitAttempt = 0;
             this.state.pendingExit = exit;
             await this.setTarget(exit.position);
           }
@@ -177,8 +183,8 @@ export class AdventureGame {
     }
   }
 
-  public async changeRoom(targetRoomId: string, targetSpawnId?: string | null): Promise<boolean> {
-    const result = await this.networkClient.changeRoom(targetRoomId, targetSpawnId);
+  public async changeRoom(exitId: string): Promise<boolean> {
+    const result = await this.networkClient.changeRoom(exitId);
     if (result.success && result.snapshot) {
       this.applyRoomSnapshot(result.snapshot);
       return true;
@@ -262,7 +268,7 @@ export class AdventureGame {
   public update(deltaSeconds: number): void {
     if (deltaSeconds <= 0) return;
 
-    const dt = Math.min(deltaSeconds, 0.1);
+    const dt = deltaSeconds;
 
     updateCharacterMovement(this.state.character, dt);
     for (const remote of this.state.remotePlayers.values()) {
@@ -275,10 +281,16 @@ export class AdventureGame {
         this.state.character.position.x - this.state.pendingExit.position.x,
         this.state.character.position.y - this.state.pendingExit.position.y
       );
-      if (dist <= EXIT_TRIGGER_DISTANCE) {
+      if (dist <= EXIT_TRIGGER_DISTANCE && !this.exitRequestInFlight && performance.now() >= this.nextExitAttempt) {
         const exitToTrigger = this.state.pendingExit;
-        this.state.pendingExit = null;
-        void this.changeRoom(exitToTrigger.targetRoomId, exitToTrigger.targetSpawnId);
+        this.exitRequestInFlight = true;
+        void this.changeRoom(exitToTrigger.id).then((success) => {
+          if (!success && this.state.pendingExit === exitToTrigger) {
+            this.exitRetries++;
+            this.nextExitAttempt = performance.now() + 150;
+            if (this.exitRetries >= 5) this.state.pendingExit = null;
+          }
+        }).finally(() => { this.exitRequestInFlight = false; });
       }
     }
   }

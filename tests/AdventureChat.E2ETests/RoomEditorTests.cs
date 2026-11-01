@@ -15,7 +15,7 @@ public class RoomEditorTests
     [OneTimeSetUp]
     public async Task OneTimeSetUp()
     {
-        _server = new TestServerFixture();
+        _server = new TestServerFixture(authoring: true);
         await _server.StartAsync();
 
         _playwright = await Playwright.CreateAsync();
@@ -61,17 +61,8 @@ public class RoomEditorTests
 
     private void RegisterForCleanup(string roomId)
     {
-        var current = AppContext.BaseDirectory;
-        while (!string.IsNullOrEmpty(current))
-        {
-            var contentDir = Path.Combine(current, "content", "rooms", $"{roomId}.yaml");
-            if (File.Exists(contentDir))
-            {
-                _createdRoomFiles.Add(contentDir);
-                break;
-            }
-            current = Directory.GetParent(current)?.FullName;
-        }
+        var file = Path.Combine(_server.TempRoot, "content", "rooms", $"{roomId}.yaml");
+        if (File.Exists(file)) _createdRoomFiles.Add(file);
     }
 
     [Test]

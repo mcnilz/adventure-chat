@@ -7,6 +7,67 @@ namespace AdventureChat.ServerTests;
 [TestFixture]
 public class RoomSessionManagerTests
 {
+    private sealed class TestClock : TimeProvider
+    {
+        public DateTimeOffset Now { get; set; } = DateTimeOffset.UnixEpoch;
+        public override DateTimeOffset GetUtcNow() => Now;
+    }
+
+    [Test]
+    public void JoinRoom_DuringMovement_SnapshotContainsCurrentPositionAndRemainingRoute()
+    {
+        var clock = new TestClock();
+        var manager = new RoomSessionManager(new RoomService(), new PathfindingService(), clock);
+        manager.JoinRoom("a", "lounge", "A");
+        Assert.That(manager.RequestMove("a", new Point2D(220, 300)).Success, Is.True);
+        clock.Now = clock.Now.AddSeconds(0.5);
+
+        var player = manager.JoinRoom("b", "lounge", "B").Snapshot!.Players.Single(p => p.DisplayName == "A");
+        Assert.That(player.Position.X, Is.EqualTo(185).Within(0.01));
+        Assert.That(player.Waypoints[0].X, Is.EqualTo(185).Within(0.01));
+        Assert.That(player.Waypoints[^1].X, Is.EqualTo(220));
+        clock.Now = clock.Now.AddSeconds(1);
+        player = manager.JoinRoom("c", "lounge", "C").Snapshot!.Players.Single(p => p.DisplayName == "A");
+        Assert.That(player.Position.X, Is.EqualTo(220));
+        Assert.That(player.State, Is.EqualTo("idle"));
+        Assert.That(player.Waypoints, Is.Empty);
+    }
+
+    [Test]
+    public void RequestMove_DuringMovement_StartsAtCurrentServerPosition()
+    {
+        var clock = new TestClock();
+        var manager = new RoomSessionManager(new RoomService(), new PathfindingService(), clock);
+        manager.JoinRoom("a", "lounge", "A");
+        manager.RequestMove("a", new Point2D(220, 300));
+        clock.Now = clock.Now.AddSeconds(0.5);
+        var result = manager.RequestMove("a", new Point2D(200, 320), new Point2D(100, 300));
+        Assert.That(result.Success, Is.True);
+        Assert.That(result.Waypoints![0].X, Is.EqualTo(185).Within(0.01));
+    }
+
+    [Test]
+    public void RequestMove_InvalidTarget_DoesNotCancelExistingMovement()
+    {
+        var clock = new TestClock();
+        var manager = new RoomSessionManager(new RoomService(), new PathfindingService(), clock);
+        manager.JoinRoom("a", "lounge", "A");
+        manager.RequestMove("a", new Point2D(220, 300));
+        clock.Now = clock.Now.AddSeconds(0.5);
+        Assert.That(manager.RequestMove("a", new Point2D(320, 280)).Success, Is.False);
+        clock.Now = clock.Now.AddSeconds(1);
+        var player = manager.JoinRoom("b", "lounge", "B").Snapshot!.Players.Single(p => p.DisplayName == "A");
+        Assert.That(player.State, Is.EqualTo("idle"));
+        Assert.That(player.Position.X, Is.EqualTo(220));
+    }
+
+    [Test]
+    public void UpdatePlayerProgress_CannotTeleportPlayer()
+    {
+        _manager.JoinRoom("a", "lounge", "A");
+        _manager.UpdatePlayerProgress("a", new Point2D(200, 300), "left", "idle");
+        Assert.That(_manager.GetPlayer("a")!.Position, Is.EqualTo(new Point2D(120, 300)));
+    }
     private IRoomService _roomService = null!;
     private IPathfindingService _pathfinder = null!;
     private IRoomSessionManager _manager = null!;
@@ -74,6 +135,16 @@ public class RoomSessionManagerTests
     }
 
     [Test]
+    public void JoinRoom_AlreadyJoinedConnection_IsRejectedWithoutMovingSession()
+    {
+        var first = _manager.JoinRoom("conn-1", "lounge", "A");
+        var second = _manager.JoinRoom("conn-1", "garden", "A");
+        Assert.That(second.Success, Is.False);
+        Assert.That(_manager.GetPlayer("conn-1")!.SessionId, Is.EqualTo(first.Session!.SessionId));
+        Assert.That(_manager.GetPlayer("conn-1")!.RoomId, Is.EqualTo("lounge"));
+    }
+
+    [Test]
     public void Leave_ExistingPlayer_RemovesFromRoom()
     {
         _manager.JoinRoom("conn-1", "lounge", "Guybrush");
@@ -121,9 +192,10 @@ public class RoomSessionManagerTests
     }
 
     [Test]
-    public void RequestMove_WithDynamicCurrentPosition_CalculatesPathFromProvidedPosition()
+    public void RequestMove_ClientPositionCannotOverrideServerPosition()
     {
-        _manager.JoinRoom("conn-1", "lounge", "Guybrush");
+        var join = _manager.JoinRoom("conn-1", "lounge", "Guybrush");
+        var serverPosition = join.Session!.Position;
         // Intermediate position while walking
         var intermediatePos = new Point2D(200, 300);
         var target = new Point2D(500, 300);
@@ -133,11 +205,11 @@ public class RoomSessionManagerTests
         Assert.That(result.Success, Is.True);
         Assert.That(result.Waypoints, Is.Not.Null);
         var waypoints = result.Waypoints!;
-        Assert.That(waypoints[0].X, Is.EqualTo(200));
-        Assert.That(waypoints[0].Y, Is.EqualTo(300));
+        Assert.That(waypoints[0].X, Is.EqualTo(serverPosition.X));
+        Assert.That(waypoints[0].Y, Is.EqualTo(serverPosition.Y));
 
         var player = _manager.GetPlayer("conn-1");
-        Assert.That(player!.Position, Is.EqualTo(intermediatePos));
+        Assert.That(player!.Position, Is.EqualTo(serverPosition));
     }
 
     [Test]
@@ -260,9 +332,9 @@ public class RoomSessionManagerTests
     [Test]
     public void ChangeRoom_ValidTarget_MovesPlayerToTargetRoomAndReturnsSnapshot()
     {
-        _manager.JoinRoom("conn-1", "lounge", "Guybrush");
+        _manager.JoinRoom("conn-1", "lounge", "Guybrush", new Point2D(540, 300));
 
-        var result = _manager.ChangeRoom("conn-1", "garden");
+        var result = _manager.ChangeRoom("conn-1", "to-garden");
 
         Assert.That(result.Success, Is.True);
         Assert.That(result.OldRoomId, Is.EqualTo("lounge"));
@@ -284,9 +356,9 @@ public class RoomSessionManagerTests
     [Test]
     public void ChangeRoom_WithTargetSpawn_PositionsPlayerAtSpecifiedSpawn()
     {
-        _manager.JoinRoom("conn-1", "lounge", "Guybrush");
+        _manager.JoinRoom("conn-1", "lounge", "Guybrush", new Point2D(540, 300));
 
-        var result = _manager.ChangeRoom("conn-1", "garden", "from-lounge");
+        var result = _manager.ChangeRoom("conn-1", "to-garden");
 
         Assert.That(result.Success, Is.True);
         Assert.That(result.Session!.Position, Is.EqualTo(new Point2D(80, 300)));
@@ -316,13 +388,35 @@ public class RoomSessionManagerTests
     }
 
     [Test]
+    public void ChangeRoom_ExitTooFarAway_LeavesSessionInCurrentRoom()
+    {
+        _manager.JoinRoom("conn-1", "lounge", "A");
+        var result = _manager.ChangeRoom("conn-1", "garden");
+        Assert.That(result.Success, Is.False);
+        var distantExit = _manager.ChangeRoom("conn-1", "to-garden");
+        Assert.That(distantExit.Success, Is.False);
+        Assert.That(distantExit.Error, Does.Contain("far"));
+        Assert.That(_manager.GetPlayer("conn-1")!.RoomId, Is.EqualTo("lounge"));
+    }
+
+    [Test]
+    public void ChangeRoom_ValidNearbyExit_UsesServerDestination()
+    {
+        _manager.JoinRoom("conn-1", "lounge", "A", new Point2D(540, 300));
+        var result = _manager.ChangeRoom("conn-1", "to-garden");
+        Assert.That(result.Success, Is.True);
+        Assert.That(result.Session!.RoomId, Is.EqualTo("garden"));
+        Assert.That(result.Session.Position, Is.EqualTo(new Point2D(80, 300)));
+    }
+
+    [Test]
     public void ChangeRoom_IsolatesChatMessagesBetweenRooms()
     {
         _manager.JoinRoom("conn-1", "lounge", "Guybrush");
-        _manager.JoinRoom("conn-2", "lounge", "Elaine");
+        _manager.JoinRoom("conn-2", "lounge", "Elaine", new Point2D(540, 300));
 
         // Elaine moves to garden
-        _manager.ChangeRoom("conn-2", "garden");
+        _manager.ChangeRoom("conn-2", "to-garden");
 
         // Guybrush chats in lounge
         var loungeMsg = _manager.SendChatMessage("conn-1", "Hello Lounge!");

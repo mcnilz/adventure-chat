@@ -23,6 +23,12 @@ export interface UploadBackgroundResponse {
 }
 
 export class EditorApi {
+  private static async authorToken(): Promise<string> {
+    const response = await fetch('/api/editor/status');
+    if (!response.ok) throw new Error(`Autorenmodus nicht verfügbar: HTTP ${response.status}`);
+    const status = await response.json() as { token: string };
+    return status.token;
+  }
   public static async fetchRooms(): Promise<RoomSummaryDto[]> {
     const res = await fetch('/api/editor/rooms');
     if (!res.ok) {
@@ -42,7 +48,7 @@ export class EditorApi {
   public static async validateRoom(room: RoomYamlDto): Promise<ValidationResponse> {
     const res = await fetch('/api/editor/validate', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Author-Token': await this.authorToken() },
       body: JSON.stringify(room)
     });
 
@@ -65,7 +71,7 @@ export class EditorApi {
   public static async validateWorldPayload(rooms: RoomYamlDto[]): Promise<ValidationResponse> {
     const res = await fetch('/api/editor/validate-world', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Author-Token': await this.authorToken() },
       body: JSON.stringify(rooms)
     });
 
@@ -79,7 +85,7 @@ export class EditorApi {
   public static async saveRoom(room: RoomYamlDto): Promise<SaveRoomResponse> {
     const res = await fetch(`/api/editor/rooms/${encodeURIComponent(room.id)}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Author-Token': await this.authorToken() },
       body: JSON.stringify(room)
     });
 
@@ -106,6 +112,7 @@ export class EditorApi {
 
     const res = await fetch('/api/editor/backgrounds', {
       method: 'POST',
+      headers: { 'X-Author-Token': await this.authorToken() },
       body: formData
     });
 

@@ -16,7 +16,7 @@ public class WorldAuthoringTests
     [OneTimeSetUp]
     public async Task OneTimeSetUp()
     {
-        _server = new TestServerFixture();
+        _server = new TestServerFixture(authoring: true);
         await _server.StartAsync();
 
         _playwright = await Playwright.CreateAsync();
@@ -62,21 +62,8 @@ public class WorldAuthoringTests
 
     private void RegisterForCleanup(string roomId)
     {
-        var current = AppContext.BaseDirectory;
-        while (!string.IsNullOrEmpty(current))
-        {
-            var contentDir = Path.Combine(current, "content", "rooms", $"{roomId}.yaml");
-            if (File.Exists(contentDir) && !_createdRoomFiles.Contains(contentDir))
-            {
-                _createdRoomFiles.Add(contentDir);
-            }
-            var serverContentDir = Path.Combine(current, "src", "AdventureChat.Server", "content", "rooms", $"{roomId}.yaml");
-            if (File.Exists(serverContentDir) && !_createdRoomFiles.Contains(serverContentDir))
-            {
-                _createdRoomFiles.Add(serverContentDir);
-            }
-            current = Directory.GetParent(current)?.FullName;
-        }
+        var file = Path.Combine(_server.TempRoot, "content", "rooms", $"{roomId}.yaml");
+        if (File.Exists(file) && !_createdRoomFiles.Contains(file)) _createdRoomFiles.Add(file);
     }
 
     [Test]
@@ -174,6 +161,8 @@ public class WorldAuthoringTests
 
         // 2. Save both rooms via Editor API
         using var httpClient = new HttpClient { BaseAddress = new Uri(_server.BaseUrl) };
+        var status = await httpClient.GetFromJsonAsync<System.Text.Json.JsonElement>("/api/editor/status");
+        httpClient.DefaultRequestHeaders.Add("X-Author-Token", status.GetProperty("token").GetString());
         var respA = await httpClient.PostAsJsonAsync($"/api/editor/rooms/{roomIdA}", roomA);
         Assert.That(respA.IsSuccessStatusCode, Is.True, await respA.Content.ReadAsStringAsync());
         RegisterForCleanup(roomIdA);

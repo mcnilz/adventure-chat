@@ -11,6 +11,8 @@ public class PlayerSession
     public string State { get; set; } = "idle";
     public List<Point2D> Waypoints { get; set; } = new();
     public Point2D? Target { get; set; }
+    public DateTimeOffset MovementUpdatedAt { get; set; }
+    public long MovementRevision { get; set; }
     public DateTime LastActivity { get; set; } = DateTime.UtcNow;
 
     public PlayerDto ToDto()
@@ -22,7 +24,8 @@ public class PlayerSession
             Direction,
             State,
             Target is not null ? new PointDto(Target.Value.X, Target.Value.Y) : null,
-            Waypoints.Select(w => new PointDto(w.X, w.Y)).ToList()
+            Waypoints.Select(w => new PointDto(w.X, w.Y)).ToList(),
+            MovementRevision
         );
     }
 }
@@ -34,7 +37,8 @@ public record PlayerDto(
     string Direction,
     string State,
     PointDto? Target,
-    IReadOnlyList<PointDto> Waypoints
+    IReadOnlyList<PointDto> Waypoints,
+    long MovementRevision
 );
 
 public record RoomSpawnDto(
@@ -109,10 +113,7 @@ public record JoinRoomResultDto(
     RoomSnapshotDto? Snapshot
 );
 
-public record ChangeRoomRequestDto(
-    string TargetRoomId,
-    string? TargetSpawnId = null
-);
+public record ChangeRoomRequestDto(string ExitId);
 
 public record ChangeRoomResultDto(
     bool Success,
@@ -133,16 +134,20 @@ public record RequestMoveDto(
 public record PlayerMovedDto(
     string SessionId,
     PointDto Target,
-    IReadOnlyList<PointDto> Waypoints
+    IReadOnlyList<PointDto> Waypoints,
+    string RoomId,
+    long Revision
 );
 
 public record UserJoinedDto(
-    PlayerDto Player
+    PlayerDto Player,
+    string RoomId
 );
 
 public record UserLeftDto(
     string SessionId,
-    string DisplayName
+    string DisplayName,
+    string RoomId
 );
 
 public static class RoomDtoExtensions
