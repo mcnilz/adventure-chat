@@ -25,6 +25,18 @@ public class RoomEditorTests
         });
     }
 
+    [TearDown]
+    public void TearDown()
+    {
+        foreach (var file in _createdRoomFiles.ToArray())
+        {
+            if (File.Exists(file))
+            {
+                try { File.Delete(file); _createdRoomFiles.Remove(file); } catch { /* ignore */ }
+            }
+        }
+    }
+
     [OneTimeTearDown]
     public async Task OneTimeTearDown()
     {
@@ -71,6 +83,7 @@ public class RoomEditorTests
 
         // Select lounge explicitly to check form binding
         await page.SelectOptionAsync("#room-select", "lounge");
+        await page.WaitForFunctionAsync("() => document.getElementById('input-id')?.value === 'lounge'");
         var currentRoomId = await page.InputValueAsync("#input-id");
         Assert.That(currentRoomId, Is.EqualTo("lounge"));
 
@@ -188,6 +201,95 @@ public class RoomEditorTests
         await page.ClickAsync("#btn-toggle-mode");
         var modeAfter = await page.EvaluateAsync<string>("() => window.__ROOM_EDITOR__.getMode()");
         Assert.That(modeAfter, Is.EqualTo("edit"));
+
+        await context.DisposeAsync();
+    }
+
+    [Test]
+    public async Task Editor_Inspector_ShowsAndEditsActiveElement()
+    {
+        var context = await _browser.NewContextAsync();
+        var page = await context.NewPageAsync();
+
+        await page.GotoAsync($"{_server.BaseUrl}/editor.html");
+        await page.WaitForSelectorAsync("#editor-canvas");
+        await page.WaitForFunctionAsync("() => document.querySelectorAll('#room-select option').length >= 2");
+
+        // Select lounge explicitly
+        await page.SelectOptionAsync("#room-select", "lounge");
+        await page.WaitForFunctionAsync("() => document.getElementById('input-id')?.value === 'lounge'");
+
+        // Initially no element selected -> inspector shows empty hint
+        var isEmptyVisible = await page.IsVisibleAsync("#inspector-empty");
+        Assert.That(isEmptyVisible, Is.True);
+
+        // Click near the first walkable vertex of lounge: (40, 240)
+        var canvasBounding = await page.Locator("#editor-canvas").BoundingBoxAsync();
+        Assert.That(canvasBounding, Is.Not.Null);
+
+        await page.Mouse.ClickAsync(canvasBounding!.X + 40, canvasBounding.Y + 240);
+
+        // Vertex inspector should now be visible
+        await page.WaitForSelectorAsync("#inspector-vertex", new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible });
+        var badgeText = await page.InnerTextAsync("#inspector-vertex-badge");
+        Assert.That(badgeText, Does.Contain("Bodenpunkt #1"));
+
+        var initialX = await page.InputValueAsync("#inspector-vertex-x");
+        Assert.That(initialX, Is.EqualTo("40"));
+
+        // Edit coordinate in inspector
+        await page.FillAsync("#inspector-vertex-x", "45");
+        var stateX = await page.EvaluateAsync<int>("() => window.__ROOM_EDITOR__.getState().getRoom().walkable[0].points[0].x");
+        Assert.That(stateX, Is.EqualTo(45));
+
+        // Click on spawn point near (120, 300) in lounge
+        await page.Mouse.ClickAsync(canvasBounding.X + 120, canvasBounding.Y + 300);
+        await page.WaitForSelectorAsync("#inspector-spawn", new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible });
+        var spawnIdVal = await page.InputValueAsync("#inspector-spawn-id");
+        Assert.That(spawnIdVal, Is.EqualTo("entry"));
+
+        // Delete spawn via inspector button
+        await page.ClickAsync("#btn-inspector-delete-spawn");
+        var spawnsCount = await page.EvaluateAsync<int>("() => window.__ROOM_EDITOR__.getState().getRoom().spawns.length");
+        Assert.That(spawnsCount, Is.EqualTo(1)); // Was 2 in lounge (entry, from-garden)
+
+        await context.DisposeAsync();
+    }
+
+    [Test]
+    public async Task Editor_EdgeClick_SplitsEdgeAndInsertsVertex()
+    {
+        var context = await _browser.NewContextAsync();
+        var page = await context.NewPageAsync();
+
+        await page.GotoAsync($"{_server.BaseUrl}/editor.html");
+        await page.WaitForSelectorAsync("#editor-canvas");
+        await page.WaitForFunctionAsync("() => document.querySelectorAll('#room-select option').length >= 2");
+
+        // Select lounge explicitly
+        await page.SelectOptionAsync("#room-select", "lounge");
+        await page.WaitForFunctionAsync("() => document.getElementById('input-id')?.value === 'lounge'");
+
+        var initialVertexCount = await page.EvaluateAsync<int>("() => window.__ROOM_EDITOR__.getState().getRoom().walkable[0].points.length");
+
+        // In lounge, bottom edge goes from (600, 345) to (40, 345). Midpoint is (320, 345).
+        var canvasBounding = await page.Locator("#editor-canvas").BoundingBoxAsync();
+        Assert.That(canvasBounding, Is.Not.Null);
+
+        // Hover over the edge at (320, 345)
+        await page.Mouse.MoveAsync(canvasBounding!.X + 320, canvasBounding.Y + 345);
+        await page.WaitForTimeoutAsync(100);
+
+        // Click to split edge and insert point
+        await page.Mouse.ClickAsync(canvasBounding.X + 320, canvasBounding.Y + 345);
+
+        var newVertexCount = await page.EvaluateAsync<int>("() => window.__ROOM_EDITOR__.getState().getRoom().walkable[0].points.length");
+        Assert.That(newVertexCount, Is.EqualTo(initialVertexCount + 1), "A new vertex should be inserted on the clicked edge.");
+
+        // Inspector should show the newly created vertex
+        await page.WaitForSelectorAsync("#inspector-vertex", new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible });
+        var xVal = await page.InputValueAsync("#inspector-vertex-x");
+        Assert.That(int.Parse(xVal), Is.InRange(315, 325));
 
         await context.DisposeAsync();
     }

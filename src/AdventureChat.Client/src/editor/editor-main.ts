@@ -32,7 +32,28 @@ function initializeEditor(): void {
     inputNotes: document.getElementById('input-notes') as HTMLTextAreaElement,
     statusBanner: document.getElementById('status-banner') as HTMLElement,
     errorList: document.getElementById('error-list') as HTMLElement,
-    unsavedBadge: document.getElementById('unsaved-badge') as HTMLElement
+    unsavedBadge: document.getElementById('unsaved-badge') as HTMLElement,
+    // Inspector elements
+    inspectorEmpty: document.getElementById('inspector-empty') as HTMLElement,
+    inspectorVertex: document.getElementById('inspector-vertex') as HTMLElement,
+    inspectorVertexBadge: document.getElementById('inspector-vertex-badge') as HTMLElement,
+    inspectorVertexX: document.getElementById('inspector-vertex-x') as HTMLInputElement,
+    inspectorVertexY: document.getElementById('inspector-vertex-y') as HTMLInputElement,
+    btnInspectorDeleteVertex: document.getElementById('btn-inspector-delete-vertex') as HTMLButtonElement,
+    inspectorSpawn: document.getElementById('inspector-spawn') as HTMLElement,
+    inspectorSpawnId: document.getElementById('inspector-spawn-id') as HTMLInputElement,
+    inspectorSpawnX: document.getElementById('inspector-spawn-x') as HTMLInputElement,
+    inspectorSpawnY: document.getElementById('inspector-spawn-y') as HTMLInputElement,
+    btnInspectorDeleteSpawn: document.getElementById('btn-inspector-delete-spawn') as HTMLButtonElement,
+    inspectorExit: document.getElementById('inspector-exit') as HTMLElement,
+    inspectorExitId: document.getElementById('inspector-exit-id') as HTMLInputElement,
+    inspectorExitRoom: document.getElementById('inspector-exit-room') as HTMLInputElement,
+    inspectorExitTargetSpawn: document.getElementById('inspector-exit-target-spawn') as HTMLInputElement,
+    inspectorExitLabel: document.getElementById('inspector-exit-label') as HTMLInputElement,
+    inspectorExitX: document.getElementById('inspector-exit-x') as HTMLInputElement,
+    inspectorExitY: document.getElementById('inspector-exit-y') as HTMLInputElement,
+    inspectorExitRadius: document.getElementById('inspector-exit-radius') as HTMLInputElement,
+    btnInspectorDeleteExit: document.getElementById('btn-inspector-delete-exit') as HTMLButtonElement
   };
 
   const app = new EditorApp(canvas, elements);

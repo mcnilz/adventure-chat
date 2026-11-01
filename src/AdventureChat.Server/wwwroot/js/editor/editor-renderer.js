@@ -24,7 +24,7 @@ export class EditorRenderer {
             this.backgroundImage.src = url;
         }
     }
-    render(room, selection, mousePos, dragPos, hoveredVertex) {
+    render(room, selection, mousePos, dragPos, hoveredVertex, hoveredEdge = null, hoveredEntity = null) {
         const { ctx, canvas } = this;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         // 1. Background image or dark fallback
@@ -68,26 +68,90 @@ export class EditorRenderer {
                 this.drawPolygon(poly.points, 'rgba(245, 101, 101, 0.3)', '#f56565', 'obstacle', oIdx, selection, hoveredVertex, dragPos);
             }
         }
-        // 5. Exits
+        // 5. Highlight Hovered Edge & Split Indicator
+        if (hoveredEdge) {
+            this.drawEdgeHighlight(room, hoveredEdge);
+        }
+        // 6. Exits
         if (room.exits) {
             for (const exit of room.exits) {
-                this.drawExit(exit, selection);
+                this.drawExit(exit, selection, hoveredEntity?.type === 'exit' && hoveredEntity.id === exit.id);
             }
         }
-        // 6. Spawns
+        // 7. Spawns
         for (const spawn of room.spawns) {
-            this.drawSpawn(spawn, selection);
+            this.drawSpawn(spawn, selection, hoveredEntity?.type === 'spawn' && hoveredEntity.id === spawn.id);
         }
-        // 7. Mouse cursor readout
+        // 8. Dynamic Mouse cursor readout (jumps away from mouse to never obstruct artwork or cursor)
         if (mousePos) {
             ctx.save();
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
-            ctx.fillRect(8, room.size.height - 28, 120, 20);
-            ctx.fillStyle = '#cbd5e0';
-            ctx.font = '11px monospace';
-            ctx.fillText(`X: ${Math.round(mousePos.x)}, Y: ${Math.round(mousePos.y)}`, 14, room.size.height - 14);
+            const boxWidth = 120;
+            const boxHeight = 22;
+            const margin = 10;
+            // Determine corner furthest away from mouse
+            const isMouseBottom = mousePos.y > room.size.height / 2;
+            const isMouseLeft = mousePos.x < room.size.width / 2;
+            // Position in corner opposite to mouse
+            const posX = isMouseLeft ? room.size.width - boxWidth - margin : margin;
+            const posY = isMouseBottom ? margin : room.size.height - boxHeight - margin;
+            ctx.fillStyle = 'rgba(26, 32, 44, 0.85)';
+            ctx.strokeStyle = '#4a5568';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.roundRect(posX, posY, boxWidth, boxHeight, 4);
+            ctx.fill();
+            ctx.stroke();
+            ctx.fillStyle = '#ecc94b';
+            ctx.font = 'bold 11px monospace';
+            ctx.fillText(`X: ${Math.round(mousePos.x)}, Y: ${Math.round(mousePos.y)}`, posX + 8, posY + 15);
             ctx.restore();
         }
+    }
+    drawEdgeHighlight(room, edge) {
+        const polys = edge.polyType === 'walkable' ? room.walkable : (room.obstacles ?? []);
+        const poly = polys[edge.polyIndex];
+        if (!poly || poly.points.length < 2)
+            return;
+        const p1 = poly.points[edge.edgeIndex];
+        const p2 = poly.points[(edge.edgeIndex + 1) % poly.points.length];
+        if (!p1 || !p2)
+            return;
+        const { ctx } = this;
+        ctx.save();
+        // Glowing edge line
+        ctx.beginPath();
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
+        ctx.strokeStyle = '#ecc94b';
+        ctx.lineWidth = 4;
+        ctx.setLineDash([6, 3]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        // Split handle button at splitPoint
+        const { x, y } = edge.splitPoint;
+        ctx.beginPath();
+        ctx.arc(x, y, 7, 0, Math.PI * 2);
+        ctx.fillStyle = '#ecc94b';
+        ctx.fill();
+        ctx.strokeStyle = '#1a202c';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        // Plus (+) symbol in handle
+        ctx.beginPath();
+        ctx.moveTo(x - 3.5, y);
+        ctx.lineTo(x + 3.5, y);
+        ctx.moveTo(x, y - 3.5);
+        ctx.lineTo(x, y + 3.5);
+        ctx.strokeStyle = '#1a202c';
+        ctx.lineWidth = 1.8;
+        ctx.stroke();
+        // Split hint tooltip
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+        ctx.fillRect(x + 10, y - 22, 130, 18);
+        ctx.fillStyle = '#ecc94b';
+        ctx.font = 'bold 10px sans-serif';
+        ctx.fillText('Kante teilen (+ Punkt)', x + 14, y - 10);
+        ctx.restore();
     }
     drawPolygon(points, fillColor, strokeColor, polyType, polyIndex, selection, hoveredVertex, dragPos) {
         const { ctx } = this;
@@ -146,15 +210,15 @@ export class EditorRenderer {
         }
         ctx.restore();
     }
-    drawSpawn(spawn, selection) {
+    drawSpawn(spawn, selection, isHovered = false) {
         const { ctx } = this;
         const isSelected = selection.type === 'spawn' && selection.spawnId === spawn.id;
         ctx.save();
         const { x, y } = spawn.position;
         // Outer glow / circle
         ctx.beginPath();
-        ctx.arc(x, y, isSelected ? 12 : 9, 0, Math.PI * 2);
-        ctx.fillStyle = isSelected ? '#ecc94b' : '#3182ce';
+        ctx.arc(x, y, isSelected ? 12 : isHovered ? 11 : 9, 0, Math.PI * 2);
+        ctx.fillStyle = isSelected ? '#ecc94b' : isHovered ? '#63b3ed' : '#3182ce';
         ctx.fill();
         ctx.strokeStyle = '#ffffff';
         ctx.lineWidth = 2;
@@ -169,12 +233,12 @@ export class EditorRenderer {
         ctx.lineWidth = 1.5;
         ctx.stroke();
         // Label
-        ctx.fillStyle = '#ffffff';
+        ctx.fillStyle = isSelected ? '#ecc94b' : '#ffffff';
         ctx.font = 'bold 11px sans-serif';
         ctx.fillText(`Spawn: ${spawn.id}`, x + 12, y + 4);
         ctx.restore();
     }
-    drawExit(exit, selection) {
+    drawExit(exit, selection, isHovered = false) {
         const { ctx } = this;
         const isSelected = selection.type === 'exit' && selection.exitId === exit.id;
         ctx.save();
@@ -182,29 +246,29 @@ export class EditorRenderer {
         // Radius circle
         ctx.beginPath();
         ctx.arc(x, y, exit.radius || 30, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(214, 158, 46, 0.2)';
+        ctx.fillStyle = isSelected ? 'rgba(236, 201, 75, 0.25)' : isHovered ? 'rgba(99, 179, 237, 0.25)' : 'rgba(214, 158, 46, 0.2)';
         ctx.fill();
-        ctx.strokeStyle = isSelected ? '#ecc94b' : '#d69e2e';
-        ctx.lineWidth = 2;
+        ctx.strokeStyle = isSelected ? '#ecc94b' : isHovered ? '#63b3ed' : '#d69e2e';
+        ctx.lineWidth = isSelected ? 3 : 2;
         ctx.setLineDash([4, 4]);
         ctx.stroke();
         ctx.setLineDash([]);
         // Bounds rectangle if defined
         if (exit.bounds) {
-            ctx.strokeStyle = '#d69e2e';
+            ctx.strokeStyle = isSelected ? '#ecc94b' : '#d69e2e';
             ctx.lineWidth = 1;
             ctx.strokeRect(exit.bounds.x, exit.bounds.y, exit.bounds.width, exit.bounds.height);
         }
         // Center marker
         ctx.beginPath();
-        ctx.arc(x, y, 6, 0, Math.PI * 2);
-        ctx.fillStyle = '#d69e2e';
+        ctx.arc(x, y, isSelected ? 8 : isHovered ? 7 : 6, 0, Math.PI * 2);
+        ctx.fillStyle = isSelected ? '#ecc94b' : '#d69e2e';
         ctx.fill();
         ctx.strokeStyle = '#ffffff';
         ctx.lineWidth = 1.5;
         ctx.stroke();
         // Label
-        ctx.fillStyle = '#f6e05e';
+        ctx.fillStyle = isSelected ? '#ecc94b' : '#f6e05e';
         ctx.font = 'bold 11px sans-serif';
         const text = exit.label ? `Exit: ${exit.label}` : `Exit -> ${exit.target.room}:${exit.target.spawn}`;
         ctx.fillText(text, x + 10, y - 6);

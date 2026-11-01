@@ -1,5 +1,5 @@
 # Aktueller Stand
-Revision 13 · 01.11.2026.
+Revision 14 · 01.11.2026.
 
 ## Vorhanden
 - [x] Gespräch in Spezifikation, Architektur, Autorenformat und Tickets überführt.
@@ -21,6 +21,7 @@ Revision 13 · 01.11.2026.
 - [x] Clean Code & AI-Agent Guidelines in `docs/agents/coding-standards.md`, `AGENTS.md` und `ARCHITECTURE.md` hinterlegt.
 - [x] Versioniertes JSON Schema (`schemas/room.schema.json`) und kanonisches YAML-Autorenformat implementiert.
 - [x] Lokaler Browser-Raumeditor (`wwwroot/editor.html`) mit Polygon-, Spawn- und Ausgangs-Tools, Validierung und Vorschau-Modus umgesetzt.
+- [x] Usability-Optimierungen im Raumeditor: Auswahl-Inspektor für aktive Elemente, Kanten-Splitten per Klick/Drag zum einfachen Hinzufügen von Bodenpunkten, dynamische reflexionsfreie Koordinatenanzeige, automatische Werkzeugrückstellung auf Auswahl und Tooltips für alle Bedienelemente.
 - [x] Ticket 06 (Raumeditor und YAML-Speicherung) vollständig umgesetzt und getestet (Status: `ready-for-human`).
 - [ ] Skills installiert oder im Zielprojekt geprüft.
 - [ ] Git-Repository und endgültiger Projektname festgelegt.
@@ -29,8 +30,8 @@ Revision 13 · 01.11.2026.
 ## Aktives Ticket
 - **Ticket:** `06-room-editor.md` (Eigenen PNG-Raum im Browsereditor erstellen und speichern)
 - **Status:** `ready-for-human` (wartet auf menschliche Abnahme durch den Benutzer)
-- **Letzter Stand:** Versioniertes JSON Schema `schemas/room.schema.json` bereitgestellt (`/schemas/room.schema.json`). Backend-Dienste für YAML-Serialisierung (`YamlDotNet`), geometrische und semantische Validierung (`JsonSchema.Net`), Pfad-Traversierungs-Schutz und atomares Speichern unter `/api/editor/...` implementiert. Browser-Editor unter `/editor.html` mit visueller Polygon- und Spawn-Bearbeitung, Drag & Drop von Knotenpunkten, Echtzeit-Validierungsanzeige und Vorschau-Modus mit Live-Laufanimationen umgesetzt.
-- **Ausgeführte Checks:** `npm run typecheck` (0 Fehler), `npm run build` (0 Fehler), `dotnet test` (86/86 Tests erfolgreich: 60 ServerTests + 26 E2ETests).
+- **Letzter Stand:** Versioniertes JSON Schema `schemas/room.schema.json` bereitgestellt (`/schemas/room.schema.json`). Backend-Dienste für YAML-Serialisierung (`YamlDotNet`), geometrische und semantische Validierung (`JsonSchema.Net`), Pfad-Traversierungs-Schutz und atomares Speichern unter `/api/editor/...` implementiert. Browser-Editor unter `/editor.html` mit Auswahl-Inspektor, interaktivem Kanten-Splitten, dynamischer Koordinatenanzeige, ausführlichen Tooltips und Vorschau-Modus mit Live-Laufanimationen umgesetzt.
+- **Ausgeführte Checks:** `npm run typecheck` (0 Fehler), `npm run build` (0 Fehler), `dotnet test` (88/88 Tests erfolgreich: 60 ServerTests + 28 E2ETests).
 
 ## Nächste Aktion
 1. Menschliche Abnahme von Ticket 06 durch den Benutzer (oder Übernahme in Status `done`).
@@ -43,7 +44,7 @@ Privater Testbetrieb, ca. zehn Personen, Desktop-Mausbedienung; keine kollidiere
 - `npm run typecheck` in `src/AdventureChat.Client`: 0 Fehler.
 - `npm run build`: 0 Fehler (TypeScript kompiliert und SignalR-Bundle kopiert).
 - `dotnet build`: 0 Fehler, 0 Warnungen.
-- `dotnet test`: 86 Tests erfolgreich bestanden (60 ServerTests, 26 E2ETests).
+- `dotnet test`: 88 Tests erfolgreich bestanden (60 ServerTests, 28 E2ETests).
 
 ## Übergabeformat für spätere Änderungen
 Aktives Ticket, letzter nachgewiesener Stand, ausgeführte Checks und Ergebnisse, konkrete Blocker, nächster Schritt sowie Referenz auf Benutzerabnahme hier knapp festhalten. Erledigte Detailhistorie gehört ins jeweilige Ticket.

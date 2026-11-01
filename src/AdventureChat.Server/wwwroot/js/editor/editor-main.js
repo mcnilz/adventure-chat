@@ -24,7 +24,28 @@ function initializeEditor() {
         inputNotes: document.getElementById('input-notes'),
         statusBanner: document.getElementById('status-banner'),
         errorList: document.getElementById('error-list'),
-        unsavedBadge: document.getElementById('unsaved-badge')
+        unsavedBadge: document.getElementById('unsaved-badge'),
+        // Inspector elements
+        inspectorEmpty: document.getElementById('inspector-empty'),
+        inspectorVertex: document.getElementById('inspector-vertex'),
+        inspectorVertexBadge: document.getElementById('inspector-vertex-badge'),
+        inspectorVertexX: document.getElementById('inspector-vertex-x'),
+        inspectorVertexY: document.getElementById('inspector-vertex-y'),
+        btnInspectorDeleteVertex: document.getElementById('btn-inspector-delete-vertex'),
+        inspectorSpawn: document.getElementById('inspector-spawn'),
+        inspectorSpawnId: document.getElementById('inspector-spawn-id'),
+        inspectorSpawnX: document.getElementById('inspector-spawn-x'),
+        inspectorSpawnY: document.getElementById('inspector-spawn-y'),
+        btnInspectorDeleteSpawn: document.getElementById('btn-inspector-delete-spawn'),
+        inspectorExit: document.getElementById('inspector-exit'),
+        inspectorExitId: document.getElementById('inspector-exit-id'),
+        inspectorExitRoom: document.getElementById('inspector-exit-room'),
+        inspectorExitTargetSpawn: document.getElementById('inspector-exit-target-spawn'),
+        inspectorExitLabel: document.getElementById('inspector-exit-label'),
+        inspectorExitX: document.getElementById('inspector-exit-x'),
+        inspectorExitY: document.getElementById('inspector-exit-y'),
+        inspectorExitRadius: document.getElementById('inspector-exit-radius'),
+        btnInspectorDeleteExit: document.getElementById('btn-inspector-delete-exit')
     };
     const app = new EditorApp(canvas, elements);
     window.__ROOM_EDITOR__ = app;

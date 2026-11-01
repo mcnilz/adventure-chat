@@ -38,18 +38,109 @@
         <div class="canvas-wrapper">
           <canvas id="editor-canvas" width="640" height="360"></canvas>
         </div>
+        <div class="editor-hint-bar">
+          💡 <strong>Tipp:</strong> Klicke auf eine Kante, um sie zu teilen und neue Bodenpunkte herauszuziehen. Klicke auf Punkte, Spawns oder Ausgänge, um deren Eigenschaften im Inspektor zu bearbeiten.
+        </div>
         <nav class="editor-canvas-toolbar" aria-label="Editor Werkzeuge">
-          <button id="tool-select" class="tool-btn active" title="Punkte/Spawns anklicken oder verschieben">🖱️ Auswählen / Ziehen</button>
-          <button id="tool-walkable" class="tool-btn" title="Klicke auf den Canvas, um Punkte zur begehbaren Fläche hinzuzufügen">🟩 Bodenpunkte (+)</button>
-          <button id="tool-obstacle" class="tool-btn" title="Klicke auf den Canvas, um Hindernispunkte hinzuzufügen">🟥 Hindernis (+)</button>
-          <button id="tool-spawn" class="tool-btn" title="Klicke, um einen Startpunkt (Spawn) zu setzen">📍 Spawn setzen</button>
-          <button id="tool-exit" class="tool-btn" title="Klicke, um einen Ausgang zu platzieren">🚪 Ausgang setzen</button>
-          <button id="btn-delete-vertex" class="tool-btn btn-danger" title="Ausgewählten Punkt löschen">🗑️ Punkt löschen</button>
+          <button id="tool-select" class="tool-btn active" title="Auswählen, Verschieben & Kanten teilen: Klicke auf bestehende Punkte, Spawns oder Ausgänge, um sie auszuwählen oder zu ziehen. Klicke auf eine Kante, um sie zu teilen und neue Eckpunkte einzufügen.">🖱️ Auswählen / Ziehen / Kanten teilen</button>
+          <button id="tool-walkable" class="tool-btn" title="Bodenpunkt hinzufügen: Klicke einmal auf den Canvas, um einen Punkt zur begehbaren Fläche hinzuzufügen. Springt danach automatisch zurück auf Auswählen.">🟩 Bodenpunkte (+)</button>
+          <button id="tool-obstacle" class="tool-btn" title="Hindernis hinzufügen: Klicke einmal auf den Canvas, um einen Punkt für ein unpassierbares Hindernis (z. B. Tisch, Wand) hinzuzufügen. Springt danach zurück auf Auswählen.">🟥 Hindernis (+)</button>
+          <button id="tool-spawn" class="tool-btn" title="Startpunkt (Spawn) setzen: Definiert, wo Spieler beim Betreten des Raumes oder nach einem Raumübergang erscheinen.">📍 Spawn setzen</button>
+          <button id="tool-exit" class="tool-btn" title="Ausgang (Exit) platzieren: Definiert eine interaktive Übergangszone zu einem anderen Raum (z. B. Tür, Treppe oder Durchgang).">🚪 Ausgang setzen</button>
+          <button id="btn-delete-vertex" class="tool-btn btn-danger" title="Ausgewähltes Element (Punkt, Spawn oder Ausgang) löschen.">🗑️ Löschen</button>
         </nav>
       </main>
 
       <!-- Sidebar Form & Metadata -->
       <aside class="editor-sidebar">
+        <!-- Active Selection Inspector -->
+        <section class="sidebar-section inspector-section">
+          <h2>🔍 Auswahl-Inspektor</h2>
+          <div id="inspector-container">
+            <div id="inspector-empty" class="inspector-empty">
+              <p class="text-muted">Kein Element ausgewählt.</p>
+              <p class="text-hint">Klicke auf einen Punkt, Spawn oder Ausgang auf der Karte, oder klicke auf eine Kante, um neue Bodenpunkte herauszuziehen.</p>
+            </div>
+
+            <!-- Vertex Inspector -->
+            <div id="inspector-vertex" style="display: none;">
+              <div class="inspector-badge" id="inspector-vertex-badge" title="Aktuell ausgewählter Eckpunkt">Bodenpunkt</div>
+              <p class="text-hint" style="margin-bottom: 8px;">Punkte definieren die begehbare Fläche oder Hindernisgrenzen.</p>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="inspector-vertex-x" title="Horizontale Pixel-Koordinate des Punktes">X-Koordinate:</label>
+                  <input type="number" id="inspector-vertex-x" min="0" max="640" title="X-Koordinate (0 bis 640)">
+                </div>
+                <div class="form-group">
+                  <label for="inspector-vertex-y" title="Vertikale Pixel-Koordinate des Punktes">Y-Koordinate:</label>
+                  <input type="number" id="inspector-vertex-y" min="0" max="360" title="Y-Koordinate (0 bis 360)">
+                </div>
+              </div>
+              <button id="btn-inspector-delete-vertex" class="btn-danger w-100" title="Diesen Eckpunkt aus dem Polygon entfernen">🗑️ Punkt löschen</button>
+            </div>
+
+            <!-- Spawn Inspector -->
+            <div id="inspector-spawn" style="display: none;">
+              <div class="inspector-badge badge-spawn" title="Startposition: Hier spawnen Spielerfiguren">📍 Startpunkt (Spawn)</div>
+              <p class="text-hint" style="margin-bottom: 8px;">Definiert die Einstiegsposition für Spieler in diesem Raum.</p>
+              <div class="form-group">
+                <label for="inspector-spawn-id" title="Eindeutige ID dieses Spawn-Punktes (z. B. entry, from-garden)">Spawn-ID:</label>
+                <input type="text" id="inspector-spawn-id" placeholder="entry" pattern="^[a-zA-Z0-9_-]+$" title="Eindeutige ID (Buchstaben, Ziffern, Bindestriche)">
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="inspector-spawn-x" title="Horizontale Position des Spawns">X-Position:</label>
+                  <input type="number" id="inspector-spawn-x" min="0" max="640">
+                </div>
+                <div class="form-group">
+                  <label for="inspector-spawn-y" title="Vertikale Position des Spawns">Y-Position:</label>
+                  <input type="number" id="inspector-spawn-y" min="0" max="360">
+                </div>
+              </div>
+              <button id="btn-inspector-delete-spawn" class="btn-danger w-100" title="Diesen Spawn-Punkt entfernen">🗑️ Spawn löschen</button>
+            </div>
+
+            <!-- Exit Inspector -->
+            <div id="inspector-exit" style="display: none;">
+              <div class="inspector-badge badge-exit" title="Ausgangsbereich mit Zielraumverknüpfung">🚪 Raum-Ausgang</div>
+              <p class="text-hint" style="margin-bottom: 8px;">Verbindet diesen Raum mit einem Zielraum und einem Ziel-Spawn.</p>
+              <div class="form-group">
+                <label for="inspector-exit-id" title="Eindeutige Ausgangs-ID">Ausgangs-ID:</label>
+                <input type="text" id="inspector-exit-id" placeholder="to-garden" pattern="^[a-zA-Z0-9_-]+$" title="Eindeutige ID des Ausgangs">
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="inspector-exit-room" title="ID des Zielraums (z. B. garden)">Zielraum:</label>
+                  <input type="text" id="inspector-exit-room" placeholder="garden" title="ID des Raumes, in den gewechselt werden soll">
+                </div>
+                <div class="form-group">
+                  <label for="inspector-exit-target-spawn" title="ID des Spawn-Punktes im Zielraum">Ziel-Spawn:</label>
+                  <input type="text" id="inspector-exit-target-spawn" placeholder="from-lounge" title="Spawn-Punkt im Zielraum">
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="inspector-exit-label" title="Anzeigetext für Spieler bei Hover/Interaktion">Label (optional):</label>
+                <input type="text" id="inspector-exit-label" placeholder="Tavernen-Garten" title="Beschriftung (z. B. für Aktionsleiste)">
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="inspector-exit-x" title="X-Koordinate des Ausgangszentrums">X:</label>
+                  <input type="number" id="inspector-exit-x" min="0" max="640">
+                </div>
+                <div class="form-group">
+                  <label for="inspector-exit-y" title="Y-Koordinate des Ausgangszentrums">Y:</label>
+                  <input type="number" id="inspector-exit-y" min="0" max="360">
+                </div>
+                <div class="form-group">
+                  <label for="inspector-exit-radius" title="Interaktionsradius in logischen Pixeln">Radius:</label>
+                  <input type="number" id="inspector-exit-radius" min="5" max="200" value="35" title="Auslöseradius">
+                </div>
+              </div>
+              <button id="btn-inspector-delete-exit" class="btn-danger w-100" title="Diesen Ausgang entfernen">🗑️ Ausgang löschen</button>
+            </div>
+          </div>
+        </section>
+
         <section class="sidebar-section">
           <h2>Raum-Eigenschaften</h2>
           <div class="form-group">

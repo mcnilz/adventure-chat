@@ -55,6 +55,23 @@ export function distance(a: Point, b: Point): number {
   return Math.hypot(dx, dy);
 }
 
+export function closestPointOnSegment(
+  point: Point,
+  a: Point,
+  b: Point
+): { point: Point; t: number; distance: number } {
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  const lenSq = dx * dx + dy * dy;
+  if (lenSq === 0) {
+    const d = distance(point, a);
+    return { point: { x: a.x, y: a.y }, t: 0, distance: d };
+  }
+  const t = Math.max(0, Math.min(1, ((point.x - a.x) * dx + (point.y - a.y) * dy) / lenSq));
+  const proj = { x: a.x + t * dx, y: a.y + t * dy };
+  return { point: proj, t, distance: distance(point, proj) };
+}
+
 export function moveTowards(
   current: Point,
   target: Point,

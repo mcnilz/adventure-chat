@@ -70,3 +70,10 @@ export interface SelectedEntity {
   spawnId?: string;
   exitId?: string;
 }
+
+export interface HoveredEdge {
+  polyType: 'walkable' | 'obstacle';
+  polyIndex: number;
+  edgeIndex: number;
+  splitPoint: RoomPointDto;
+}

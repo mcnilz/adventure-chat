@@ -114,6 +114,84 @@ export class EditorState {
             this.dirty = true;
         }
     }
+    insertVertexOnEdge(polyType, polyIndex, edgeIndex, x, y) {
+        const polys = polyType === 'walkable' ? this.currentRoom.walkable : (this.currentRoom.obstacles ?? []);
+        const poly = polys[polyIndex];
+        if (!poly)
+            return -1;
+        const newIndex = edgeIndex + 1;
+        poly.points.splice(newIndex, 0, { x: Math.round(x), y: Math.round(y) });
+        this.selected = {
+            type: 'vertex',
+            polyType,
+            polyIndex,
+            vertexIndex: newIndex
+        };
+        this.dirty = true;
+        return newIndex;
+    }
+    updateSelectedVertex(x, y) {
+        if (this.selected.type !== 'vertex' || this.selected.vertexIndex === undefined)
+            return false;
+        const polyType = this.selected.polyType ?? 'walkable';
+        const polyIndex = this.selected.polyIndex ?? 0;
+        const polys = polyType === 'walkable' ? this.currentRoom.walkable : (this.currentRoom.obstacles ?? []);
+        const poly = polys[polyIndex];
+        if (poly && poly.points[this.selected.vertexIndex]) {
+            poly.points[this.selected.vertexIndex] = { x: Math.round(x), y: Math.round(y) };
+            this.dirty = true;
+            return true;
+        }
+        return false;
+    }
+    updateSelectedSpawn(id, x, y) {
+        if (this.selected.type !== 'spawn' || !this.selected.spawnId)
+            return false;
+        const spawn = this.currentRoom.spawns.find(s => s.id === this.selected.spawnId);
+        if (!spawn)
+            return false;
+        spawn.id = id;
+        spawn.position = { x: Math.round(x), y: Math.round(y) };
+        this.selected.spawnId = id;
+        this.dirty = true;
+        return true;
+    }
+    updateSelectedExit(update) {
+        if (this.selected.type !== 'exit' || !this.selected.exitId || !this.currentRoom.exits)
+            return false;
+        const exit = this.currentRoom.exits.find(e => e.id === this.selected.exitId);
+        if (!exit)
+            return false;
+        if (update.id !== undefined) {
+            exit.id = update.id;
+            this.selected.exitId = update.id;
+        }
+        if (update.position !== undefined) {
+            exit.position = { x: Math.round(update.position.x), y: Math.round(update.position.y) };
+        }
+        if (update.radius !== undefined)
+            exit.radius = update.radius;
+        if (update.label !== undefined)
+            exit.label = update.label;
+        if (update.target !== undefined)
+            exit.target = update.target;
+        if (update.bounds !== undefined)
+            exit.bounds = update.bounds;
+        this.dirty = true;
+        return true;
+    }
+    deleteSelectedEntity() {
+        if (this.selected.type === 'vertex') {
+            return this.deleteSelectedVertex();
+        }
+        if (this.selected.type === 'spawn' && this.selected.spawnId) {
+            return this.deleteSpawn(this.selected.spawnId);
+        }
+        if (this.selected.type === 'exit' && this.selected.exitId) {
+            return this.deleteExit(this.selected.exitId);
+        }
+        return false;
+    }
     deleteSelectedVertex() {
         if (this.selected.type !== 'vertex' || this.selected.vertexIndex === undefined) {
             return false;

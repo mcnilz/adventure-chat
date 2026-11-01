@@ -1,4 +1,4 @@
-import { distance, isPointWalkable } from '../math.js';
+import { closestPointOnSegment, distance, isPointWalkable } from '../math.js';
 import { RoomRenderer } from '../rendering/renderer.js';
 import { assignPathToCharacter, updateCharacterMovement } from '../simulation/movement.js';
 import { EditorRenderer } from './editor-renderer.js';
@@ -14,6 +14,8 @@ export class EditorApp {
     mouseLogicalPos = null;
     isDragging = false;
     dragPos = null;
+    hoveredEdge = null;
+    hoveredEntity = null;
     // Preview character state
     previewCharacter = null;
     previewAnimationId = null;
@@ -25,6 +27,7 @@ export class EditorApp {
         this.editorRenderer = new EditorRenderer(this.canvas);
         this.bindEvents();
         this.updateFormFromState();
+        this.updateInspector();
         this.render();
     }
     async init() {
@@ -45,6 +48,7 @@ export class EditorApp {
     setTool(tool) {
         this.currentTool = tool;
         this.updateToolButtons();
+        this.updateCursor();
         this.render();
     }
     async loadRoomList(preserveActive = true) {
@@ -90,6 +94,7 @@ export class EditorApp {
             this.editorRenderer.setBackground(dto.background);
             this.elements.roomSelect.value = dto.id;
             this.updateFormFromState();
+            this.updateInspector();
             this.setStatus(`Raum '${dto.name}' geladen.`, 'success');
             this.render();
         }
@@ -165,6 +170,7 @@ export class EditorApp {
             this.elements.btnToggleMode.textContent = '▶️ Raum-Vorschau';
             this.elements.btnToggleMode.classList.remove('active');
             this.stopPreview();
+            this.updateCursor();
             this.render();
         }
     }
@@ -225,6 +231,7 @@ export class EditorApp {
             this.state.setRoom(defaultRoom);
             this.editorRenderer.setBackground(defaultRoom.background);
             this.updateFormFromState();
+            this.updateInspector();
             this.setStatus('Neuer Raum erstellt.', 'info');
             this.render();
         });
@@ -233,19 +240,24 @@ export class EditorApp {
             if (id)
                 void this.loadRoom(id);
         });
-        this.elements.btnDeleteVertex.addEventListener('click', () => {
-            if (this.state.deleteSelectedVertex()) {
+        const handleDelete = () => {
+            if (this.state.deleteSelectedEntity()) {
+                this.updateInspector();
                 this.updateUnsavedBadge();
                 this.render();
             }
-        });
+        };
+        this.elements.btnDeleteVertex.addEventListener('click', handleDelete);
+        this.elements.btnInspectorDeleteVertex.addEventListener('click', handleDelete);
+        this.elements.btnInspectorDeleteSpawn.addEventListener('click', handleDelete);
+        this.elements.btnInspectorDeleteExit.addEventListener('click', handleDelete);
         // Tool selection buttons
         this.elements.toolSelect.addEventListener('click', () => this.setTool('select'));
         this.elements.toolWalkable.addEventListener('click', () => this.setTool('add-walkable'));
         this.elements.toolObstacle.addEventListener('click', () => this.setTool('add-obstacle'));
         this.elements.toolSpawn.addEventListener('click', () => this.setTool('add-spawn'));
         this.elements.toolExit.addEventListener('click', () => this.setTool('add-exit'));
-        // Input bindings
+        // Input bindings (Room metadata)
         this.elements.inputId.addEventListener('input', () => {
             this.state.updateMetadata({ id: this.elements.inputId.value.trim() });
             this.updateUnsavedBadge();
@@ -265,12 +277,90 @@ export class EditorApp {
             this.state.updateMetadata({ notes: this.elements.inputNotes.value });
             this.updateUnsavedBadge();
         });
+        // Inspector Inputs bindings
+        this.elements.inspectorVertexX.addEventListener('input', () => {
+            const x = Number(this.elements.inspectorVertexX.value);
+            const y = Number(this.elements.inspectorVertexY.value);
+            if (Number.isFinite(x) && Number.isFinite(y)) {
+                this.state.updateSelectedVertex(x, y);
+                this.updateUnsavedBadge();
+                this.render();
+            }
+        });
+        this.elements.inspectorVertexY.addEventListener('input', () => {
+            const x = Number(this.elements.inspectorVertexX.value);
+            const y = Number(this.elements.inspectorVertexY.value);
+            if (Number.isFinite(x) && Number.isFinite(y)) {
+                this.state.updateSelectedVertex(x, y);
+                this.updateUnsavedBadge();
+                this.render();
+            }
+        });
+        this.elements.inspectorSpawnId.addEventListener('input', () => {
+            const id = this.elements.inspectorSpawnId.value.trim();
+            const x = Number(this.elements.inspectorSpawnX.value);
+            const y = Number(this.elements.inspectorSpawnY.value);
+            if (id && Number.isFinite(x) && Number.isFinite(y)) {
+                this.state.updateSelectedSpawn(id, x, y);
+                this.updateUnsavedBadge();
+                this.render();
+            }
+        });
+        this.elements.inspectorSpawnX.addEventListener('input', () => {
+            const id = this.elements.inspectorSpawnId.value.trim();
+            const x = Number(this.elements.inspectorSpawnX.value);
+            const y = Number(this.elements.inspectorSpawnY.value);
+            if (id && Number.isFinite(x) && Number.isFinite(y)) {
+                this.state.updateSelectedSpawn(id, x, y);
+                this.updateUnsavedBadge();
+                this.render();
+            }
+        });
+        this.elements.inspectorSpawnY.addEventListener('input', () => {
+            const id = this.elements.inspectorSpawnId.value.trim();
+            const x = Number(this.elements.inspectorSpawnX.value);
+            const y = Number(this.elements.inspectorSpawnY.value);
+            if (id && Number.isFinite(x) && Number.isFinite(y)) {
+                this.state.updateSelectedSpawn(id, x, y);
+                this.updateUnsavedBadge();
+                this.render();
+            }
+        });
+        const updateExitFromInspector = () => {
+            const id = this.elements.inspectorExitId.value.trim();
+            const room = this.elements.inspectorExitRoom.value.trim();
+            const spawn = this.elements.inspectorExitTargetSpawn.value.trim();
+            const label = this.elements.inspectorExitLabel.value.trim();
+            const x = Number(this.elements.inspectorExitX.value);
+            const y = Number(this.elements.inspectorExitY.value);
+            const radius = Number(this.elements.inspectorExitRadius.value) || 35;
+            if (id && room && spawn && Number.isFinite(x) && Number.isFinite(y)) {
+                this.state.updateSelectedExit({
+                    id,
+                    target: { room, spawn },
+                    label: label || null,
+                    position: { x, y },
+                    radius
+                });
+                this.updateUnsavedBadge();
+                this.render();
+            }
+        };
+        this.elements.inspectorExitId.addEventListener('input', updateExitFromInspector);
+        this.elements.inspectorExitRoom.addEventListener('input', updateExitFromInspector);
+        this.elements.inspectorExitTargetSpawn.addEventListener('input', updateExitFromInspector);
+        this.elements.inspectorExitLabel.addEventListener('input', updateExitFromInspector);
+        this.elements.inspectorExitX.addEventListener('input', updateExitFromInspector);
+        this.elements.inspectorExitY.addEventListener('input', updateExitFromInspector);
+        this.elements.inspectorExitRadius.addEventListener('input', updateExitFromInspector);
         // Canvas Mouse events
         this.canvas.addEventListener('mousemove', (e) => this.handleMouseMove(e));
         this.canvas.addEventListener('mousedown', (e) => this.handleMouseDown(e));
         this.canvas.addEventListener('mouseup', () => this.handleMouseUp());
         this.canvas.addEventListener('mouseleave', () => {
             this.mouseLogicalPos = null;
+            this.hoveredEdge = null;
+            this.hoveredEntity = null;
             if (this.isDragging)
                 this.handleMouseUp();
             this.render();
@@ -292,10 +382,46 @@ export class EditorApp {
             return;
         if (this.isDragging && this.dragPos) {
             this.dragPos = { x: Math.round(pos.x), y: Math.round(pos.y) };
+            this.updateInspectorCoordinates(this.dragPos.x, this.dragPos.y);
             this.render();
             return;
         }
+        const room = this.state.getRoom();
+        const hitVertex = this.findVertexAt(pos, room);
+        const hitEntity = this.findEntityAt(pos, room);
+        this.hoveredEntity = hitEntity;
+        if (!hitVertex && !hitEntity && this.currentTool === 'select') {
+            this.hoveredEdge = this.findEdgeAt(pos, room);
+        }
+        else {
+            this.hoveredEdge = null;
+        }
+        this.updateCursor();
         this.render();
+    }
+    updateCursor() {
+        if (this.mode === 'preview') {
+            this.canvas.style.cursor = 'pointer';
+            return;
+        }
+        if (this.isDragging) {
+            this.canvas.style.cursor = 'grabbing';
+            return;
+        }
+        if (this.currentTool === 'select') {
+            if (this.hoveredEntity || (this.mouseLogicalPos && this.findVertexAt(this.mouseLogicalPos, this.state.getRoom()))) {
+                this.canvas.style.cursor = 'grab';
+            }
+            else if (this.hoveredEdge) {
+                this.canvas.style.cursor = 'copy';
+            }
+            else {
+                this.canvas.style.cursor = 'default';
+            }
+        }
+        else {
+            this.canvas.style.cursor = 'crosshair';
+        }
     }
     handleMouseDown(e) {
         const pos = this.screenToLogical(e);
@@ -316,6 +442,8 @@ export class EditorApp {
                 });
                 this.isDragging = true;
                 this.dragPos = { ...pos };
+                this.updateInspector();
+                this.updateCursor();
                 this.render();
                 return;
             }
@@ -325,6 +453,8 @@ export class EditorApp {
                 this.state.setSelection({ type: 'spawn', spawnId: hitSpawn.id });
                 this.isDragging = true;
                 this.dragPos = { ...pos };
+                this.updateInspector();
+                this.updateCursor();
                 this.render();
                 return;
             }
@@ -334,26 +464,45 @@ export class EditorApp {
                 this.state.setSelection({ type: 'exit', exitId: hitExit.id });
                 this.isDragging = true;
                 this.dragPos = { ...pos };
+                this.updateInspector();
+                this.updateCursor();
+                this.render();
+                return;
+            }
+            // 4. Check if clicking on an edge -> split & start dragging!
+            const hitEdge = this.findEdgeAt(pos, room);
+            if (hitEdge) {
+                this.state.insertVertexOnEdge(hitEdge.polyType, hitEdge.polyIndex, hitEdge.edgeIndex, hitEdge.splitPoint.x, hitEdge.splitPoint.y);
+                this.isDragging = true;
+                this.dragPos = { ...hitEdge.splitPoint };
+                this.hoveredEdge = null;
+                this.updateInspector();
+                this.updateUnsavedBadge();
+                this.updateCursor();
                 this.render();
                 return;
             }
             // Clicked on empty space -> clear selection
             this.state.clearSelection();
+            this.updateInspector();
             this.render();
         }
         else if (this.currentTool === 'add-walkable') {
             this.state.addWalkablePoint(pos.x, pos.y);
+            this.updateInspector();
             this.updateUnsavedBadge();
-            this.render();
+            this.setTool('select');
         }
         else if (this.currentTool === 'add-obstacle') {
             this.state.addObstaclePoint(pos.x, pos.y);
+            this.updateInspector();
             this.updateUnsavedBadge();
-            this.render();
+            this.setTool('select');
         }
         else if (this.currentTool === 'add-spawn') {
             const spawnId = prompt('Spawn-ID eingeben:', 'entry') || 'entry';
             this.state.addOrUpdateSpawn(spawnId, pos.x, pos.y);
+            this.updateInspector();
             this.updateUnsavedBadge();
             this.setTool('select');
         }
@@ -367,6 +516,7 @@ export class EditorApp {
                 radius: 35,
                 target: { room: targetRoom, spawn: targetSpawn }
             });
+            this.updateInspector();
             this.updateUnsavedBadge();
             this.setTool('select');
         }
@@ -383,10 +533,12 @@ export class EditorApp {
             else if (sel.type === 'exit' && sel.exitId) {
                 this.state.moveExit(sel.exitId, this.dragPos.x, this.dragPos.y);
             }
+            this.updateInspector();
             this.updateUnsavedBadge();
         }
         this.isDragging = false;
         this.dragPos = null;
+        this.updateCursor();
         this.render();
     }
     handlePreviewClick(pos) {
@@ -432,13 +584,61 @@ export class EditorApp {
         }
         return null;
     }
+    findEntityAt(pos, room) {
+        const hitSpawn = room.spawns.find(s => distance(s.position, pos) <= 12);
+        if (hitSpawn)
+            return { type: 'spawn', id: hitSpawn.id };
+        const hitExit = (room.exits ?? []).find(e => distance(e.position, pos) <= 15);
+        if (hitExit)
+            return { type: 'exit', id: hitExit.id };
+        return null;
+    }
+    findEdgeAt(pos, room) {
+        let closestEdge = null;
+        let minDistance = 8.0; // 8px threshold
+        const checkPoly = (polyType, polyIndex, points) => {
+            const count = points.length;
+            if (count < 2)
+                return;
+            for (let i = 0; i < count; i++) {
+                const p1 = points[i];
+                const p2 = points[(i + 1) % count];
+                const proj = closestPointOnSegment(pos, p1, p2);
+                if (proj.distance < minDistance) {
+                    // Ignore if too close to an existing endpoint (within 6px) to avoid accidental splits over vertices
+                    if (distance(proj.point, p1) > 6 && distance(proj.point, p2) > 6) {
+                        minDistance = proj.distance;
+                        closestEdge = {
+                            polyType,
+                            polyIndex,
+                            edgeIndex: i,
+                            splitPoint: { x: Math.round(proj.point.x), y: Math.round(proj.point.y) }
+                        };
+                    }
+                }
+            }
+        };
+        for (let pIdx = 0; pIdx < room.walkable.length; pIdx++) {
+            const poly = room.walkable[pIdx];
+            if (poly)
+                checkPoly('walkable', pIdx, poly.points);
+        }
+        if (room.obstacles) {
+            for (let oIdx = 0; oIdx < room.obstacles.length; oIdx++) {
+                const poly = room.obstacles[oIdx];
+                if (poly)
+                    checkPoly('obstacle', oIdx, poly.points);
+            }
+        }
+        return closestEdge;
+    }
     render() {
         if (this.mode === 'preview')
             return;
         const room = this.state.getRoom();
         const selection = this.state.getSelection();
         const hovered = this.mouseLogicalPos ? this.findVertexAt(this.mouseLogicalPos, room) : null;
-        this.editorRenderer.render(room, selection, this.mouseLogicalPos, this.dragPos, hovered);
+        this.editorRenderer.render(room, selection, this.mouseLogicalPos, this.dragPos, hovered, this.hoveredEdge, this.hoveredEntity);
     }
     updateFormFromState() {
         const room = this.state.getRoom();
@@ -449,6 +649,81 @@ export class EditorApp {
         this.elements.inputHeight.value = String(room.size.height);
         this.elements.inputNotes.value = room.notes ?? '';
         this.updateUnsavedBadge();
+    }
+    updateInspector() {
+        const sel = this.state.getSelection();
+        const room = this.state.getRoom();
+        this.elements.inspectorEmpty.style.display = 'none';
+        this.elements.inspectorVertex.style.display = 'none';
+        this.elements.inspectorSpawn.style.display = 'none';
+        this.elements.inspectorExit.style.display = 'none';
+        if (sel.type === 'vertex' && sel.vertexIndex !== undefined) {
+            const polys = sel.polyType === 'walkable' ? room.walkable : (room.obstacles ?? []);
+            const poly = polys[sel.polyIndex ?? 0];
+            const pt = poly?.points[sel.vertexIndex];
+            if (pt) {
+                this.elements.inspectorVertex.style.display = 'block';
+                if (sel.polyType === 'obstacle') {
+                    this.elements.inspectorVertexBadge.className = 'inspector-badge badge-obstacle';
+                    this.elements.inspectorVertexBadge.textContent = `🔴 Hindernispunkt #${sel.vertexIndex + 1}`;
+                }
+                else {
+                    this.elements.inspectorVertexBadge.className = 'inspector-badge';
+                    this.elements.inspectorVertexBadge.textContent = `🟢 Bodenpunkt #${sel.vertexIndex + 1}`;
+                }
+                this.elements.inspectorVertexX.value = String(pt.x);
+                this.elements.inspectorVertexY.value = String(pt.y);
+            }
+            else {
+                this.elements.inspectorEmpty.style.display = 'block';
+            }
+        }
+        else if (sel.type === 'spawn' && sel.spawnId) {
+            const spawn = room.spawns.find(s => s.id === sel.spawnId);
+            if (spawn) {
+                this.elements.inspectorSpawn.style.display = 'block';
+                this.elements.inspectorSpawnId.value = spawn.id;
+                this.elements.inspectorSpawnX.value = String(spawn.position.x);
+                this.elements.inspectorSpawnY.value = String(spawn.position.y);
+            }
+            else {
+                this.elements.inspectorEmpty.style.display = 'block';
+            }
+        }
+        else if (sel.type === 'exit' && sel.exitId) {
+            const exit = (room.exits ?? []).find(e => e.id === sel.exitId);
+            if (exit) {
+                this.elements.inspectorExit.style.display = 'block';
+                this.elements.inspectorExitId.value = exit.id;
+                this.elements.inspectorExitRoom.value = exit.target.room;
+                this.elements.inspectorExitTargetSpawn.value = exit.target.spawn;
+                this.elements.inspectorExitLabel.value = exit.label ?? '';
+                this.elements.inspectorExitX.value = String(exit.position.x);
+                this.elements.inspectorExitY.value = String(exit.position.y);
+                this.elements.inspectorExitRadius.value = String(exit.radius || 35);
+            }
+            else {
+                this.elements.inspectorEmpty.style.display = 'block';
+            }
+        }
+        else {
+            this.elements.inspectorEmpty.style.display = 'block';
+        }
+    }
+    updateInspectorCoordinates(x, y) {
+        const sel = this.state.getSelection();
+        if (sel.type === 'vertex') {
+            this.elements.inspectorVertexX.value = String(x);
+            this.elements.inspectorVertexY.value = String(y);
+        }
+        else if (sel.type === 'spawn') {
+            this.elements.inspectorSpawnX.value = String(x);
+            this.elements.inspectorSpawnY.value = String(y);
+        }
+        else if (sel.type === 'exit') {
+            this.elements.inspectorExitX.value = String(x);
+            this.elements.inspectorExitY.value = String(y);
+        }
     }
     updateToolButtons() {
         const tools = {
