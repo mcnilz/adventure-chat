@@ -25,16 +25,30 @@ public static class AppFactory
             })
             : WebApplication.CreateBuilder(filteredArgs);
 
+        var roots = builder.Configuration.GetSection("World:Roots").GetChildren().Select(c => c.Value).ToList();
+        var worldRoot = builder.Configuration["World:Root"];
+        if (worldRoot is not null) roots.Insert(0, worldRoot);
+        if (roots.Any(string.IsNullOrWhiteSpace)) throw new InvalidOperationException("Configured world paths must not be empty.");
+        var worlds = roots.Select(root => WorldPackage.Load(root!)).ToList();
+        if (worlds.Select(w => w.Id).Distinct(StringComparer.OrdinalIgnoreCase).Count() != worlds.Count)
+            throw new InvalidOperationException("Duplicate world IDs in configuration.");
+        foreach (var package in worlds) _ = package.LoadRooms();
+        var world = worlds.FirstOrDefault();
+        if (world is not null) builder.Services.AddSingleton(world);
+
         builder.Services.ConfigureHttpJsonOptions(opt =>
         {
             opt.SerializerOptions.NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals;
+            opt.SerializerOptions.UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow;
         });
 
         builder.Services.AddSignalR();
         builder.Services.AddAntiforgery(o => o.HeaderName = "X-Author-Token");
         builder.Services.AddSingleton<IContentPathProvider>(_ => new ContentPathProvider(
-            builder.Configuration["Content:Root"], builder.Configuration["Content:Schema"], builder.Configuration["Content:WebRoot"]));
-        builder.Services.AddSingleton<IRoomYamlSerializer, RoomYamlSerializer>();
+            world?.Root ?? builder.Configuration["Content:Root"], world is null ? builder.Configuration["Content:Schema"] : WorldPackage.FindSchema("room.schema.json"), builder.Configuration["Content:WebRoot"], world?.Root));
+        builder.Services.AddSingleton<IRoomYamlSerializer>(sp => world is null
+            ? new RoomYamlSerializer()
+            : new RoomYamlSerializer(WorldPackage.FindSchema("room.schema.json"), sp.GetRequiredService<IContentPathProvider>().GetRoomsDirectory()));
         builder.Services.AddSingleton<IRoomValidator>(sp =>
         {
             var pathProvider = sp.GetRequiredService<IContentPathProvider>();
@@ -43,7 +57,9 @@ public static class AppFactory
             return new RoomValidator(pathProvider.GetSchemaFilePath());
         });
         builder.Services.AddSingleton<IPathfindingService, PathfindingService>();
-        builder.Services.AddSingleton<IRoomService, RoomService>();
+        builder.Services.AddSingleton<IRoomService>(sp => new RoomService(
+            sp.GetRequiredService<IContentPathProvider>(), sp.GetRequiredService<IRoomYamlSerializer>(),
+            sp.GetRequiredService<IRoomValidator>(), world));
         builder.Services.AddHostedService<RoomStartupValidation>();
         builder.Services.AddSingleton<IRoomSessionManager, RoomSessionManager>();
         builder.Services.AddSingleton<IEditorService>(sp =>
@@ -52,13 +68,34 @@ public static class AppFactory
             var yamlSerializer = sp.GetRequiredService<IRoomYamlSerializer>();
             var validator = sp.GetRequiredService<IRoomValidator>();
             var roomService = sp.GetRequiredService<IRoomService>();
-            return new EditorService(pathProvider, yamlSerializer, validator, roomService, authoring);
+            return new EditorService(pathProvider, yamlSerializer, validator, roomService, authoring, world);
         });
 
         var app = builder.Build();
 
         app.UseAuthoringAccess(authoring);
 
+        if (world is not null)
+        {
+            app.Use(async (context, next) =>
+            {
+                if (context.Request.Path.StartsWithSegments("/assets/images", out var rest) && rest.HasValue)
+                {
+                    try
+                    {
+                        var relative = "assets/images/" + rest.Value!.TrimStart('/');
+                        var file = WorldPackage.SafePath(world.Root, relative, true);
+                        if (!string.Equals(Path.GetExtension(file), ".png", StringComparison.OrdinalIgnoreCase)) { context.Response.StatusCode = 404; return; }
+                        context.Response.ContentType = "image/png";
+                        context.Response.Headers.CacheControl = "no-store";
+                        await context.Response.SendFileAsync(file);
+                    }
+                    catch (Exception ex) when (ex is InvalidOperationException or IOException or UnauthorizedAccessException) { context.Response.StatusCode = 404; }
+                    return;
+                }
+                await next();
+            });
+        }
         app.UseDefaultFiles();
         app.UseStaticFiles(new StaticFileOptions
         {
@@ -82,9 +119,9 @@ public static class AppFactory
             });
         }
 
-        // Serve content assets if available
+        // Serve legacy content assets if available
         var contentRoot = contentPathProvider.GetContentRoot();
-        if (Directory.Exists(contentRoot))
+        if (world is null && Directory.Exists(contentRoot))
         {
             app.UseStaticFiles(new StaticFileOptions
             {
@@ -92,6 +129,9 @@ public static class AppFactory
                 RequestPath = "/content"
             });
         }
+
+        app.MapGet("/app-assets/character.png", () => Results.File(Path.Combine(app.Environment.WebRootPath, "assets", "images", "character.png"), "image/png"));
+        app.MapGet("/api/world/start", () => Results.Ok(new { roomId = world?.StartRoom ?? "lounge", external = world is not null }));
 
         app.MapHub<RoomHub>("/hub/room");
 

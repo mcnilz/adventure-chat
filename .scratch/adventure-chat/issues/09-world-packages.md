@@ -4,7 +4,7 @@
 
 **Blocked by:** 08 (vor Implementierung lokales Stabilisierungsticket und Status nachweisen), 07
 
-**Status:** draft
+**Status:** in-progress
 
 ## Acceptance criteria
 
@@ -39,3 +39,10 @@ Gezielte Fälle: externe Referenzwelt laden, speichern und erneut laden; falsche
 
 ## Fachkontext
 [Architekturregel](../../../docs/work-packages/world-format-compatibility.md). Root-AGENTS.md und bestehende SPEC.md gelten mit den ausdrücklich bestätigten Erweiterungen aus diesem Paket.
+
+## Arbeitsstand 01.11.2026
+Umfang und öffentliche Testgrenzen bestätigt. Externe Weltpakete, Format `1.0.0` mit `legacy-1`, Offline-Schemas, Start-Spawn, Referenzwelt und lokaler Editorbetrieb implementiert. Ältere Raumdateien und ursprüngliches Schema sind unverändert. Die Unterstützungsmatrix enthält ausschließlich `1.0.0`; diese Erstveröffentlichung deutet die bestehende ganzzahlige Raumversion nicht um. Weitere SemVer-Folgen gelten gemäß Kompatibilitätsvertrag.
+
+Checks: Offline-Restore im Locked Mode aus vorhandenem Paketcache (NuGet-Audit deaktiviert), Client-Typcheck und Build erfolgreich; vollständiger .NET-/Browserlauf: 160 bestanden. Danach Pfadprüfung geschärft und betroffene Weltpakettests erneut erfolgreich. Ein symbolischer Datei-Link-Test wurde wegen fehlender Windows-Berechtigung übersprungen; der tatsächliche Junction-Test bestanden. Ein Browserablauf für externen Eintritt, Editor und Neustart wurde ausgeführt. Vorbereitende unabhängige Reviews fanden Schema-, PNG- und Diagnosefehler; diese sind korrigiert und gezielt nachgeprüft. Abschließendes Review und menschliche Abnahme stehen noch aus.
+
+Ausgangspunkt: `f1cffc70f989ef9c0057e45a3a5813d8cd46f8e1`; zuvor bestehende Planungsänderungen wurden erhalten.

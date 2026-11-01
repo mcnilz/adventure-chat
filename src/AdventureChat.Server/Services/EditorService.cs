@@ -34,25 +34,30 @@ public sealed class EditorService : IEditorService
     private readonly IRoomValidator _validator;
     private readonly IRoomService _roomService;
     private readonly bool _editorEnabled;
+    private readonly WorldPackage? _world;
 
     public EditorService(
         IContentPathProvider pathProvider,
         IRoomYamlSerializer yamlSerializer,
         IRoomValidator validator,
         IRoomService roomService,
-        bool editorEnabled = true)
+        bool editorEnabled = true,
+        WorldPackage? world = null)
     {
         _pathProvider = pathProvider;
         _yamlSerializer = yamlSerializer;
         _validator = validator;
         _roomService = roomService;
         _editorEnabled = editorEnabled;
+        _world = world;
     }
 
     public bool IsEditorEnabled => _editorEnabled;
 
     public IReadOnlyList<RoomSummaryDto> ListRooms()
     {
+        if (_world is not null)
+            return _world.LoadRooms().Select(dto => new RoomSummaryDto(dto.Id, dto.Name, dto.Background, dto.Size.Width, dto.Size.Height)).ToList();
         var summaries = new List<RoomSummaryDto>();
         var roomsDir = _pathProvider.GetRoomsDirectory();
 
@@ -88,6 +93,7 @@ public sealed class EditorService : IEditorService
 
     public RoomYamlDto? GetRoom(string roomId)
     {
+        if (_world is not null) return _world.LoadRooms().SingleOrDefault(room => string.Equals(room.Id, roomId, StringComparison.OrdinalIgnoreCase));
         var targetFile = _pathProvider.GetRoomFilePath(roomId);
         if (File.Exists(targetFile))
         {
@@ -104,9 +110,11 @@ public sealed class EditorService : IEditorService
         var targetFile = _pathProvider.GetRoomFilePath(roomId);
         if (File.Exists(targetFile))
         {
+            if (_world is not null) _ = GetRoom(roomId);
             return File.ReadAllText(targetFile);
         }
 
+        if (_world is not null) return null;
         var memoryRoom = _roomService.GetRoom(roomId);
         if (memoryRoom is not null)
         {
@@ -119,27 +127,48 @@ public sealed class EditorService : IEditorService
 
     public ValidationResult ValidateRoom(RoomYamlDto dto)
     {
-        return _validator.Validate(dto);
+        var result = _validator.Validate(dto);
+        if (!result.IsValid || _world is null) return result;
+        try
+        {
+            var yaml = _yamlSerializer.Serialize(dto);
+            var raw = new YamlDotNet.Serialization.DeserializerBuilder().WithDuplicateKeyChecking().WithAttemptingUnquotedStringTypeDeserialization().Build().Deserialize<object>(yaml);
+            var json = new YamlDotNet.Serialization.SerializerBuilder().JsonCompatible().Build().Serialize(raw);
+            var schema = _validator.ValidateJson(json);
+            if (!schema.IsValid) return schema;
+            _world.ValidateBackground(dto);
+            return result;
+        }
+        catch (Exception ex) { return ValidationResult.Failure(ex.Message); }
     }
 
     public ValidationResult ValidateWorld()
     {
-        var summaries = ListRooms();
-        var roomDtos = new List<RoomYamlDto>();
-        foreach (var summary in summaries)
+        try
         {
-            var dto = GetRoom(summary.Id);
-            if (dto is not null)
-            {
-                roomDtos.Add(dto);
-            }
+            var rooms = ListRooms().Select(summary => GetRoom(summary.Id)).OfType<RoomYamlDto>().ToList();
+            return ValidateWorld(rooms);
         }
-        return _validator.ValidateWorld(roomDtos);
+        catch (Exception ex) { return ValidationResult.Failure(ex.Message); }
     }
 
     public ValidationResult ValidateWorld(IReadOnlyList<RoomYamlDto> rooms)
     {
-        return _validator.ValidateWorld(rooms);
+        var result = _validator.ValidateWorld(rooms);
+        if (!result.IsValid || _world is null) return result;
+        try
+        {
+            foreach (var room in rooms)
+            {
+                var validation = ValidateRoom(room);
+                if (!validation.IsValid) return validation;
+            }
+            var start = rooms.SingleOrDefault(r => string.Equals(r.Id, _world.StartRoom, StringComparison.Ordinal));
+            if (start is null || !start.Spawns.Any(s => string.Equals(s.Id, _world.StartSpawn, StringComparison.Ordinal)))
+                return ValidationResult.Failure("The world start spawn must exist.");
+            return result;
+        }
+        catch (Exception ex) { return ValidationResult.Failure(ex.Message); }
     }
 
     public SaveRoomResult SaveRoom(RoomYamlDto dto)
@@ -149,13 +178,31 @@ public sealed class EditorService : IEditorService
             return new SaveRoomResult(false, ["Authoring / editor mode is disabled on this server instance."]);
         }
 
-        var validation = _validator.Validate(dto);
+        var validation = ValidateRoom(dto);
         if (!validation.IsValid)
         {
             return new SaveRoomResult(false, validation.Errors);
         }
 
         var targetFile = _pathProvider.GetRoomFilePath(dto.Id);
+        if (_world is not null)
+        {
+            try
+            {
+                var worldRooms = _world.LoadRooms().Where(r => !string.Equals(r.Id, dto.Id, StringComparison.OrdinalIgnoreCase)).Append(dto).ToList();
+                var worldValidation = ValidateWorld(worldRooms);
+                if (!worldValidation.IsValid) return new SaveRoomResult(false, worldValidation.Errors);
+                if (File.Exists(targetFile))
+                {
+                    var oldYaml = WorldPackage.ReadYaml(targetFile);
+                    var raw = new YamlDotNet.Serialization.DeserializerBuilder().WithDuplicateKeyChecking().WithAttemptingUnquotedStringTypeDeserialization().Build().Deserialize<object>(oldYaml);
+                    var json = new YamlDotNet.Serialization.SerializerBuilder().JsonCompatible().Build().Serialize(raw);
+                    var oldValidation = _validator.ValidateJson(json);
+                    if (!oldValidation.IsValid) return new SaveRoomResult(false, ["Existing room has an unsupported or invalid format; refusing to overwrite it."]);
+                }
+            }
+            catch (Exception ex) { return new SaveRoomResult(false, [$"Cannot safely save room: {ex.Message}"]); }
+        }
         var canonicalYaml = _yamlSerializer.Serialize(dto);
 
         var tempFile = targetFile + "." + Guid.NewGuid().ToString("N") + ".tmp";
@@ -166,7 +213,10 @@ public sealed class EditorService : IEditorService
             File.Move(tempFile, targetFile, overwrite: true);
 
             // Update in-memory room service
-            _roomService.RegisterOrUpdateRoom(dto.ToRoomDefinition());
+            var room = dto.ToRoomDefinition();
+            if (_world is not null && string.Equals(room.Id, _world.StartRoom, StringComparison.OrdinalIgnoreCase))
+                room = room with { SpawnPoint = room.GetSpawnPosition(_world.StartSpawn) };
+            _roomService.RegisterOrUpdateRoom(room);
 
             return new SaveRoomResult(true, Array.Empty<string>(), dto.Id);
         }
@@ -257,9 +307,15 @@ public sealed class EditorService : IEditorService
 
         var sanitizedFileName = sanitizedBase + ext;
         var dir = _pathProvider.GetBackgroundsDirectory();
-        Directory.CreateDirectory(dir);
+        if (_world is null) Directory.CreateDirectory(dir);
 
         var targetFile = Path.GetFullPath(Path.Combine(dir, sanitizedFileName));
+        if (_world is not null)
+        {
+            try { _world.EnsureManifestUnchanged(); targetFile = WorldPackage.SafePath(_world.Root, $"assets/images/{sanitizedFileName}"); }
+            catch (Exception ex) { return new UploadBackgroundResult(false, Error: ex.Message); }
+            if (File.Exists(targetFile)) return new UploadBackgroundResult(false, Error: "Eine Bilddatei mit diesem Namen existiert bereits.");
+        }
 
         // Guard against Path Traversal
         if (!targetFile.StartsWith(Path.GetFullPath(dir), StringComparison.OrdinalIgnoreCase))

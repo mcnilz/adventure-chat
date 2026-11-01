@@ -17,3 +17,20 @@
 | Editor / Raumeditor | Lokales Browserwerkzeug für Raumdefinitionen |
 | Ticket / Arbeitspaket | Abnehmbarer vertikaler Ausschnitt der Funktion |
 
+## Geplante Welt- und Darstellungsbegriffe
+| Begriff | Bedeutung |
+| --- | --- |
+| Weltpaket | Manifest, Räume und Ressourcen einer unabhängig bereitgestellten Welt |
+| Welt-ID | Stabile Identität und Geltungsbereich einer Welt |
+| Start-Spawn | Eintrittspunkt im Startraum einer Welt |
+| Formatversion | SemVer-Version des öffentlichen Autorenvertrags und seiner Interpretation |
+| Inhaltsversion | SemVer-Version einer konkreten Weltveröffentlichung |
+| Schema-Bündel | Lokale, unveränderliche Schemas einer veröffentlichten Formatversion |
+| Abwärtskompatibilität | Erhalt zugesicherter Bedeutung unterstützter älterer Welten auf neueren Servern |
+| Legacy-Raumformat | Bestehendes Raumformat mit ganzzahligem `version: 1` |
+| Draufsicht | Raumdarstellung mit von oben sichtbarer Figur |
+| Figurengröße | Vom Autor festgelegter Raummaßstab der Figur |
+| Bildschirmskalierung | Anpassung der Darstellung an den verfügbaren Bildschirm |
+| Laufgeschwindigkeit | Serverbestimmte Bewegungsgeschwindigkeit, unabhängig von der optischen Größe |
+| Kameraoffset | Lokale Verschiebung des sichtbaren Raumausschnitts |
+| Tiefenfaktor | Positionsabhängiger Faktor für die Figurengröße mit festem Fußpunkt |

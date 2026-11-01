@@ -31,3 +31,5 @@ Automatisierung für fachliche Regeln und Mehrbenutzerzustand; manuelle Prüfung
 Zwei Räume im Editor neu erstellen und nach Neustart laden. Zwei Browser betreten dieselbe Welt, laufen, chatten und wechseln Räume. Eine Verbindung trennen und erneut verbinden. Anschließend Raumdatei im YAML-Editor mit zugeordnetem Schema bearbeiten und Fehleranzeige prüfen.
 Aktuelle tatsächliche Testläufe und Einschränkungen stehen im aktiven Ticket und in `active-state.md`.
 
+## Grenzen für 09–13
+Für 09 bestätigt: öffentliche Lade- und Dateisystemgrenze mit temporären Welten, bestehende Editor-/HTTP-Grenze und Browserablauf; danach Sitzungs-/Hubgrenze für Mehrweltisolation und öffentliche Darstellungs-, Koordinaten- und Editorgrenzen für Karten, Kamera und Tiefe. Unveränderte ältere Formatfixtures prüfen zugesicherte Semantik und veröffentlichte Schemas; identische lokale IDs und Ressourcenpfade in verschiedenen Welten prüfen Isolation. Visuelle Abnahme ergänzt numerische Prüfungen und Demo-Inhaltschecks. Die konkreten Fälle stehen in den Tickets; die Grenzen für 10–13 sind noch zu bestätigen. Tatsächliche Nachweise stehen im jeweiligen Ticket.

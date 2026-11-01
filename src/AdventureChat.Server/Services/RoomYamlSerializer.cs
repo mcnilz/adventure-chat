@@ -12,13 +12,20 @@ public interface IRoomYamlSerializer
 
 public sealed class RoomYamlSerializer : IRoomYamlSerializer
 {
-    private const string SchemaHeader = "# yaml-language-server: $schema=../../schemas/room.schema.json\n";
+    private readonly string _schemaHeader;
 
     private readonly ISerializer _serializer;
     private readonly IDeserializer _deserializer;
 
-    public RoomYamlSerializer()
+    public RoomYamlSerializer(string? schemaPath = null, string? roomsDirectory = null)
     {
+        var association = "../../schemas/room.schema.json";
+        if (schemaPath is not null && roomsDirectory is not null)
+        {
+            var relative = Path.GetRelativePath(roomsDirectory, schemaPath);
+            association = Path.IsPathFullyQualified(relative) ? new Uri(schemaPath).AbsoluteUri : relative.Replace('\\', '/');
+        }
+        _schemaHeader = $"# yaml-language-server: $schema={association}\n";
         _serializer = new SerializerBuilder()
             .WithNamingConvention(CamelCaseNamingConvention.Instance)
             .ConfigureDefaultValuesHandling(DefaultValuesHandling.OmitNull)
@@ -34,7 +41,7 @@ public sealed class RoomYamlSerializer : IRoomYamlSerializer
     {
         ArgumentNullException.ThrowIfNull(dto);
         var yaml = _serializer.Serialize(dto);
-        return SchemaHeader + yaml;
+        return _schemaHeader + yaml;
     }
 
     public RoomYamlDto Deserialize(string yaml)

@@ -64,3 +64,5 @@ Der Browser-Client ist nach dem Single-Responsibility-Prinzip in saubere, entkop
 - `ui/chat-ui.ts`: XSS-sicheres Chat-Panel, Aktionszeile und DOM-Ereignisentkopplung.
 - `game.ts`: `AdventureGame`-Fassade zur Orchestrierung aller Teilsysteme unter Wahrung stabiler E2E-Hooks.
 
+## Geplante Erweiterung: Weltpakete und Darstellung
+Ticket 09 implementiert externe Weltpakete; Tickets 10–13 erweitern sie gemäß dem [Kompatibilitätsvertrag](docs/work-packages/world-format-compatibility.md). Welt-ID ist die vorgesehene Grenze für Räume, Ressourcen, Sitzungen und Chat. Ticket 09 betreibt eine ausgewählte Welt; Isolation gleichnamiger IDs im Mehrweltbetrieb folgt in Ticket 10. Laufender Zustand bleibt flüchtig. Optionale Draufsicht und feste Figurengröße, horizontale lokale Kamera und Tiefenskalierung behalten Raumkoordinaten und Fußpunkt als Grundlage. Ohne neue Angaben gilt bisheriges Verhalten; Kameraoffset ist lokal und kein Serverzustand. Konkrete Formate und Grenzen werden vor dem jeweiligen Paket bestätigt.

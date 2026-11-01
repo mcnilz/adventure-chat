@@ -10,10 +10,11 @@ public sealed class TestServerFixture : IAsyncDisposable
 {
     private IHost? _host;
     private readonly bool _authoring;
+    private readonly bool _externalWorld;
     public string TempRoot { get; } = Path.Combine(Path.GetTempPath(), "adventure_e2e_" + Guid.NewGuid().ToString("N"));
     public string BaseUrl { get; private set; } = string.Empty;
 
-    public TestServerFixture(bool authoring = false) => _authoring = authoring;
+    public TestServerFixture(bool authoring = false, bool externalWorld = false) { _authoring = authoring; _externalWorld = externalWorld; }
 
     public async Task StartAsync()
     {
@@ -24,9 +25,20 @@ public sealed class TestServerFixture : IAsyncDisposable
         var serverDir = Path.Combine(solutionDir, "src", "AdventureChat.Server");
         var contentRoot = Path.Combine(TempRoot, "content");
         var webRoot = Path.Combine(TempRoot, "wwwroot");
-        CopyDirectory(Path.Combine(solutionDir, "content"), contentRoot);
-        CopyDirectory(Path.Combine(serverDir, "wwwroot"), webRoot);
+        if (!Directory.Exists(contentRoot)) CopyDirectory(Path.Combine(solutionDir, "content"), contentRoot);
+        if (!Directory.Exists(webRoot)) CopyDirectory(Path.Combine(serverDir, "wwwroot"), webRoot);
         var args = new List<string> { "--urls", BaseUrl, "--Content:Root", contentRoot, "--Content:WebRoot", webRoot };
+        if (_externalWorld)
+        {
+            var worldRoot = Path.Combine(TempRoot, "world");
+            if (!Directory.Exists(worldRoot))
+            {
+                CopyDirectory(Path.Combine(solutionDir, "worlds", "reference"), worldRoot);
+                var manifest = Path.Combine(worldRoot, "world.yaml");
+                File.WriteAllText(manifest, File.ReadAllText(manifest).Replace("startRoom: lounge", "startRoom: garden").Replace("startSpawn: entry", "startSpawn: from-lounge"));
+            }
+            args.AddRange(["--World:Root", worldRoot]);
+        }
         if (_authoring) args.Add("--authoring");
 
         var app = AppFactory.CreateApp([], new WebApplicationOptions

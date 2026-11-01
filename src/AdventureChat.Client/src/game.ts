@@ -174,7 +174,11 @@ export class AdventureGame {
   private async joinRoom(): Promise<void> {
     this.changingRoom = true;
     try {
-      const result = await this.networkClient.joinRoom(this.state.room.id, this.state.playerName);
+      const response = await fetch('/api/world/start');
+      if (!response.ok) throw new Error('Weltstart konnte nicht geladen werden.');
+      const start = await response.json() as { roomId: string; external: boolean };
+      const roomId = start.external ? start.roomId : this.state.room.id;
+      const result = await this.networkClient.joinRoom(roomId, this.state.playerName);
       if (result.success && result.snapshot) {
         this.applyRoomSnapshot(result.snapshot);
         this.state.chatMessages.length = 0;

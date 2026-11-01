@@ -6,7 +6,7 @@ export class CharacterRenderer {
 
   public constructor() {
     this.characterSprite = new Image();
-    this.characterSprite.src = 'assets/images/character.png';
+    this.characterSprite.src = '/app-assets/character.png';
     this.characterSprite.onload = () => {
       this.spriteLoaded = true;
     };

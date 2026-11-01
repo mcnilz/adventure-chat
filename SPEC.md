@@ -1,5 +1,5 @@
 # Spezifikation – begehbarer Adventure-Chat
-Revision 1 · Status: zur Durchsicht vorbereitet.
+MVP abgenommen; Erweiterungen 09–13 geplant.
 
 ## Problem Statement
 Ein gewöhnliches Chatfenster vermittelt keinen gemeinsamen Ort. Der Benutzer möchte sich mit anderen Personen in einer Welt im Stil klassischer Lucasfilm-Adventures treffen, mit Figuren bewegen und schreiben können.
@@ -32,7 +32,7 @@ Vorgeschlagen: Canvas 2D und SignalR, ein Serverprozess, lokales Dateisystem fü
 Stabile Raum-, Spawn-, Ausgangs- und Sitzungs-IDs sowie Trennung von Raumdefinition und Laufzeitstatus gehören bereits in den MVP. Keine gemeinsame C#-/TypeScript-Domänenbibliothek erzwingen.
 
 ## Testing Decisions
-Beobachtbares Verhalten statt interner Methoden prüfen. TESTING.md schlägt drei öffentliche Grenzen vor, die vor Umsetzung des betreffenden Pakets bestätigt werden müssen. Es gibt noch keine bestehende Testsuite als Vorbild.
+Beobachtbares Verhalten statt interner Methoden prüfen. TESTING.md schlägt drei öffentliche Grenzen vor, die vor Umsetzung des betreffenden Pakets bestätigt werden müssen. Bestehende Tests und tatsächliche Nachweise stehen in den Tickets und active-state.md.
 
 ## MVP-Abnahme
 - [ ] Autor erstellt zwei Räume im Editor, speichert und öffnet sie nach Neustart.
@@ -52,3 +52,5 @@ Inventar, Gegenstandsaktionen, Dialogbäume, Skriptsprache, SCUMM-Dateiformate, 
 ## Further Notes
 Vorläufige Testzielgröße: zehn gleichzeitige Teilnehmer. Private Testumgebung ist keine Freigabe für öffentlichen Betrieb. Für öffentliche Nutzung später Zugang, Moderation, Datenschutz und Missbrauchsschutz konkret planen.
 
+## Erweiterung: Weltpakete und Darstellung
+Externe Weltpakete werden unabhängig von der Anwendung betrieben; eine mitgelieferte Referenzwelt demonstriert den Ablauf. Die Weltwahl und die Trennung von Teilnehmern, Ressourcen und Raumchat zwischen Welten folgen in Ticket 10. Laufender Zustand wird nicht persistiert. Tickets 11–13 ergänzen begehbare Draufsichtkarten, horizontales Scrollen und kontinuierliche Tiefenskalierung. Mitgelieferte Demo-Welten zeigen drei erreichbare Szenarien: Scrollen, Tiefe und die Kombination; mindestens ein scrollender Raum ist eine Karte. Details und Abnahme stehen in den Tickets 09–13.

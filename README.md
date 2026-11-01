@@ -74,3 +74,32 @@ Editor im Browser aufrufen: `http://localhost:5000/editor.html`
 
 Planungsannahmen: private Tests statt öffentlichem Dienst, ungefähr zehn gleichzeitige Besucher, Desktopbrowser mit Maus, Punktfigur für Wegfindung ohne Spielerkollision, flüchtige Sitzungen und Nachrichten. Diese Annahmen werden vor dem jeweiligen betroffenen Paket bestätigt. GitHub-Veröffentlichung ist eine spätere Option.
 
+
+## Externes Weltpaket (Ticket 09)
+
+Die Referenzwelt kann unabhängig vom Anwendungsverzeichnis kopiert werden:
+
+```powershell
+Copy-Item -Recurse worlds\reference C:\AdventureWorld
+# Als Spielserver; für den lokalen Editor zusätzlich --authoring angeben
+dotnet run --project src\AdventureChat.Server -- --World:Root C:\AdventureWorld --authoring
+```
+
+`world.yaml` bestimmt Welt-ID, Namen, Format- und Inhaltsversion sowie Start-Raum und Start-Spawn. `rooms/*.yaml` enthält das ausdrücklich zugeordnete Legacy-Raumformat `version: 1`; Bilder liegen unter `assets/images`. Der Server prüft alle Dateien beim Start und bricht bei Fehlern ab. Im Spiel erfolgt der Eintritt stets am festgelegten Startpunkt, auch nach Neustart oder Reconnect. Der Editor ist nur im lokalen Autorenmodus verfügbar und speichert im Weltordner. Laufender Spielzustand bleibt flüchtig.
+
+Alternativ lassen sich mehrere Pfade als `--World:Roots:0 <Pfad> --World:Roots:1 <Pfad>` konfigurieren. Alle werden geprüft, doppelte Welt-IDs abgewiesen; bis Ticket 10 wird ausschließlich die erste konfigurierte Welt angeboten. `World:Root` steht, falls zusätzlich angegeben, an erster Stelle. Ohne Weltkonfiguration bleibt der bisherige lokale Betrieb erhalten.
+
+Für YAML-Editoren das mit der Anwendung ausgelieferte `schemas/world/1.0.0/room.schema.json` lokal den Dateien `rooms/*.yaml` und `world.schema.json` dem Manifest zuordnen. Der Browsereditor schreibt beim Speichern eine lokale relative Schema-Zuordnung; Schema-Kommentare sind kein Laufzeitvertrauen. Bei übernommenen Dateien mit älteren Schema-Kommentaren kann die Zuordnung im Texteditor angepasst werden, ohne Raumdaten zu ändern. Die unveränderten Dateien aus `content/rooms` lassen sich durch Kopieren nach `rooms/` im Paket mit `roomFormat: legacy-1` verwenden, sofern die zugehörigen Bilder ebenfalls im Paket liegen.
+
+Beispiel für VS Code mit installierter YAML-Erweiterung: Den externen Weltordner als Arbeitsordner öffnen und in dessen lokalen Einstellungen die beiden absoluten Schema-Dateipfade auf die eigene Installation anpassen:
+
+```json
+{
+  "yaml.schemas": {
+    "file:///D:/adventure-chat/src/AdventureChat.Server/bin/Debug/net10.0/schemas/world/1.0.0/world.schema.json": "world.yaml",
+    "file:///D:/adventure-chat/src/AdventureChat.Server/bin/Debug/net10.0/schemas/world/1.0.0/room.schema.json": "rooms/*.yaml"
+  }
+}
+```
+
+Die Pfade sind Beispiele und müssen auf das lokal vorhandene Schema-Bündel zeigen. Die Referenzdateien enthalten bewusst keine vorrangigen Schema-Kommentare. Unveränderte alte Raumdateien können einen früheren Kommentar enthalten; für eine eindeutige Zuordnung in einem Texteditor gegebenenfalls dessen Schema-Pfad im Kommentar korrigieren. Das ändert weder Raumdaten noch die beim Server maßgebliche Legacy-Zuordnung.

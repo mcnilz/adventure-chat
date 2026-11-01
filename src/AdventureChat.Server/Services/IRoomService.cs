@@ -102,11 +102,22 @@ public sealed class RoomService : IRoomService
     private readonly Dictionary<string, RoomDefinition> _rooms = new(StringComparer.OrdinalIgnoreCase);
     private readonly object _lock = new();
 
-    public RoomService(IContentPathProvider? pathProvider = null, IRoomYamlSerializer? yamlSerializer = null, IRoomValidator? validator = null)
+    public RoomService(IContentPathProvider? pathProvider = null, IRoomYamlSerializer? yamlSerializer = null, IRoomValidator? validator = null, WorldPackage? world = null)
     {
         _pathProvider = pathProvider;
         _yamlSerializer = yamlSerializer;
         _validator = validator;
+
+        if (world is not null)
+        {
+            foreach (var dto in world.LoadRooms())
+            {
+                var room = dto.ToRoomDefinition();
+                if (room.Id == world.StartRoom) room = room with { SpawnPoint = room.GetSpawnPosition(world.StartSpawn) };
+                _rooms.Add(room.Id, room);
+            }
+            return;
+        }
 
         // Seed with built-in defaults
         _rooms[DefaultLounge.Id] = DefaultLounge;

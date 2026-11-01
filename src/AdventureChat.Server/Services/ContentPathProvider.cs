@@ -21,9 +21,11 @@ public sealed partial class ContentPathProvider : IContentPathProvider
     private readonly string _contentRoot;
     private readonly string _schemaPath;
     private readonly string _webRoot;
+    private readonly string? _worldRoot;
 
-    public ContentPathProvider(string? contentRoot = null, string? schemaPath = null, string? webRoot = null)
+    public ContentPathProvider(string? contentRoot = null, string? schemaPath = null, string? webRoot = null, string? worldRoot = null)
     {
+        _worldRoot = worldRoot;
         if (!string.IsNullOrEmpty(contentRoot))
         {
             _contentRoot = Path.GetFullPath(contentRoot);
@@ -57,13 +59,13 @@ public sealed partial class ContentPathProvider : IContentPathProvider
 
     public string GetContentRoot() => _contentRoot;
 
-    public string GetRoomsDirectory() => Path.Combine(_contentRoot, "rooms");
+    public string GetRoomsDirectory() => _worldRoot is null ? Path.Combine(_contentRoot, "rooms") : WorldPackage.SafePath(_worldRoot, "rooms");
 
     public string GetSchemaFilePath() => _schemaPath;
 
     public string GetWebRoot() => _webRoot;
 
-    public string GetBackgroundsDirectory() => Path.Combine(_webRoot, "assets", "images");
+    public string GetBackgroundsDirectory() => _worldRoot is null ? Path.Combine(_webRoot, "assets", "images") : WorldPackage.SafePath(_worldRoot, "assets/images");
 
     public string GetBackgroundsRelativePath() => "assets/images";
 
@@ -83,6 +85,7 @@ public sealed partial class ContentPathProvider : IContentPathProvider
             throw new UnauthorizedAccessException($"Access to path '{targetFile}' outside of content rooms directory is forbidden.");
         }
 
+        if (_worldRoot is not null) return WorldPackage.SafePath(_worldRoot, $"rooms/{roomId}.yaml");
         return targetFile;
     }
 

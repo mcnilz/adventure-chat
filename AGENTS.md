@@ -1,7 +1,7 @@
 # Arbeitsregeln für Codex
 
 ## Auftrag und Start
-Implementiere einen begehbaren Multiplayer-Chat im Browser gemäß SPEC.md. Dieses Dokument ist eine Projektvorlage; noch kein Code vorhanden.
+Implementiere einen begehbaren Multiplayer-Chat im Browser gemäß SPEC.md. Der tatsächliche Implementierungsstand steht in active-state.md.
 Lies zuerst active-state.md, danach GLOSSARY.md, das ausgewählte Ticket und passende Architekturentscheidungen. SPEC.md ist maßgeblich für den Umfang; Tickets konkretisieren ihn. Melde echte Widersprüche, erfinde keine Abnahme.
 
 ## Arbeitsablauf
@@ -15,6 +15,8 @@ Lies zuerst active-state.md, danach GLOSSARY.md, das ausgewählte Ticket und pas
 TypeScript strict; ASP.NET Core/.NET 10; Canvas 2D; HTML/CSS; SignalR als vorgeschlagene Echtzeitverbindung. Keine Node-Serverlaufzeit. Node/npm als kleine Build-Werkzeugkette erlaubt, aber ebenfalls zu prüfen.
 Keine SCUMM-Kompatibilität, keine eigene Skript-VM, keine Inventar-/Dialogsysteme im MVP.
 Eine lauffähige Anwendung, keine Microservices, kein generisches Pluginsystem, keine vorsorglichen Repository-/Eventbus-Schichten. Rendering für Client und Editor gemeinsam nutzen, ohne Editorfunktionen im Spiel zu aktivieren.
+
+Abwärtskompatibilität bestehender Welten ist ein Architekturziel. Bei jeder Änderung am Autorenformat oder dessen Interpretation die Auswirkungen auf veröffentlichte Versionen prüfen, die SemVer-Einstufung begründen und Kompatibilität durch unveränderte ältere Referenzfixtures nachweisen. Veröffentlichte Schemas einschließlich Teilschemas bleiben unverändert. Server akzeptieren nur ausdrücklich unterstützte Formatversionen. Ohne Formatbezug genügt eine kurze begründete Feststellung im Review.
 
 ## Abhängigkeiten
 Jede neue direkte Abhängigkeit begründen: Nutzen, Alternative, Lizenz, Wartung, vollständiger transitiver Baum und Installationsskripte. Bekannte Herkunft ersetzt keine Prüfung. MIT-/BSD-/Apache-artige Lizenzen bevorzugen; andere vor Aufnahme klären.

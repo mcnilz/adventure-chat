@@ -7,14 +7,18 @@ namespace AdventureChat.Server.Hubs;
 public class RoomHub : Hub
 {
     private readonly IRoomSessionManager _sessionManager;
+    private readonly WorldPackage? _world;
 
-    public RoomHub(IRoomSessionManager sessionManager)
+    public RoomHub(IRoomSessionManager sessionManager, WorldPackage? world = null)
     {
         _sessionManager = sessionManager;
+        _world = world;
     }
 
     public async Task<JoinRoomResultDto> JoinRoom(JoinRoomRequestDto request)
     {
+        if (_world is not null && !string.Equals(request.RoomId, _world.StartRoom, StringComparison.OrdinalIgnoreCase))
+            return new JoinRoomResultDto(false, "Join the world at its start room.", null);
         var result = _sessionManager.JoinRoom(Context.ConnectionId, request.RoomId, request.DisplayName);
         if (!result.Success || result.Session is null || result.Snapshot is null)
         {

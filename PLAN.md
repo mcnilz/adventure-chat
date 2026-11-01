@@ -1,5 +1,5 @@
 # Umsetzungsplan
-Status: vorgeschlagene Pakete, noch nicht zur Implementierung freigegeben.
+Status: Tickets 01–08 sind menschlich abgenommen; 09 ist bestätigt und in-progress, 10–13 sind geplante Entwürfe.
 
 | Ticket | Vorführbares Ergebnis | Blocked by |
 | --- | --- | --- |
@@ -10,6 +10,12 @@ Status: vorgeschlagene Pakete, noch nicht zur Implementierung freigegeben.
 | 05 | Zwischen zwei Räumen wechseln; Chat bleibt je Raum getrennt | 04 |
 | 06 | Eigenen PNG-Raum im Editor erstellen, speichern und öffnen | 02 |
 | 07 | Übergänge grafisch verbinden und die selbst erstellte Welt gemeinsam nutzen | 05, 06 |
+| 08 | Multiplayer-Stabilisierung und Autorenbetrieb | 07 |
+| 09 | Externe versionierte Weltpakete und Referenzwelt | 07, 08 |
+| 10 | Weltwahl und isolierter Mehrweltbetrieb | 09 |
+| 11 | Begehbare Karte und feste Figurengröße | 09; Gesamtabnahme: 10 |
+| 12 | Horizontal scrollende Räume | 09; Gesamtabnahme: 10, 11 |
+| 13 | Tiefenskalierung und drei Demo-Szenarien | 09, 11; Gesamtabnahme: 12 |
 
 Die Tickets liegen einzeln unter [.scratch/adventure-chat/issues](.scratch/adventure-chat/issues/).
 Die Reihenfolge 01–07 ist die empfohlene serielle Umsetzung. Ticket 06 hängt fachlich nur von 02 ab; das ist keine automatische Beauftragung paralleler Agenten.
