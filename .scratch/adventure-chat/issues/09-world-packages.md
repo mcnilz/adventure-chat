@@ -4,7 +4,7 @@
 
 **Blocked by:** 08 (vor Implementierung lokales Stabilisierungsticket und Status nachweisen), 07
 
-**Status:** ready-for-human
+**Status:** done
 
 ## Acceptance criteria
 
@@ -54,3 +54,11 @@ Review: Unabhängige Vorprüfung und abschließende Reviews zu Standards und Tic
 4. Optional die unveränderten Dateien aus `content/rooms` in das Paket übernehmen und mit `roomFormat: legacy-1` starten. Die lokalen YAML-Schema-Zuordnungen nach README prüfen.
 
 Erst eine ausdrückliche menschliche Abnahme setzt dieses Ticket auf `done`. Weltwahl und Mehrweltisolation folgen in Ticket 10.
+
+## Erneuter Review · 02.11.2026
+Auf Wunsch des Benutzers erneut selbst geprüft; keine menschliche Produktabnahme. TypeScript-Typcheck und vollständiger .NET-/Browserlauf erfolgreich (163 bestanden); der gezielte externe Browserablauf und 31 Weltpakettests bestanden. Der symbolische Datei-Link-Test bleibt wegen fehlender Berechtigung übersprungen; Junction-Prüfung ist abgedeckt. Der externe Browserablauf prüft einen Teilnehmer; die übrigen Multiplayerprüfungen decken den bisherigen Betrieb ab, keinen separaten Zwei-Browser-Ablauf für externe Welten.
+
+Offene Reviewpunkte: Die Weltvalidierung ist auf Loader und Editor verteilt. `ValidateWorld()` lädt für jeden Raum erneut die gesamte Welt einschließlich PNG-Prüfung; das erzeugt quadratisch zunehmende Arbeit und birgt das Risiko auseinanderlaufender Regeln. Außerdem wurde der vorhandene lokale Bildupload für externe Pakete erweitert, während dieses Ticket Upload-Funktionen ausschließt: Ob sich der Ausschluss auf diese vorhandene Editorfunktion oder auf eine neue Upload-Funktion bezieht, ist eine offene Auslegung. Keine Umsetzung oder Fehlerkorrektur im Zuge dieses Reviews. Zum Zeitpunkt des Reviews wieder `in-progress`; Ticket 08 bleibt `done`.
+
+## Abnahme · 02.11.2026
+Der Benutzer hat Ticket 09 ausdrücklich mit „abgenommen“ akzeptiert und die KI-Prüfung als Grundlage toleriert. Die Prüfungen und Reviews wurden von der KI durchgeführt; der Benutzer hat nicht selbst getestet. Die oben genannten Reviewpunkte und Testgrenzen bleiben dokumentiert und wurden durch die Abnahme nicht als behoben erklärt.
