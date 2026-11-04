@@ -4,7 +4,7 @@
 
 **Blocked by:** 09; für die Abnahme beider Darstellungen zusätzlich 11, für die Mehrwelt-Regressionsprüfung 10
 
-**Status:** in-progress
+**Status:** ready-for-human
 
 ## Acceptance criteria
 
@@ -79,3 +79,5 @@ Rot/Grün an der bestehenden öffentlichen Canvas-Renderergrenze nachgewiesen: b
 Zusätzliche manuelle Abnahme: Zwei Browser an entgegengesetzten Enden desselben Raums positionieren und abwechselnd schreiben. Im jeweils anderen Browser muss die Sprechblase am passenden Rand mit seitlichem Zeiger erscheinen. Während die Nachricht noch sichtbar ist zum Sprecher laufen und den Wechsel zur normalen Blase prüfen.
 
 Nachtragsreview: Standards- und Spec-Prüfung durch getrennte Subagenten ohne offene Befunde. Gleichzeitige Blasen auf derselben Höhe können sich wie bisher überlagern; keine neue Stapel- oder Priorisierungsregel eingeführt.
+
+Abschluss des Nachtrags: Vollsuite 192 Tests bestanden, 0 Warnungen (158,3 Sekunden); Typcheck/Build und Diffprüfung bestanden. Implementierungscommit `a046edb`. Status wieder ready-for-human; menschliche Abnahme der Ergänzung steht aus.
