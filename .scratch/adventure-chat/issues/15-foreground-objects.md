@@ -4,7 +4,7 @@
 
 **Blocked by:** 06, 09, 11 (done); Gesamtabnahme des Zusammenspiels zusätzlich 12 und 14
 
-**Status:** ready-for-human
+**Status:** done
 
 Am 04.11.2026 mit „ok“ für den vorgeschlagenen Umfang, Datenvertrag, Gleichstandsregeln und Testgrenzen freigegeben. Umsetzung erfolgt sequenziell; parallele Subagents nur für die beiden Reviewachsen.
 
@@ -48,7 +48,7 @@ Automatische Freistellung/Segmentierung, 3D, per-Pixel-Tiefenkarten, schräge Ti
 - Bildschirmbilder von Bearbeitung und Vorschau geprüft; neue synthetische Testgrafik ist absichtlich kein fertiges Tischmotiv. Referenzgestaltung bleibt Ticket 16. Keine neuen Abhängigkeiten.
 - Minor-Begründung und explizite Matrix in CONTENT-FORMAT.md und Kompatibilitätsvertrag; ältere Schemas/Teilschemas sowie Referenzfixtures unverändert.
 
-## Manuelle Abnahme (noch offen)
+## Manuelle Abnahme (am 04.11.2026 bestätigt)
 1. Eine Arbeitskopie von tests/Fixtures/foreground außerhalb der Fixture anlegen und Server im Autorenmodus mit dieser Welt starten, beispielsweise: dotnet run --project src/AdventureChat.Server -- --authoring --World:Root <absoluter-Pfad-zur-Arbeitskopie>.
 2. hall im Editor öffnen. Im Bereich Raumobjekte table wählen. Position, Größe und Tiefenlinie ändern, per Maus verschieben und mit Alt+Klick den Boden unter dem Objekt auswählen. Zweites Objekt anlegen, PNG hochladen/zuordnen; überlappende Objekte über die Liste auswählen.
 3. Speichern, Raum neu laden und Werte vergleichen. Ungültige Größe und fehlendes PNG prüfen: Speichern wird abgewiesen. Zweites Objekt löschen und erneut speichern/laden.
@@ -56,3 +56,6 @@ Automatische Freistellung/Segmentierung, 3D, per-Pixel-Tiefenkarten, schräge Ti
 5. Dieselbe Welt in zwei Browserfenstern betreten, gemeinsam vor/hinter dem Objekt laufen und chatten. Maskenkanten, Wechsel ohne Flackern und Lesbarkeit menschlich bewerten.
 
 Alle markierten Kriterien beschreiben den implementierten Stand, keine menschliche Abnahme. Erst ausdrückliche Benutzerabnahme setzt done; danach Ticket 16 vorschlagen, anschließend 13.
+
+## Menschliche Abnahme
+Am 04.11.2026 nach Start der Testwelt foreground ausdrücklich vom Benutzer bestätigt: „funktioniert“. Ticket 15 ist done. Implementierungscommit: e485525. Die lokale Arbeitskopie .scratch/foreground-demo bleibt unverändert und wird nicht mitcommittet. Nächstes Paket: Ticket 16 vorschlagen und vor Umsetzung bestätigen lassen.
