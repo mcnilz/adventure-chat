@@ -4,7 +4,7 @@
 
 **Blocked by:** 09, 10, 11 (done)
 
-**Status:** ready-for-human
+**Status:** done
 
 Am 04.11.2026 in diesem Implementierungschat ausdrücklich bestätigt: „Sehr gut. Wenn man schon bei der Auswahl ist, sollte man auch den Namen eingeben können. So umsetzen“. Bestätigte Grenzen: öffentliche Inhalts-, Hub-/Sitzungs- und Browser-/Canvasgrenzen inklusive Editor. Name wird gemeinsam mit Welt und Figur vor Eintritt eingegeben (24 Zeichen, vorbelegter editierbarer Gastname). Mehrfachwahl erlaubt; Auswahl bleibt bei Raumwechsel und Reconnect, Weltwechsel erneuert sie. Katalogfiguren gelten auch in Draufsicht; ohne Katalog unveränderte Darstellung. Defaultfigur explizit, maximal 32 Einträge, IDs bis 64 Zeichen, Namen bis 100 Zeichen, Framebreite/-höhe 1–256 ganzzahlige Pixel, fest vier Spalten und drei Reihen. Format 1.3.0 ist additive Minor-Erweiterung. Kein Wechsel in laufender Sitzung, keine neuen Abhängigkeiten.
 
@@ -57,6 +57,8 @@ Keine Accounts, Reservierung einer Figur, Persistenz über Browserneustarts, Kle
 4. Eine Verbindung kurz unterbrechen und wiederherstellen: gleicher Name/gleiche Figur, neue Sitzung am Start. Zur Weltwahl zurückgehen: Auswahl wird neu vorbelegt. Für echte zweite Welt zusätzlich `--World:Roots:0 D:/adventure-chat/tests/Fixtures/characters-b` beim Start angeben und zwischen beiden wechseln.
 5. `http://127.0.0.1:5084/editor.html?worldId=characters-a` öffnen, Raum `hall` wählen und Vorschau aktivieren: Defaultfigur Small Hero und Bewegung prüfen.
 
-Grenzen: Sichtprüfung/Politur der gelieferten Mara-/Bruno-Grafiken und die Reparatur/Integration der neuen Referenzhintergründe gehören zu Ticket 16. `worlds/reference` ist bis dahin wegen des bereits vorhandenen Bild-/Raumgrößenunterschieds nicht als Laufzeit-Abnahme geeignet. Keine neue Figurenverwaltung im Editor. Menschliche Abnahme steht aus; die gesetzten Kriterien markieren die nachgewiesene Umsetzung und ersetzen kein `done`.
+Grenzen: Sichtprüfung/Politur der gelieferten Mara-/Bruno-Grafiken und die Reparatur/Integration der neuen Referenzhintergründe gehören zu Ticket 16. `worlds/reference` ist bis dahin wegen des bereits vorhandenen Bild-/Raumgrößenunterschieds nicht als Laufzeit-Abnahme geeignet. Keine neue Figurenverwaltung im Editor.
 
-Lokaler Implementierungscommit: Commit zu diesem Übergabestand auf dem aktuellen Branch (über `git log` auffindbar); kein Push.
+Lokaler Implementierungscommit: `8761c42`; kein Push.
+
+Menschliche Abnahme am 04.11.2026: Benutzer bestätigt „funktioniert“. Ticket 14 ist damit done; Ticket 15 bleibt vor Umsetzung zu bestätigen.
