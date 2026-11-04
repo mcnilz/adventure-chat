@@ -68,6 +68,7 @@ export class RoomState {
     for (const player of snapshot.players) {
       this.movementRevisions.set(player.sessionId, player.movementRevision);
       if (player.sessionId === this.sessionId) {
+        this.character.characterId = player.characterId;
         this.character.name = player.displayName;
         this.playerName = player.displayName;
         this.character.position = { ...player.position };
@@ -92,6 +93,7 @@ export class RoomState {
 
     const char: Character = {
       id: player.sessionId,
+      characterId: player.characterId,
       name: player.displayName,
       position: { ...player.position },
       target: player.target ? { ...player.target } : null,

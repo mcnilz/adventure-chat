@@ -9,6 +9,9 @@ namespace AdventureChat.Server.Services;
 
 public sealed record WorldPackage(string Root, string Id, string Name, string FormatVersion, string ContentVersion, string StartRoom, string StartSpawn)
 {
+    public string? DefaultCharacterId { get; init; }
+    public IReadOnlyList<CharacterDefinition> Characters { get; init; } = Array.Empty<CharacterDefinition>();
+
     public static WorldPackage Load(string root)
     {
         root = Path.GetFullPath(root);
@@ -19,7 +22,7 @@ public sealed record WorldPackage(string Root, string Id, string Name, string Fo
             var deserializer = new DeserializerBuilder().WithDuplicateKeyChecking().WithAttemptingUnquotedStringTypeDeserialization().Build();
             var raw = deserializer.Deserialize<Dictionary<object, object>>(yaml);
             var version = raw.TryGetValue("formatVersion", out var value) ? value?.ToString() : null;
-            if (version is not ("1.0.0" or "1.1.0" or "1.2.0")) throw new InvalidOperationException($"World manifest '{file}', field formatVersion: unsupported version '{version}'.");
+            if (version is not ("1.0.0" or "1.1.0" or "1.2.0" or "1.3.0")) throw new InvalidOperationException($"World manifest '{file}', field formatVersion: unsupported version '{version}'.");
             var json = new SerializerBuilder().JsonCompatible().Build().Serialize(raw);
             var schemaFile = FindSchema("world.schema.json", version);
             var schema = JsonSchema.FromText(File.ReadAllText(schemaFile));
@@ -29,7 +32,9 @@ public sealed record WorldPackage(string Root, string Id, string Name, string Fo
             var contentVersion = Field("contentVersion");
             if (!Regex.IsMatch(contentVersion, @"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-(?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*)(?:\.(?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*))*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$"))
                 throw new InvalidOperationException($"Invalid contentVersion in world manifest '{file}'.");
-            return new WorldPackage(root, Field("id"), Field("name"), version, contentVersion, Field("startRoom"), Field("startSpawn"));
+            var characters = CharacterCatalog.Load(root, JsonNode.Parse(json)!);
+            return new WorldPackage(root, Field("id"), Field("name"), version, contentVersion, Field("startRoom"), Field("startSpawn"))
+            { Characters = characters, DefaultCharacterId = raw.TryGetValue("defaultCharacterId", out var defaultId) ? defaultId.ToString() : null };
         }
         catch (Exception ex) when (ex is not InvalidOperationException)
         {
@@ -39,7 +44,8 @@ public sealed record WorldPackage(string Root, string Id, string Name, string Fo
 
     public void EnsureManifestUnchanged()
     {
-        if (Load(Root) != this) throw new InvalidOperationException($"World '{Id}' manifest changed; restart before editing.");
+        var current = Load(Root);
+        if (current with { Characters = Characters } != this || !current.Characters.SequenceEqual(Characters)) throw new InvalidOperationException($"World '{Id}' manifest changed; restart before editing.");
     }
 
     public IReadOnlyList<AdventureChat.Server.Models.RoomYamlDto> LoadRooms()

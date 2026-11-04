@@ -1,5 +1,5 @@
 # Aktueller Stand
-Revision 34 · 04.11.2026.
+Revision 35 · 04.11.2026.
 
 ## Vorhanden
 - [x] Gespräch in Spezifikation, Architektur, Autorenformat und Tickets überführt.
@@ -32,20 +32,22 @@ Revision 34 · 04.11.2026.
 - [ ] Git-Repository und endgültiger Projektname festgelegt.
 
 ## Aktives Ticket
-- **Neue Tickets 14–16: `draft`.** Am 04.11.2026 ausdrücklich nur Ticketanlage beauftragt; andere Agenten sollen umsetzen. 14: weltbezogene Figurenwahl; 15: Vordergrundobjekte mit Tiefenordnung und Editor; 16: neue Referenzwelt mit Mara/Bruno, Tischmasken und Geometrieabgleich. Umfangsdetails und Testgrenzen bleiben vor Umsetzung zu bestätigen. Keine Implementierung oder Abnahme erfolgt. Verbindliche Reihenfolge auf Benutzerwunsch: 14 → 15 → 16 → 13. Ticket 13 ist kein Blocker für 16.
-- **Vorhandene Benutzeränderungen:** neue Lounge-/Gartenbilder bereits in `worlds/reference`, Inhaltsversion auf 1.0.1 gesetzt; Design Guide und Figuren-/Raumvorlagen unter `worlds/reference/design-guide/` neu. Bildgleichheit der Raumdateien geprüft, Guide/Sheets visuell gesichtet; keine Laufzeit- oder Animationsabnahme. Alte Referenzwelt vor Umstellung in 16 aus dem Git-Basisstand als unveränderte Kompatibilitätsfixture sichern. Details in Ticket 16.
+- **Ticket 14: `ready-for-human`.** Umfang und Testgrenzen am 04.11.2026 bestätigt, ergänzt um Namenseingabe gemeinsam mit Figurenwahl. Name/Figur vor Eintritt, Katalog 1.3.0, gemeinsamer Renderer und Editor umgesetzt. Typcheck/Build, 213 Tests (0 Warnungen), beide Reviewachsen ohne offene Befunde; manuelle Abnahme steht aus. Details und Startbefehl für Prüfwelten im Ticket 14. Tickets 15/16 bleiben draft.
+- **Planung 15/16:** Weiterhin draft, vor Umsetzung bestätigen. Verbindliche Reihenfolge nach Abnahme von 14: 15 → 16 → 13. Ticket 13 ist kein Blocker für 16.
+- **Vorhandene Benutzeränderungen:** neue Lounge-/Gartenbilder und Design Guide unter `worlds/reference` unverändert erhalten; ihre Bildabmessungen passen derzeit nicht zu den alten Raumdaten. Integration und Animationsabnahme gehören zu Ticket 16. Alte Referenzwelt aus b3d0b83 bereits unter `tests/Fixtures/reference-v1` bytegetreu gesichert und für Regressionstests verwendet.
 - **Ticket 12: `done`.** Benutzer hat am 04.11.2026 ausdrücklich klargestellt: „ticket 12 (scrolling) hatte ich schon abgenommen.“ Abnahme einschließlich dokumentiertem Randsprechblasen-Nachtrag nachgetragen. Implementierungscommits `6dd96c7` und `a046edb`. Horizontale Kamera, Format 1.2.0, Editor und Scrollwelt implementiert; abschließende Nachtrags-Vollsuite 192 Tests, 0 Warnungen; Typcheck/Build, beide Reviewachsen und Diffprüfung bestanden. Details im Ticket 12.
 
 - **Ticket 11: `done`.** Bestätigt am 04.11.2026 („ja“), implementiert und geprüft. Kartenwelt `worlds/map`, Draufsichtfigur, feste Höhe 16–128 Raumpixel (Standard 64), separate Geschwindigkeit (Standard 130), Editor und gemeinsame Vorschau, Format 1.1.0 mit unveränderten alten Schemas/Referenzwelten. Vollsuite 183 Tests grün; beide Reviewachsen nach Sackgassenkorrektur ohne offene Befunde. Menschlich am 04.11.2026 abgenommen („funktioniert super“). Details und konkrete Abnahmeschritte: `.scratch/adventure-chat/issues/11-map-view.md`. Implementierungscommit: `a3497dc`.
 - Ticket 10 ist `done`, ausdrücklich am 04.11.2026 abgenommen („abegnommen“), Implementierungscommit `28e3b7f`. Tickets 01–09 bleiben `done`; dokumentierte Reviewpunkte von Ticket 09 bleiben offen.
 
 ## Nächste Aktion
-Tickets 13–16 bleiben draft. Verbindliche Reihenfolge: 14 → 15 → 16 → 13; Ticket 13 erst nach Abschluss aller drei neuen Tickets angehen. Zuerst Ticket 14 mit offenen Detailentscheidungen und Testgrenzen zur Umsetzung bestätigen lassen. Andere Agenten übernehmen die Implementierung; der aktuelle Auftrag umfasst Trackerpflege und Zuordnung des Design Guides zur Referenzwelt. Ticket 12 ist bereits menschlich abgenommen.
+Ticket 14 anhand der Schritte im Ticket menschlich abnehmen lassen. Erst ausdrückliche Abnahme setzt done. Danach verbindlich 15 → 16 → 13; deren Umfang und Testgrenzen jeweils vor Beginn bestätigen. Die alte Referenzwelt ist bereits bytegetreu aus b3d0b83 unter tests/Fixtures/reference-v1 gesichert, weil die neuen Hintergrundbilder nicht zu den bisherigen Raumabmessungen passen. Testfixture-Nutzung ändert die neuen Inhalte unter worlds/reference nicht.
 
 ## Offene Annahmen
 Privater Testbetrieb, ca. zehn Personen, Desktop-Mausbedienung; keine kollidierenden Figuren; Reconnect als frischer Eintritt.
 
 ## Checks
+- Ticket 14, 04.11.: 14 gezielte Inhaltsfälle und sieben neue Browsertests grün; abschließende Vollsuite 213 bestanden, 0 Warnungen. Typcheck/Build und beide Subagent-Reviews bestanden; Screenshot- und Diffprüfung erfolgreich. 1.3.0 als additive Minor-Erweiterung, keine neuen Abhängigkeiten. Alle fünf Dateien der Legacy-Fixture unabhängig bytegetreu gegen b3d0b83 geprüft. Tatsächliche Referenzfiguren erst in Ticket 16.
 - Ticket 12, 04.11.: Rot/Grün-Nachweise für neuen Weltlader und öffentliche Kamera-/Koordinatenberechnung; drei Scroll-Browsertests für zwei Ausschnitte, Chat, Türen, echten Reconnect und Editor inklusive breiter Neuanlage/Speichern/Neuladen grün. Weltvalidierungs-/Scrolltests gezielt erfolgreich; Typcheck und Build bestanden. Abschließende Vollsuite: 191 bestanden, 0 Warnungen. Standards- und Spec-Befunde korrigiert und nachgeprüft, keine offen. Keine neuen Abhängigkeiten. Ältere Schemas/Teilschemas und Referenzfixtures unverändert. Details im Ticket 12.
 - Ticket 11, 04.11.: Typcheck und Clientbuild bestanden. Drei dokumentierte Rot/Grün-Nachweise für neues Format, alte Editorgrenze und Sackgassenwand. Vier gezielte Kartentests bestanden, einschließlich Renderer bei 32/48 Pixeln in vier Richtungen, Stand/Schritt/Fußpunkt, zwei Browser und Editor-Vorschauweg. Abschließende Vollsuite nach Reviewkorrektur: 183 bestanden, keine Warnungen. Standards-Review ohne Befund; Spec-Review fand fehlende begehbare Sackgasse, korrigiert und nachgeprüft. Screenshotprüfung Spiel/Editor bestanden. Keine neuen direkten Abhängigkeiten; Minor-Format und Unterstützungsmatrix dokumentiert. EPERM beim eingeschränkten Browserstart durch Testlauf mit Ausführungsrechten aufgelöst. Details im Ticket.
 

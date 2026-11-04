@@ -26,7 +26,7 @@ public partial class RoomSessionManager : IRoomSessionManager
         _clock = clock ?? TimeProvider.System;
     }
 
-    public JoinResult JoinRoom(string connectionId, string roomId, string? displayName, Point2D? initialPosition = null)
+    public JoinResult JoinRoom(string connectionId, string roomId, string? displayName, Point2D? initialPosition = null, string? characterId = null)
     {
         var room = _roomService.GetRoom(roomId);
         if (room is null)
@@ -50,6 +50,7 @@ public partial class RoomSessionManager : IRoomSessionManager
             SessionId = sessionId,
             RoomId = roomId,
             DisplayName = sanitizedName,
+            CharacterId = characterId,
             Position = spawn,
             Direction = "down",
             State = "idle",

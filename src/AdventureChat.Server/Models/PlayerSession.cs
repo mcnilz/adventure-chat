@@ -5,6 +5,7 @@ public class PlayerSession
     public string ConnectionId { get; set; } = string.Empty;
     public string SessionId { get; set; } = string.Empty;
     public string RoomId { get; set; } = string.Empty;
+    public string? CharacterId { get; set; }
     public string DisplayName { get; set; } = string.Empty;
     public Point2D Position { get; set; }
     public string Direction { get; set; } = "down";
@@ -25,7 +26,7 @@ public class PlayerSession
             State,
             Target is not null ? new PointDto(Target.Value.X, Target.Value.Y) : null,
             Waypoints.Select(w => new PointDto(w.X, w.Y)).ToList(),
-            MovementRevision
+            MovementRevision, CharacterId
         );
     }
 }
@@ -38,7 +39,8 @@ public record PlayerDto(
     string State,
     PointDto? Target,
     IReadOnlyList<PointDto> Waypoints,
-    long MovementRevision
+    long MovementRevision,
+    string? CharacterId = null
 );
 
 public record RoomSpawnDto(
@@ -109,7 +111,8 @@ public record SendChatMessageResultDto(
 public record JoinRoomRequestDto(
     string RoomId,
     string DisplayName,
-    string? WorldId = null
+    string? WorldId = null,
+    string? CharacterId = null
 );
 
 public record JoinRoomResultDto(

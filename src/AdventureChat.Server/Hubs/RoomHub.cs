@@ -29,8 +29,11 @@ public class RoomHub : Hub
             return new JoinRoomResultDto(false, "Unknown world.", null);
         if (selected is not null && !string.Equals(request.RoomId, selected.Package.StartRoom, StringComparison.OrdinalIgnoreCase))
             return new JoinRoomResultDto(false, "Join the world at its start room.", null);
+        var characterId = request.CharacterId ?? selected?.Package.DefaultCharacterId;
+        if (characterId is not null && (selected is null || !selected.Package.Characters.Any(c => c.Id == characterId)))
+            return new JoinRoomResultDto(false, "Figur nicht verfügbar. Bitte erneut auswählen.", null);
         if (selected is not null) Context.Items["world"] = selected;
-        var result = Sessions.JoinRoom(Context.ConnectionId, request.RoomId, request.DisplayName);
+        var result = Sessions.JoinRoom(Context.ConnectionId, request.RoomId, request.DisplayName, characterId: characterId);
         if (!result.Success || result.Session is null || result.Snapshot is null)
         {
             return new JoinRoomResultDto(false, result.Error ?? "Could not join room.", null);

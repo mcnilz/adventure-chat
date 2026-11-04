@@ -1,3 +1,8 @@
 [hidden] { display: none !important; }
 #world-picker { padding: 2rem; max-width: 40rem; margin: auto; }
 #world-picker select, #world-picker button { margin: 1rem; padding: .6rem; }
+
+#world-picker label { display: block; margin-top: .8rem; }
+#world-picker input { margin: .6rem 1rem; padding: .6rem; max-width: 22rem; }
+#character-preview { display: block; margin: auto; image-rendering: pixelated; background: #263241; border-radius: .5rem; }
+#world-picker [role=alert] { color: #ffd080; }

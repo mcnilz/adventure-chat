@@ -35,7 +35,7 @@ public class WorldPackageTests
     [Test]
     public void Load_ReferenceWorld_UsesDeclaredStartAndLegacyFormat()
     {
-        var root = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../../worlds/reference"));
+        var root = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../../tests/Fixtures/reference-v1"));
         var world = WorldPackage.Load(root);
         Assert.Multiple(() =>
         {
@@ -48,7 +48,7 @@ public class WorldPackageTests
     [Test]
     public void LoadRooms_ReferenceWorld_LoadsValidLegacyRooms()
     {
-        var root = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../../worlds/reference"));
+        var root = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../../tests/Fixtures/reference-v1"));
         var world = WorldPackage.Load(root);
         var rooms = world.LoadRooms();
         Assert.That(rooms.Select(r => r.Id), Is.EquivalentTo(new[] { "lounge", "garden" }));
@@ -59,7 +59,7 @@ public class WorldPackageTests
     {
         var solution = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../../"));
         var server = Path.Combine(solution, "src", "AdventureChat.Server");
-        var root = Path.Combine(solution, "worlds", "reference");
+        var root = Path.Combine(solution, "tests/Fixtures/reference-v1");
         var app = AdventureChat.Server.AppFactory.CreateApp([], new Microsoft.AspNetCore.Builder.WebApplicationOptions
         {
             ContentRootPath = server,
@@ -83,7 +83,7 @@ public class WorldPackageTests
     {
         var solution = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../../"));
         var server = Path.Combine(solution, "src", "AdventureChat.Server");
-        var original = Path.Combine(solution, "worlds", "reference");
+        var original = Path.Combine(solution, "tests/Fixtures/reference-v1");
         var copy = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
         foreach (var file in Directory.GetFiles(original, "*", SearchOption.AllDirectories))
         {
@@ -125,7 +125,7 @@ public class WorldPackageTests
     {
         var solution = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../../"));
         var server = Path.Combine(solution, "src", "AdventureChat.Server");
-        var root = Path.Combine(solution, "worlds", "reference");
+        var root = Path.Combine(solution, "tests/Fixtures/reference-v1");
         var app = AdventureChat.Server.AppFactory.CreateApp([], new Microsoft.AspNetCore.Builder.WebApplicationOptions
         {
             ContentRootPath = server,
@@ -149,7 +149,7 @@ public class WorldPackageTests
     {
         var solution = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../../"));
         var server = Path.Combine(solution, "src", "AdventureChat.Server");
-        var root = Path.Combine(solution, "worlds", "reference");
+        var root = Path.Combine(solution, "tests/Fixtures/reference-v1");
         var app = AdventureChat.Server.AppFactory.CreateApp([], new Microsoft.AspNetCore.Builder.WebApplicationOptions
         {
             ContentRootPath = server,
@@ -174,7 +174,7 @@ public class WorldPackageTests
     {
         var solution = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../../"));
         var server = Path.Combine(solution, "src", "AdventureChat.Server");
-        var root = Path.Combine(solution, "worlds", "reference");
+        var root = Path.Combine(solution, "tests/Fixtures/reference-v1");
         var app = AdventureChat.Server.AppFactory.CreateApp([], new Microsoft.AspNetCore.Builder.WebApplicationOptions
         {
             ContentRootPath = server,
@@ -208,7 +208,7 @@ public class WorldPackageTests
     {
         var solution = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../../"));
         var server = Path.Combine(solution, "src", "AdventureChat.Server");
-        var root = Path.Combine(solution, "worlds", "reference");
+        var root = Path.Combine(solution, "tests/Fixtures/reference-v1");
         var ex = Assert.Throws<InvalidOperationException>(() => AdventureChat.Server.AppFactory.CreateApp([], new Microsoft.AspNetCore.Builder.WebApplicationOptions
         {
             ContentRootPath = server,

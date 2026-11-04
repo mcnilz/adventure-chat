@@ -18,7 +18,21 @@ export interface SpeechBubble {
   readonly duration: number; // in milliseconds (e.g. 6000ms = 6s)
 }
 
+export interface CharacterAppearance {
+  readonly id: string;
+  readonly name: string;
+  readonly imageUrl: string;
+  readonly frameWidth: number;
+  readonly frameHeight: number;
+}
+export interface CharacterCatalog {
+  readonly defaultCharacterId: string | null;
+  readonly characters: ReadonlyArray<CharacterAppearance>;
+}
+
 export interface Character {
+  appearance?: CharacterAppearance | undefined;
+  characterId?: string | null | undefined;
   id: string;
   name: string;
   position: Point;
@@ -96,6 +110,7 @@ export interface SendChatMessageResultDto {
 }
 
 export interface PlayerDto {
+  readonly characterId?: string | null | undefined;
   readonly sessionId: string;
   readonly displayName: string;
   readonly position: Point;
@@ -137,6 +152,7 @@ export interface JoinRoomRequestDto {
   readonly roomId: string;
   readonly displayName: string;
   readonly worldId?: string | null;
+  readonly characterId?: string | null;
 }
 
 export interface JoinRoomResultDto {

@@ -13,13 +13,16 @@ async function initialize(): Promise<void> {
   const container = document.getElementById('game-container')!;
   container.hidden = true;
   const worlds = await loadWorlds();
-  const worldId = worlds.length ? await chooseWorld(worlds) : undefined;
+  const selection = worlds.length ? await chooseWorld(worlds) : undefined;
+  const worldId = selection?.worldId;
+  const catalog = selection?.catalog;
+  const participant = selection?.participant;
   const canvas = document.getElementById('game-canvas') as HTMLCanvasElement | null;
   if (!canvas) {
     throw new Error('Canvas element #game-canvas not found');
   }
 
-  const game = new AdventureGame(canvas, undefined, undefined, worldId);
+  const game = new AdventureGame(canvas, undefined, participant?.name, worldId, participant?.characterId, catalog);
   window.__ADVENTURE_GAME__ = game;
 
   const chatUi = new ChatUiController(
@@ -48,7 +51,10 @@ async function initialize(): Promise<void> {
 
   chatUi.setConnectionStatus(game.connectionStatus);
 
-  game.onWorldUnavailable = () => location.reload();
+  game.onWorldUnavailable = message => {
+    sessionStorage.setItem('world-selection-error', message);
+    location.reload();
+  };
   if (worldId) {
     const leave = document.createElement('button');
     leave.id = 'world-leave';

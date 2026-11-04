@@ -14,10 +14,11 @@ public sealed class TestServerFixture : IAsyncDisposable
     private readonly bool _multipleWorlds;
     private readonly bool _mapWorld;
     private readonly bool _scrollWorld;
+    private readonly bool _characterWorld;
     public string TempRoot { get; } = Path.Combine(Path.GetTempPath(), "adventure_e2e_" + Guid.NewGuid().ToString("N"));
     public string BaseUrl { get; private set; } = string.Empty;
 
-    public TestServerFixture(bool authoring = false, bool externalWorld = false, bool multipleWorlds = false, bool mapWorld = false, bool scrollWorld = false) { _authoring = authoring; _externalWorld = externalWorld || multipleWorlds || mapWorld || scrollWorld; _mapWorld = mapWorld; _scrollWorld = scrollWorld; _multipleWorlds = multipleWorlds; }
+    public TestServerFixture(bool authoring = false, bool externalWorld = false, bool multipleWorlds = false, bool mapWorld = false, bool scrollWorld = false, bool characterWorld = false) { _characterWorld = characterWorld; _authoring = authoring; _externalWorld = externalWorld || multipleWorlds || mapWorld || scrollWorld || characterWorld; _mapWorld = mapWorld; _scrollWorld = scrollWorld; _multipleWorlds = multipleWorlds; }
 
     public async Task StartAsync()
     {
@@ -36,9 +37,9 @@ public sealed class TestServerFixture : IAsyncDisposable
             var worldRoot = Path.Combine(TempRoot, "world");
             if (!Directory.Exists(worldRoot))
             {
-                CopyDirectory(Path.Combine(solutionDir, "worlds", _scrollWorld ? "scroll" : _mapWorld ? "map" : "reference"), worldRoot);
+                CopyDirectory(_characterWorld ? Path.Combine(solutionDir, "tests/Fixtures/characters-a") : (_scrollWorld || _mapWorld ? Path.Combine(solutionDir, "worlds", _scrollWorld ? "scroll" : "map") : Path.Combine(solutionDir, "tests/Fixtures/reference-v1")), worldRoot);
                 var manifest = Path.Combine(worldRoot, "world.yaml");
-                if (!_mapWorld && !_scrollWorld) File.WriteAllText(manifest, File.ReadAllText(manifest).Replace("startRoom: lounge", "startRoom: garden").Replace("startSpawn: entry", "startSpawn: from-lounge"));
+                if (!_mapWorld && !_scrollWorld && !_characterWorld) File.WriteAllText(manifest, File.ReadAllText(manifest).Replace("startRoom: lounge", "startRoom: garden").Replace("startSpawn: entry", "startSpawn: from-lounge"));
             }
             args.AddRange(["--World:Root", worldRoot]);
             if (_multipleWorlds)
@@ -46,10 +47,10 @@ public sealed class TestServerFixture : IAsyncDisposable
                 var other = Path.Combine(TempRoot, "other");
                 if (!Directory.Exists(other))
                 {
-                    CopyDirectory(worldRoot, other);
+                    CopyDirectory(_characterWorld ? Path.Combine(solutionDir, "tests/Fixtures/characters-b") : worldRoot, other);
                     var manifest = Path.Combine(other, "world.yaml");
                     File.WriteAllText(manifest, File.ReadAllText(manifest).Replace("id: reference", "id: other"));
-                    File.Copy(Path.Combine(other, "assets", "images", "lounge.png"), Path.Combine(other, "assets", "images", "garden.png"), true);
+                    if (!_characterWorld) File.Copy(Path.Combine(other, "assets", "images", "lounge.png"), Path.Combine(other, "assets", "images", "garden.png"), true);
                 }
                 args.AddRange(["--World:Roots:0", other]);
             }

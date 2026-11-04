@@ -12,7 +12,7 @@ async function initializeEditor(): Promise<void> {
   const worlds = await loadWorlds();
   if (worlds.length) {
     const requested = new URL(location.href).searchParams.get("worldId");
-    const selected = requested && worlds.some(w => w.id === requested) ? requested : await chooseWorld(worlds);
+    const selected = requested && worlds.some(w => w.id === requested) ? requested : (await chooseWorld(worlds, false)).worldId;
     EditorApi.worldId = selected;
     const url = new URL(location.href);
     url.searchParams.set("worldId", selected);

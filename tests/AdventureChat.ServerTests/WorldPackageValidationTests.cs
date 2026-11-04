@@ -32,14 +32,14 @@ public class WorldPackageValidationTests
     public void SetUp()
     {
         _root = Path.Combine(Path.GetTempPath(), "adventure-world-" + Guid.NewGuid().ToString("N"));
-        var source = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../../worlds/reference"));
+        var source = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../../tests/Fixtures/reference-v1"));
         Copy(source, _root);
     }
 
     [TearDown]
     public void TearDown() => Directory.Delete(_root, true);
 
-    [TestCase("formatVersion: 1.0.0", "formatVersion: 1.3.0", "1.3.0")]
+    [TestCase("formatVersion: 1.0.0", "formatVersion: 1.99.0", "1.99.0")]
     [TestCase("roomFormat: legacy-1", "roomFormat: 1.0.0", "roomFormat")]
     [TestCase("startSpawn: entry", "startSpawn: absent", "spawn")]
     public void InvalidManifestOrStart_Fails(string oldText, string newText, string diagnostic)
@@ -251,7 +251,7 @@ public class WorldPackageValidationTests
         foreach (var file in Directory.GetFiles(legacyRooms, "*.yaml"))
             File.Copy(file, Path.Combine(_root, "rooms", Path.GetFileName(file)), true);
         var second = Path.Combine(_root, "second");
-        Copy(Path.Combine(solution, "worlds", "reference"), second);
+        Copy(Path.Combine(solution, "tests/Fixtures/reference-v1"), second);
         var manifest = Path.Combine(second, "world.yaml");
         File.WriteAllText(manifest, File.ReadAllText(manifest).Replace("id: reference", "id: second"));
         var serverDir = Path.Combine(solution, "src", "AdventureChat.Server");

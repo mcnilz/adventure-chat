@@ -2,6 +2,7 @@ import { drawTopDownFigure } from './top-down-figure.js';
 import type { Character, RoomDefinition } from '../types.js';
 
 export class CharacterRenderer {
+  private readonly images = new Map<string, HTMLImageElement>();
   private readonly characterSprite: HTMLImageElement;
   private spriteLoaded = false;
 
@@ -16,8 +17,16 @@ export class CharacterRenderer {
   public drawCharacter(ctx: CanvasRenderingContext2D, character: Character, isLocal: boolean, room?: RoomDefinition): void {
     const { position, facing, state, walkFrame, name } = character;
 
-    const frameWidth = 48;
-    const frameHeight = 64;
+    const appearance = character.appearance;
+    let sprite = this.characterSprite;
+    if (appearance) {
+      let image = this.images.get(appearance.imageUrl);
+      if (!image) { image = new Image(); image.src = appearance.imageUrl; this.images.set(appearance.imageUrl, image); }
+      sprite = image;
+    }
+    const loaded = appearance ? sprite.complete && sprite.naturalWidth > 0 : this.spriteLoaded;
+    const frameWidth = appearance?.frameWidth ?? 48;
+    const frameHeight = appearance?.frameHeight ?? 64;
     const footX = Math.round(position.x);
     const footY = Math.round(position.y);
 
@@ -46,17 +55,17 @@ export class CharacterRenderer {
 
     const height = room?.actorHeight ?? 64;
     ctx.translate(footX, footY);
-    ctx.scale(height / 64, height / 64);
+    ctx.scale(height / frameHeight, height / frameHeight);
     ctx.translate(-footX, -footY);
-    if (room?.perspective === 'top-down') {
+    if (room?.perspective === 'top-down' && !appearance) {
       ctx.translate(footX, footY);
       drawTopDownFigure(ctx, character);
-    } else if (this.spriteLoaded) {
+    } else if (loaded) {
       if (flipX) {
         ctx.translate(footX, footY);
         ctx.scale(-1, 1);
         ctx.drawImage(
-          this.characterSprite,
+          sprite,
           frameIndex * frameWidth,
           sourceY,
           frameWidth,
@@ -68,7 +77,7 @@ export class CharacterRenderer {
         );
       } else {
         ctx.drawImage(
-          this.characterSprite,
+          sprite,
           frameIndex * frameWidth,
           sourceY,
           frameWidth,
@@ -82,7 +91,7 @@ export class CharacterRenderer {
     } else {
       // Fallback rectangle if sprite is still loading
       ctx.fillStyle = isLocal ? '#3182ce' : '#38a169';
-      ctx.fillRect(footX - 16, footY - 58, 32, 58);
+      ctx.fillRect(footX - frameWidth / 2, footY - frameHeight, frameWidth, frameHeight);
     }
 
     ctx.restore();

@@ -34,3 +34,7 @@
 | Laufgeschwindigkeit | Serverbestimmte Bewegungsgeschwindigkeit, unabhängig von der optischen Größe |
 | Kameraoffset | Lokale Verschiebung des sichtbaren Raumausschnitts |
 | Tiefenfaktor | Positionsabhängiger Faktor für die Figurengröße mit festem Fußpunkt |
+
+| Figurenkatalog | Optionales weltbezogenes Verzeichnis verfügbarer Figurengrafiken mit stabiler ID, Name, PNG und Quellraster |
+| Defaultfigur | Explizit benannte Figur des Weltkatalogs für vorbelegte Auswahl und Editor-Vorschau |
+| Quellraster | Framebreite und Framehöhe des PNG; unabhängig von der Zielhöhe im Raum |

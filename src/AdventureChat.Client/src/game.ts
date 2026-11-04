@@ -6,6 +6,7 @@ import { assignPathToCharacter, updateCharacterMovement } from './simulation/mov
 import { RoomState } from './state/room-state.js';
 import type {
   Character,
+  CharacterCatalog,
   ChatMessageDto,
   Point,
   RoomDefinition,
@@ -26,7 +27,7 @@ export class AdventureGame {
   public onConnectionStatusChanged?: (status: 'connected' | 'connecting' | 'disconnected') => void;
   public onRoomChanged?: (room: RoomDefinition) => void;
   public onActionChanged?: (actionText: string) => void;
-  public onWorldUnavailable?: () => void;
+  public onWorldUnavailable?: (message: string) => void;
 
   private lastTimestamp = 0;
   private isRunning = false;
@@ -42,7 +43,9 @@ export class AdventureGame {
     private readonly canvas: HTMLCanvasElement,
     initialRoom: RoomDefinition = DEFAULT_ROOM,
     playerName?: string,
-    private readonly worldId?: string
+    private readonly worldId?: string,
+    private readonly characterId?: string,
+    private readonly characterCatalog?: CharacterCatalog
   ) {
     this.state = new RoomState(initialRoom, playerName);
     this.renderer = new RoomRenderer(this.canvas, this.state.room);
@@ -57,14 +60,14 @@ export class AdventureGame {
     };
 
     this.networkClient = new RoomNetworkClient({
-      onUserJoined: (dto) => this.dispatchRoomEvent(() => { if (dto.roomId === this.state.room.id) this.state.addOrUpdateRemotePlayer(dto.player); }),
+      onUserJoined: (dto) => this.dispatchRoomEvent(() => { if (dto.roomId === this.state.room.id) { this.state.addOrUpdateRemotePlayer(dto.player); const character = this.state.remotePlayers.get(dto.player.sessionId); if (character) this.resolveAppearance(character); } }),
       onUserLeft: (dto) => this.dispatchRoomEvent(() => { if (dto.roomId === this.state.room.id) this.state.removeRemotePlayer(dto.sessionId); }),
       onPlayerMoved: (dto) => this.dispatchRoomEvent(() => this.state.handlePlayerMoved(dto)),
       onChatMessageReceived: (dto) => this.dispatchRoomEvent(() => this.state.handleChatMessage(dto)),
       onConnectionStatusChanged: (status) => this.onConnectionStatusChanged?.(status),
       onReconnected: async () => {
         try { await this.joinRoom(); }
-        catch { this.networkClient.setStatus('disconnected'); this.onWorldUnavailable?.(); }
+        catch (error) { this.networkClient.setStatus('disconnected'); this.onWorldUnavailable?.(String(error)); }
       },
     });
 
@@ -183,7 +186,7 @@ export class AdventureGame {
       if (!response.ok) throw new Error('Weltstart konnte nicht geladen werden.');
       const start = await response.json() as { roomId: string; external: boolean };
       const roomId = this.worldId || start.external ? start.roomId : this.state.room.id;
-      const result = await this.networkClient.joinRoom(roomId, this.state.playerName, this.worldId);
+      const result = await this.networkClient.joinRoom(roomId, this.state.playerName, this.worldId, this.characterId);
       if (!result.success) throw new Error(result.error ?? 'Weltbeitritt fehlgeschlagen.');
       if (result.success && result.snapshot) {
         this.applyRoomSnapshot(result.snapshot);
@@ -224,6 +227,11 @@ export class AdventureGame {
 
   public applyRoomSnapshot(snapshot: RoomSnapshotDto): void {
     this.state.applySnapshot(snapshot);
+    for (const character of this.state.getAllCharacters()) this.resolveAppearance(character);
+  }
+
+  private resolveAppearance(character: Character): void {
+    character.appearance = this.characterCatalog?.characters.find(c => c.id === character.characterId);
   }
 
   public async sendChatMessage(text: string): Promise<SendChatMessageResultDto> {

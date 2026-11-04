@@ -20,6 +20,15 @@ internal static class WorldContentEndpoints
             catch (Exception ex) when (ex is InvalidOperationException or IOException or UnauthorizedAccessException) { return Results.NotFound(); }
         });
         app.MapGet("/api/worlds", () => Results.Ok(worlds.Select(w => new { id = w.Id, name = w.Name })));
+        app.MapGet("/api/worlds/{id}/characters", (string id) =>
+        {
+            var world = worlds.Find(w => string.Equals(w.Id, id, StringComparison.OrdinalIgnoreCase));
+            return world is null ? Results.NotFound() : Results.Ok(new
+            {
+                world.DefaultCharacterId,
+                characters = world.Characters.Select(c => new { c.Id, c.Name, imageUrl = c.ImageUrl(world.Id), c.FrameWidth, c.FrameHeight })
+            });
+        });
         app.MapGet("/api/worlds/{id}/start", (string id) =>
         {
             var selected = worlds.Find(w => string.Equals(w.Id, id, StringComparison.OrdinalIgnoreCase));

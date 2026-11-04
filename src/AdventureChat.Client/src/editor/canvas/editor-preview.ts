@@ -1,3 +1,4 @@
+import { loadCharacterCatalog } from '../../network/character-catalog.js';
 import { EditorApi } from '../core/editor-api.js';
 import type { RoomYamlDto } from '../core/editor-types.js';
 import { RoomRenderer } from '../../rendering/renderer.js';
@@ -44,6 +45,12 @@ export class EditorPreview {
       }
     };
 
+    const character = this.previewCharacter;
+    if (EditorApi.worldId) void loadCharacterCatalog(EditorApi.worldId).then(catalog => {
+      if (this.previewCharacter === character && character) {
+        character.appearance = catalog.characters.find(c => c.id === catalog.defaultCharacterId);
+      }
+    }).catch(() => { /* Preview keeps its loading fallback if content is temporarily unavailable. */ });
     this.lastFrameTime = performance.now();
     this.loop();
   }

@@ -9,7 +9,7 @@ public record SendChatMessageResult(bool Success, string? Error, ChatMessageDto?
 
 public interface IRoomSessionManager
 {
-    JoinResult JoinRoom(string connectionId, string roomId, string? displayName, Point2D? initialPosition = null);
+    JoinResult JoinRoom(string connectionId, string roomId, string? displayName, Point2D? initialPosition = null, string? characterId = null);
     ChangeRoomResult ChangeRoom(string connectionId, string exitId);
     RoomSnapshotDto? GetSnapshot(string connectionId, bool includeHistory = false);
     PlayerSession? Leave(string connectionId);

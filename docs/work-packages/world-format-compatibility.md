@@ -57,3 +57,27 @@ Minor-Einstufung: ausschließlich optionale Felder mit Defaults, die die bisheri
 Die Figurengröße ist kein Kollisionsradius. Geprüft wird der Fußpunkt im erlaubten Polygon; Sichtlinien meiden Hindernisecken mit 4 Pixeln, Navigationsknoten liegen typischerweise 14 Pixel von Ecken entfernt. Das ist kein zugesicherter umlaufender Figurenradius. Eine große Figur kann optisch über eine Hecke ragen, während ihr Fußpunkt gültig bleibt. Die Referenzkarte prüft den 15 Pixel breiten unteren Durchgang und ein eingeschlossenes, unerreichbares Ziel. Kein Algorithmuswechsel.
 
 Ticket 12: Format 1.2.0 ist Minor, weil ausschließlich das optionale Feld `viewport` hinzukommt. Fehlende Angaben behalten die Darstellung und Raumkoordinaten älterer Versionen. Der Server unterstützt ausdrücklich 1.0.0, 1.1.0 und 1.2.0; die alten Bündel einschließlich Teilschemas und Referenzwelten bleiben unverändert. `worlds/scroll` ergänzt beide Perspektiven. Kameraverschiebung ist ausschließlich Browserzustand; kein zusätzlicher Hubparameter oder Sitzungszustand.
+
+## Figurenkatalog seit Weltformat 1.3.0
+
+Unterstützt werden ausdrücklich 1.0.0, 1.1.0, 1.2.0 und 1.3.0; andere Versionen werden abgewiesen. Neues unveränderliches Bündel: `schemas/world/1.3.0/`. Minor: optionale Manifestfelder, unveränderte Raumregeln und unveränderte Defaults älterer Welten. Frühere Schemas einschließlich Teilschemas bleiben unverändert.
+
+```yaml
+formatVersion: 1.3.0
+# übrige Manifestfelder wie bisher
+defaultCharacterId: hero
+characters:
+  - id: hero
+    name: Meine Figur
+    image: assets/images/hero.png
+    frameWidth: 64
+    frameHeight: 96
+```
+
+`characters` und `defaultCharacterId` stehen gemeinsam oder fehlen gemeinsam. Ein Katalog hat 1–32 Figuren mit eindeutigen, groß-/kleinschreibungssensitiven IDs (ASCII-Buchstaben, Ziffern, Unterstrich, Bindestrich; 1–64 Zeichen), Anzeigenamen (1–100 Zeichen), relativem PNG-Pfad unter `assets/images/` und ganzzahliger Framebreite/-höhe von 1–256. Default-ID muss enthalten sein. Ein vollständiges PNG muss exakt vier Frames breit und drei Frames hoch sein. Reihen: rechts, hinten, vorne; links spiegelt rechts. Stand verwendet Spalte 0, Laufen zyklisch 0–3. Keine zusätzlichen Animationsmetadaten. Bestehende PNG-, Größen- und Dateisystemschutzregeln gelten.
+
+Katalogfiguren werden auch in Draufsichträumen verwendet. Die Raum-Figurengröße bestimmt die Zielhöhe, das Quellseitenverhältnis bleibt erhalten; Fußpunkt bleibt unten mittig. Ohne Katalog bleiben bisherige Adventurefigur und prozedurale Draufsichtfigur erhalten. Editor-Vorschau verwendet die Defaultfigur mit demselben Renderer. Grafische Katalogverwaltung ist nicht enthalten.
+
+Teilnehmer wählen Name und Figur vor Eintritt; gleiche Figuren dürfen mehrfach vorkommen. Server akzeptiert nur weltbezogene IDs, fehlende ID verwendet den Weltdefault. Auswahl bleibt über Raumwechsel und frischen Reconnect erhalten; bei Weltwechsel wird neu gewählt. Keine Persistenz über Seiten-/Browserneustart. Bildadressen und Browsercache sind weltgebunden.
+
+Kompatibilitätsnachweis: `tests/Fixtures/reference-v1` ist die unveränderte Referenzwelt aus Commit b3d0b83 (vor den Inhaltsänderungen für Ticket 16). Zusätzlich bleiben `content/rooms`, `worlds/map`, `worlds/scroll` und alle älteren Schema-Bündel unverändert. Neue synthetische Testwelten unter `tests/Fixtures/characters-a` und `characters-b` weisen Katalograster und Weltisolation nach.
