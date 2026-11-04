@@ -50,6 +50,7 @@ async function initializeEditor(): Promise<void> {
     inputPerspective: document.getElementById('input-perspective') as HTMLSelectElement,
     inputActorHeight: document.getElementById('input-actor-height') as HTMLInputElement,
     inputWalkSpeed: document.getElementById('input-walk-speed') as HTMLInputElement,
+    inputViewportWidth: document.getElementById('input-viewport-width') as HTMLInputElement,
     inputNotes: document.getElementById('input-notes') as HTMLTextAreaElement,
     statusBanner: document.getElementById('status-banner') as HTMLElement,
     errorsSection: document.getElementById('errors-section') as HTMLElement,

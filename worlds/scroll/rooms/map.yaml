@@ -1,0 +1,141 @@
+{
+  "version": 1,
+  "id": "map",
+  "name": "Scrollkarte",
+  "background": "assets/images/map.png",
+  "size": {
+    "width": 1280,
+    "height": 360
+  },
+  "viewport": {
+    "width": 640,
+    "height": 360,
+    "scrollMode": "horizontal"
+  },
+  "perspective": "top-down",
+  "actorHeight": 32,
+  "walkSpeed": 260,
+  "spawns": [
+    {
+      "id": "left",
+      "position": {
+        "x": 80,
+        "y": 300
+      }
+    },
+    {
+      "id": "right",
+      "position": {
+        "x": 1200,
+        "y": 300
+      }
+    }
+  ],
+  "walkable": [
+    {
+      "id": "floor",
+      "points": [
+        {
+          "x": 20,
+          "y": 50
+        },
+        {
+          "x": 1260,
+          "y": 50
+        },
+        {
+          "x": 1260,
+          "y": 340
+        },
+        {
+          "x": 20,
+          "y": 340
+        }
+      ]
+    }
+  ],
+  "obstacles": [
+    {
+      "id": "left-block",
+      "points": [
+        {
+          "x": 150,
+          "y": 140
+        },
+        {
+          "x": 210,
+          "y": 140
+        },
+        {
+          "x": 210,
+          "y": 230
+        },
+        {
+          "x": 150,
+          "y": 230
+        }
+      ]
+    },
+    {
+      "id": "right-block",
+      "points": [
+        {
+          "x": 1020,
+          "y": 140
+        },
+        {
+          "x": 1080,
+          "y": 140
+        },
+        {
+          "x": 1080,
+          "y": 230
+        },
+        {
+          "x": 1020,
+          "y": 230
+        }
+      ]
+    }
+  ],
+  "exits": [
+    {
+      "id": "left",
+      "position": {
+        "x": 45,
+        "y": 300
+      },
+      "radius": 25,
+      "bounds": {
+        "x": 25,
+        "y": 235,
+        "width": 40,
+        "height": 65
+      },
+      "label": "gallery",
+      "target": {
+        "room": "gallery",
+        "spawn": "left"
+      }
+    },
+    {
+      "id": "right",
+      "position": {
+        "x": 1235,
+        "y": 300
+      },
+      "radius": 25,
+      "bounds": {
+        "x": 1215,
+        "y": 235,
+        "width": 40,
+        "height": 65
+      },
+      "label": "gallery",
+      "target": {
+        "room": "gallery",
+        "spawn": "right"
+      }
+    }
+  ]
+}

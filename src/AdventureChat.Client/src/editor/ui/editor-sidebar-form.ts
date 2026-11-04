@@ -9,6 +9,7 @@ export interface SidebarFormElements {
   inputPerspective: HTMLSelectElement;
   inputActorHeight: HTMLInputElement;
   inputWalkSpeed: HTMLInputElement;
+  inputViewportWidth: HTMLInputElement;
   inputNotes: HTMLTextAreaElement;
   unsavedBadge: HTMLElement;
   errorsSection: HTMLElement;
@@ -34,12 +35,16 @@ export class EditorSidebarForm {
     el.inputPerspective.value = room.perspective ?? 'adventure';
     el.inputActorHeight.value = String(room.actorHeight ?? 64);
     el.inputWalkSpeed.value = String(room.walkSpeed ?? 130);
+    el.inputViewportWidth.value = room.viewport ? String(room.viewport.width) : '';
     el.inputNotes.value = room.notes ?? '';
     el.unsavedBadge.style.display = isDirty ? 'inline-block' : 'none';
   }
 
   public applyToRoom(room: RoomYamlDto): void {
     const { elements: el } = this;
+    if (el.inputWidth.checkValidity() && el.inputHeight.checkValidity()) {
+      room.size = { width: Number(el.inputWidth.value), height: Number(el.inputHeight.value) };
+    }
     room.id = el.inputId.value.trim() || 'unnamed-room';
     room.name = el.inputName.value.trim() || 'Unbenannter Raum';
     room.background = el.inputBg.value.trim() || 'assets/images/lounge.png';
@@ -49,12 +54,18 @@ export class EditorSidebarForm {
     const speed = Number(el.inputWalkSpeed.value);
     if (height !== 64) room.actorHeight = height; else delete room.actorHeight;
     if (speed !== 130) room.walkSpeed = speed; else delete room.walkSpeed;
+    if (el.inputViewportWidth.value.trim()) room.viewport = { width: Number(el.inputViewportWidth.value), height: room.size.height, scrollMode: 'horizontal' };
+    else delete room.viewport;
     const notesVal = el.inputNotes.value.trim();
     if (notesVal) {
       room.notes = notesVal;
     } else {
       delete room.notes;
     }
+  }
+
+  public validateDimensions(): boolean {
+    return this.elements.inputWidth.reportValidity() && this.elements.inputHeight.reportValidity();
   }
 
   public setUnsaved(isDirty: boolean): void {
@@ -81,7 +92,7 @@ export class EditorSidebarForm {
   private bindEvents(): void {
     const { elements: el } = this;
 
-    for (const input of [el.inputPerspective, el.inputActorHeight, el.inputWalkSpeed]) {
+    for (const input of [el.inputPerspective, el.inputActorHeight, el.inputWalkSpeed, el.inputViewportWidth, el.inputWidth, el.inputHeight]) {
       input.addEventListener('change', () => this.onFormChange());
     }
     el.inputId.addEventListener('input', () => this.onFormChange());

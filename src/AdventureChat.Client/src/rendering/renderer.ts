@@ -1,3 +1,4 @@
+import { HorizontalCamera, resizeCanvas } from './camera.js';
 import { CLICK_MARKER_DURATION } from '../constants.js';
 import type { Character, RoomDefinition, RoomExit } from '../types.js';
 import { CharacterRenderer } from './character-renderer.js';
@@ -13,6 +14,8 @@ export class RoomRenderer {
   private readonly speechBubbleRenderer: SpeechBubbleRenderer;
   private readonly overlayRenderer: OverlayRenderer;
 
+  public readonly camera = new HorizontalCamera();
+  private cameraInitialized = false;
   private backgroundLoaded = false;
   private clickMarkers: ClickMarker[] = [];
   private hoveredExit: RoomExit | null = null;
@@ -46,6 +49,7 @@ export class RoomRenderer {
 
   public setRoom(newRoom: RoomDefinition): void {
     this.room = newRoom;
+    this.cameraInitialized = false;
     if (!this.backgroundImage.src.endsWith(newRoom.backgroundUrl)) {
       this.backgroundLoaded = false;
       this.backgroundImage.src = newRoom.backgroundUrl;
@@ -74,7 +78,13 @@ export class RoomRenderer {
   ): void {
     const { ctx, canvas, room } = this;
 
+    resizeCanvas(canvas, room);
+    ctx.imageSmoothingEnabled = false;
+    if (!this.cameraInitialized) { this.camera.reset(room, localCharacter.position.x); this.cameraInitialized = true; }
+    this.camera.follow(room, localCharacter.position.x);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.save();
+    ctx.translate(-this.camera.offset, 0);
 
     // 1. Background Image
     if (this.backgroundLoaded) {
@@ -114,13 +124,15 @@ export class RoomRenderer {
 
     // 6. Draw Speech Bubbles
     for (const char of allCharacters) {
-      this.speechBubbleRenderer.drawSpeechBubble(ctx, char, room.width, now, room.actorHeight ?? 64);
+      this.speechBubbleRenderer.drawSpeechBubble(ctx, char, this.camera.offset + canvas.width, now, room.actorHeight ?? 64, this.camera.offset);
     }
 
     // 7. Hovered Exit Highlight (only in debug mode to keep screen clean)
     if (this.hoveredExit && this.showDebugOverlay) {
       this.overlayRenderer.drawHoveredExitAction(ctx, this.hoveredExit);
     }
+
+    ctx.restore();
 
     // 8. Connection Status Indicator
     if (connectionStatus !== 'connected') {

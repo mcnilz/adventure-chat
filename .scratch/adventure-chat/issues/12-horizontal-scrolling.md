@@ -4,7 +4,7 @@
 
 **Blocked by:** 09; für die Abnahme beider Darstellungen zusätzlich 11, für die Mehrwelt-Regressionsprüfung 10
 
-**Status:** draft
+**Status:** in-progress
 
 ## Acceptance criteria
 
@@ -39,3 +39,31 @@ Gezielte Fälle: linke/rechte Kameragrenze; Ruhebereich; Spawn an beiden Raumend
 ## Manuelle Abnahme
 
 Von links nach rechts und zurück laufen, unterwegs Ziele und Türen anklicken und beide Ausgänge benutzen. Zweiten Browser am anderen Raumende stehen lassen: Beide Ausschnitte folgen ausschließlich der jeweiligen eigenen Figur; Chat bleibt gemeinsam. Im Editor nach Verschieben des Ausschnitts einen Punkt bearbeiten, speichern und dessen unveränderte Raumkoordinaten prüfen. Gleichen Ablauf mit Kartenansicht und einer älteren nicht scrollenden Welt prüfen.
+
+## Bestätigtes Paket · 04.11.2026
+Benutzerbestätigung „ja“ für Umfang, Details und Testgrenzen. Optionales `viewport: { width, height, scrollMode: horizontal }`; positive ganzzahlige Breite, Höhe gleich Raumhöhe; kürzere Räume zeigen weiterhin ihren vollständigen Inhalt. Ruhebereich 35–65 %, direktes Folgen ohne Nachschwingen; Spawn zentriert innerhalb der Raumgrenzen. Format 1.2.0 als Minor-Erweiterung, alte Schemas und Fixtures unverändert.
+
+Bestätigte Grenzen: öffentliche Kamera-/Koordinatenfunktionen, bestehende Renderer-/Browser-/Editorgrenzen, Weltladen und Formatkompatibilität sowie bestehende Serverbewegung als Regression. Keine privaten Kamerafelder als Testgrenze.
+
+## Implementierung
+Gemeinsame lokale Kamera mit Raumkoordinaten für Rendering und Eingabe; alle Raumebenen verschoben, Verbindungsanzeige und Chat ortsfest. Canvas-Seitenverhältnis folgt dem Ausschnitt. Editor: optionale Ausschnittsbreite, lokaler Schieberegler und Laufvorschau mit Spielrenderer. Neue Referenzwelt `worlds/scroll` mit Galerie und Karte (1280×360, Ausschnitt 640×360), Hindernissen und Ausgängen an beiden Enden. Keine neuen direkten Abhängigkeiten.
+
+## Bisherige Nachweise
+- Rot/Grün: 1.2.0-Weltladen zunächst abgewiesen, nach Schema-/Servererweiterung grün.
+- Rot/Grün: öffentlicher Kameratest scheiterte zunächst am fehlenden Modul, danach grün. Ruhebereich, Ränder, kurzer Raum und CSS-Umrechnung mit bekannten Sollwerten.
+- Zwei Browser: unabhängige Ausschnitte, Chat über Raumenden, echtes Hover/Klicken auf verschobene Tür, Kartenbewegung, Rückwechsel und frischer Eintritt nach Neuladen bestanden.
+- Editor: verschobenen Spawn auswählen, ändern, speichern, neu laden; Raumkoordinate 1190 bleibt erhalten; Vorschauweg und gesperrter Bearbeitungsregler geprüft.
+- Typcheck und Clientbuild bestanden. Abschlussprüfung und Review folgen.
+
+## Review und Korrekturen
+Review gegen Ausgangscommit `2cb3dff82ffe511c872e2010999aee4886200530` durch zwei getrennte Subagenten (Standards und Spec):
+- Standards: gemeinsame Umrechnung auch im Editor verwendet, Sprechblasenparameter als sichtbare rechte Grenze benannt; ungültige Ausschnittsbreite lässt die Zeichenfläche bis zur serverseitigen Speicherablehnung auf voller Raumbreite. Nachprüfung ohne offene Befunde.
+- Spec: Raummaße jetzt als positive ganze Zahlen bearbeitbar; Neuanlage mit breitem Hintergrund, Speichern und Neuladen als Browserablauf ergänzt. Rechter Eintritt prüft Offset 640. Tatsächlicher TCP-Abbruch aus dem rechten Ausschnitt prüft neue Sitzung am Start mit Offset 0. Nachprüfung ohne offene Befunde.
+- Drei gezielte Scroll-Browsertests nach Korrekturen bestanden. Screenshotprüfung von Spiel und Editor bestanden. Ältere Schemas einschließlich Teilschemas, `content/rooms`, `worlds/reference` und `worlds/map` haben keinen Diff zum Ausgangscommit.
+
+## Konkrete manuelle Abnahme
+1. Server mit `dotnet run --project src/AdventureChat.Server -- --World:Root D:\adventure-chat\worlds\scroll --authoring` starten; angezeigte lokale Adresse in zwei Browsern öffnen und „Scrollwelt“ betreten.
+2. In der Galerie nach rechts und zurück laufen. Kamera soll erst außerhalb der mittleren 35–65 % folgen, am Rand stoppen und im Stand ruhig bleiben. Unterwegs das Ziel ändern und rechts/links die goldenen Türflächen verwenden.
+3. Einen Browser am anderen Raumende stehen lassen und chatten. Ausschnitte müssen unabhängig, Chat und Teilnehmer weiterhin gemeinsam sein. Kartenraum ebenso prüfen, Fenstergröße ändern und anschließend eine Verbindung unterbrechen/wiederherstellen.
+4. `/editor.html` öffnen: Ausschnitt verschieben, Spawn oder Polygonpunkt am rechten Ende ändern, speichern und neu laden; Raumkoordinate im Inspektor kontrollieren. Im Vorschaumodus bis an beide Enden laufen. Einen neuen Raum mit breitem PNG, passenden Gesamtmaßen und kleinerer Ausschnittsbreite anlegen.
+5. Eine bestehende Welt aus `worlds/reference` beziehungsweise `worlds/map` ohne Ausschnittsangaben starten: weiterhin vollständige Darstellung und bisherige Bewegung. Bewegungsgefühl und subjektive Editorbedienung bleiben menschliche Abnahme; automatisierte Tests ersetzen sie nicht.

@@ -121,8 +121,27 @@ In der Weltwahl „Kartenwelt“ betreten. Die beiden braunen Kartenorte führen
 
 Format 1.1.0 ergänzt optionale Raumfelder `perspective: adventure | top-down`, `actorHeight: 16..128` (logische Raumpixel, Standard 64) und `walkSpeed: 1..1000` (logische Raumpixel/s, Standard 130). Ohne Angaben bleibt bisheriges Verhalten erhalten. Der Fußpunkt ist der untere mittlere Anker des Figurenrahmens. Bildschirmskalierung passt nur die Anzeige an; Autorenmaßstab ändert weder Koordinaten noch Kollisionen. Kein Teilnehmerzoom und keine Kameraänderung.
 
-Der Editor bietet die drei Eigenschaften und speichert sie nur in einem Weltpaket mit `formatVersion: 1.1.0`. Ältere Pakete verweigern diese Felder verständlich. Für ein Upgrade das Manifest bewusst auf 1.1.0 setzen und den Server neu starten; der Editor ändert das Manifest nicht automatisch. Das neue Offline-Schema liegt unter `schemas/world/1.1.0/`; veröffentlichte ältere Schemas bleiben unverändert. `roomFormat: legacy-1` und `version: 1` bleiben das Grundmodell; das Manifest bestimmt das unterstützte Schema-Bündel.
+Der Editor bietet die drei Eigenschaften und speichert sie nur in einem Weltpaket mit `formatVersion: 1.1.0` oder `1.2.0`. Ältere Pakete verweigern diese Felder verständlich. Für ein Upgrade das Manifest bewusst auf 1.1.0 setzen und den Server neu starten; der Editor ändert das Manifest nicht automatisch. Das neue Offline-Schema liegt unter `schemas/world/1.1.0/`; veröffentlichte ältere Schemas bleiben unverändert. `roomFormat: legacy-1` und `version: 1` bleiben das Grundmodell; das Manifest bestimmt das unterstützte Schema-Bündel.
 
 Die einzige auswählbare Figur ist weiterhin die mitgelieferte Referenzfigur. Ihre Draufsicht ist direkt in Canvas gezeichnet, mit vier Richtungen und wechselnden Schritten. Sie benötigt keine externe Draufsichtdatei, die fehlen könnte. Weitere Figuren oder Grafikzuordnungen gibt es noch nicht. Unbekannte Perspektiven werden abgewiesen statt auf Adventure zurückzufallen.
 
 Die Vorschau berechnet Wege für die aktuellen, auch ungespeicherten Raumdaten auf dem Server. Während der kurzen Anfrage bleibt die Figur stehen; die Vorschau ist keine Mehrteilnehmersitzung. Spiel und Vorschau verwenden denselben Renderer und dieselbe Raumgeschwindigkeit.
+
+## Scrollwelt (Format 1.2.0)
+```powershell
+dotnet run --project src/AdventureChat.Server -- --World:Root D:\adventure-chat\worlds\scroll --authoring
+```
+Die Galerie und die Karte haben je 1280×360 Raumpixel, Hindernisse sowie Türen an beiden Enden. Goldene Türflächen wechseln zur anderen Darstellung.
+
+Optionales Raumfeld (Format 1.2.0):
+```yaml
+viewport:
+  width: 640
+  height: 360
+  scrollMode: horizontal
+```
+Breite und Höhe sind positive ganze Raumpixel; Höhe muss der Raumhöhe entsprechen. Ohne Feld bleibt der ganze Raum sichtbar. Kürzere Räume scrollen nicht. Die Kamera folgt nur der eigenen Figur außerhalb des mittleren Ruhebereichs von 35–65 %, ohne Nachschwingen; bei Eintritt wird der Spawn innerhalb der Grenzen zentriert. Es gibt keinen Zoom oder vertikales Scrollen.
+
+Im Editor legt „Ausschnittsbreite“ das optionale Feld fest; leer entfernt es. „Ausschnitt verschieben“ bewegt ausschließlich die lokale Bearbeitungsansicht. In der Laufvorschau folgt die Kamera der Figur. Alle Geometriedaten und Eingabeziele bleiben Raumkoordinaten. Für bestehende Pakete Manifest bewusst auf 1.2.0 setzen und Server neu starten; alte Pakete lehnen das neue Feld ab.
+
+Für einen neuen breiten Raum ein passendes PNG importieren und die bearbeitbaren Gesamtmaße auf dessen Pixelabmessungen setzen. Begehbare Flächen, Spawns und Türen mit dem verschiebbaren Ausschnitt platzieren; die Ausschnittsbreite bestimmt nur die Sicht, nicht die Raumgröße.

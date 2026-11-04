@@ -84,6 +84,7 @@ export class EditorGeometry {
       perspective: r.perspective ?? "adventure",
       actorHeight: r.actorHeight ?? 64,
       walkSpeed: r.walkSpeed ?? 130,
+      viewport: r.viewport ?? null,
       geometry: {
         outerBoundary,
         obstacles

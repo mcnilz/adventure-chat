@@ -49,8 +49,11 @@ Jede Änderung, auch eine reine Verhaltensänderung ohne YAML-Strukturänderung,
 | --- | --- | --- |
 | 1.0.0 | unverändertes Bündel 1.0.0, legacy-1 | Adventure, 64 Pixel, 130 Pixel/s; neue Felder abgewiesen |
 | 1.1.0 | neues Bündel 1.1.0, legacy-1 | optionale Perspektive, feste Höhe und Geschwindigkeit |
+| 1.2.0 | neues Bündel 1.2.0, legacy-1 | zusätzlich optionaler horizontaler Ausschnitt; fehlend = ganzer Raum |
 | andere | keine | ausdrücklich abgewiesen |
 
 Minor-Einstufung: ausschließlich optionale Felder mit Defaults, die die bisherige Semantik erhalten. Kein bestehendes Schema, keine ältere Referenzwelt und kein Teilschema wird verändert. `worlds/reference` und `content/rooms` bleiben die älteren Fixtures; `worlds/map` demonstriert 1.1.0. Tests prüfen Schema-Hashes, unveränderte Dateien sowie Laden und Editor-Speichern.
 
 Die Figurengröße ist kein Kollisionsradius. Geprüft wird der Fußpunkt im erlaubten Polygon; Sichtlinien meiden Hindernisecken mit 4 Pixeln, Navigationsknoten liegen typischerweise 14 Pixel von Ecken entfernt. Das ist kein zugesicherter umlaufender Figurenradius. Eine große Figur kann optisch über eine Hecke ragen, während ihr Fußpunkt gültig bleibt. Die Referenzkarte prüft den 15 Pixel breiten unteren Durchgang und ein eingeschlossenes, unerreichbares Ziel. Kein Algorithmuswechsel.
+
+Ticket 12: Format 1.2.0 ist Minor, weil ausschließlich das optionale Feld `viewport` hinzukommt. Fehlende Angaben behalten die Darstellung und Raumkoordinaten älterer Versionen. Der Server unterstützt ausdrücklich 1.0.0, 1.1.0 und 1.2.0; die alten Bündel einschließlich Teilschemas und Referenzwelten bleiben unverändert. `worlds/scroll` ergänzt beide Perspektiven. Kameraverschiebung ist ausschließlich Browserzustand; kein zusätzlicher Hubparameter oder Sitzungszustand.

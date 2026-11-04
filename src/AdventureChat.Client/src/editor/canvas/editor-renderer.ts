@@ -1,3 +1,4 @@
+import { resizeCanvas } from '../../rendering/camera.js';
 import { EditorDrawUtils } from './editor-draw-utils.js';
 import type {
   HoveredEdge,
@@ -42,10 +43,15 @@ export class EditorRenderer {
     hoveredVertex: { polyType: 'walkable' | 'obstacle'; polyIndex: number; vertexIndex: number } | null,
     hoveredEdge: HoveredEdge | null = null,
     hoveredEntity: { type: 'spawn' | 'exit'; id: string } | null = null,
-    dragOffset: { dx: number; dy: number } | null = null
+    dragOffset: { dx: number; dy: number } | null = null,
+    cameraOffset = 0
   ): void {
     const { ctx, canvas } = this;
+    resizeCanvas(canvas, { ...room.size, viewport: room.viewport ?? null });
+    ctx.imageSmoothingEnabled = false;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.save();
+    ctx.translate(-cameraOffset, 0);
 
     // 1. Background image or dark fallback
     if (this.backgroundLoaded && this.backgroundImage.width > 0) {
@@ -117,9 +123,14 @@ export class EditorRenderer {
       EditorDrawUtils.drawSpawn(ctx, spawn, selection, dragPos, isHovered);
     }
 
+    ctx.restore();
+
     // 8. Hover Coordinate Badge
     if (mousePos) {
-      EditorDrawUtils.drawCoordinateTooltip(ctx, mousePos, canvas.width, canvas.height);
+      ctx.save();
+      ctx.translate(-cameraOffset, 0);
+      EditorDrawUtils.drawCoordinateTooltip(ctx, mousePos, canvas.width + cameraOffset, canvas.height);
+      ctx.restore();
     }
   }
 

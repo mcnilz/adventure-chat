@@ -1,0 +1,7 @@
+formatVersion: 1.2.0
+id: scroll
+name: Scrollwelt
+contentVersion: 1.0.0
+startRoom: gallery
+startSpawn: left
+roomFormat: legacy-1

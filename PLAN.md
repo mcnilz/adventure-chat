@@ -1,5 +1,5 @@
 # Umsetzungsplan
-Status: Tickets 01–08 sind menschlich abgenommen; 09 ist nach ausdrücklicher Benutzerabnahme auf Grundlage einer tolerierten KI-Prüfung done. 10 ist seit ausdrücklicher Benutzerabnahme am 04.11.2026 done; 11 ist seit menschlicher Abnahme am 04.11.2026 done; 12–13 bleiben draft.
+Status: Tickets 01–08 sind menschlich abgenommen; 09 ist nach ausdrücklicher Benutzerabnahme auf Grundlage einer tolerierten KI-Prüfung done. 10 ist seit ausdrücklicher Benutzerabnahme am 04.11.2026 done; 11 ist seit menschlicher Abnahme am 04.11.2026 done; 12 ist bestätigt und in-progress; 13 bleibt draft.
 
 | Ticket | Vorführbares Ergebnis | Blocked by |
 | --- | --- | --- |
@@ -29,4 +29,3 @@ M3 nach 07: dieselbe Erfahrung mit selbst im Editor erstellten Räumen.
 draft → ready-for-agent → in-progress → ready-for-human → done.
 blocked zusätzlich bei konkretem Hindernis mit Begründung. ready-for-agent erst nach Bestätigung von Paketumfang und Testgrenzen; done erst nach menschlicher Abnahme.
 Ein technischer Review ersetzt keine Produktabnahme. Keine offenen Entscheidungen stillschweigend als beschlossen behandeln.
-

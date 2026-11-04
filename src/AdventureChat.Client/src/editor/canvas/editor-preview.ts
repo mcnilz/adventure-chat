@@ -14,6 +14,8 @@ export class EditorPreview {
 
   public constructor(private readonly canvas: HTMLCanvasElement) {}
 
+  public get cameraOffset(): number { return this.previewRenderer?.camera.offset ?? 0; }
+
   public isActive(): boolean {
     return this.isRunning;
   }

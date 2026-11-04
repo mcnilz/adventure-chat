@@ -27,6 +27,7 @@ public sealed partial class RoomValidator : IRoomValidator
 
     private readonly JsonSchema? _jsonSchema;
     private readonly bool _supportsDisplay;
+    private readonly bool _supportsViewport;
     private readonly IPathfindingService _pathfinder;
 
     public RoomValidator(string? schemaPath = null, IPathfindingService? pathfinder = null)
@@ -36,6 +37,7 @@ public sealed partial class RoomValidator : IRoomValidator
         {
             var schemaText = File.ReadAllText(schemaPath);
             _jsonSchema = JsonSchema.FromText(schemaText);
+            _supportsViewport = JsonNode.Parse(schemaText)?["properties"]?["viewport"] is not null;
             _supportsDisplay = JsonNode.Parse(schemaText)?["properties"]?["perspective"] is not null;
         }
     }
@@ -106,6 +108,13 @@ public sealed partial class RoomValidator : IRoomValidator
         if (dto.Perspective is not (null or "adventure" or "top-down")) errors.Add("Unknown perspective; use adventure or top-down.");
         if (dto.ActorHeight is double height && (!double.IsFinite(height) || height < 16 || height > 128)) errors.Add("actorHeight must be between 16 and 128 logical pixels.");
         if (dto.WalkSpeed is double speed && (!double.IsFinite(speed) || speed < 1 || speed > 1000)) errors.Add("walkSpeed must be between 1 and 1000 logical pixels per second.");
+
+        if (dto.Viewport is { } viewport)
+        {
+            if (!_supportsViewport) errors.Add("viewport requires world format 1.2.0.");
+            if (viewport.Width <= 0 || viewport.Height != dto.Size.Height || viewport.ScrollMode != "horizontal")
+                errors.Add("viewport requires positive width, room height and horizontal scrollMode.");
+        }
 
         // 2. ID
         if (string.IsNullOrWhiteSpace(dto.Id))

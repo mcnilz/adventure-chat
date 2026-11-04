@@ -8,6 +8,26 @@ public class WorldPackageValidationTests
 {
     private string _root = null!;
 
+    [Test]
+    public void Viewport_LoadsOnlyInNewFormat()
+    {
+        Replace("rooms/lounge.yaml", "version: 1", "version: 1\nviewport: { width: 320, height: 360, scrollMode: horizontal }");
+        Assert.Throws<InvalidOperationException>(() => WorldPackage.Load(_root).LoadRooms());
+        Replace("world.yaml", "formatVersion: 1.0.0", "formatVersion: 1.2.0");
+        Assert.DoesNotThrow(() => WorldPackage.Load(_root).LoadRooms());
+    }
+
+    [TestCase("{ width: 0, height: 360, scrollMode: horizontal }")]
+    [TestCase("{ width: 320.5, height: 360, scrollMode: horizontal }")]
+    [TestCase("{ width: 320, height: 359, scrollMode: horizontal }")]
+    [TestCase("{ width: 320, height: 360, scrollMode: vertical }")]
+    public void InvalidViewport_IsRejected(string viewport)
+    {
+        Replace("world.yaml", "formatVersion: 1.0.0", "formatVersion: 1.2.0");
+        Replace("rooms/lounge.yaml", "version: 1", "version: 1\nviewport: " + viewport);
+        Assert.Throws<InvalidOperationException>(() => WorldPackage.Load(_root).LoadRooms());
+    }
+
     [SetUp]
     public void SetUp()
     {
@@ -19,7 +39,7 @@ public class WorldPackageValidationTests
     [TearDown]
     public void TearDown() => Directory.Delete(_root, true);
 
-    [TestCase("formatVersion: 1.0.0", "formatVersion: 1.2.0", "1.2.0")]
+    [TestCase("formatVersion: 1.0.0", "formatVersion: 1.3.0", "1.3.0")]
     [TestCase("roomFormat: legacy-1", "roomFormat: 1.0.0", "roomFormat")]
     [TestCase("startSpawn: entry", "startSpawn: absent", "spawn")]
     public void InvalidManifestOrStart_Fails(string oldText, string newText, string diagnostic)

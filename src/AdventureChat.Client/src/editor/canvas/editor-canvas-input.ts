@@ -1,4 +1,5 @@
 import { EditorGeometry } from '../core/editor-geometry.js';
+import { screenToRoom } from '../../rendering/camera.js';
 import type { EditorState } from '../core/editor-state.js';
 import type {
   EditorTool,
@@ -28,7 +29,8 @@ export class EditorCanvasInput {
     private readonly callbacks: CanvasInputCallbacks,
     private readonly getTool: () => EditorTool,
     private readonly isPreviewActive: () => boolean,
-    private readonly onPreviewClick: (logicalX: number, logicalY: number) => void
+    private readonly onPreviewClick: (logicalX: number, logicalY: number) => void,
+    private readonly getCameraOffset: () => number = () => 0
   ) {
     this.bindEvents();
   }
@@ -60,14 +62,13 @@ export class EditorCanvasInput {
 
   public screenToLogical(evt: MouseEvent): RoomPointDto {
     const rect = this.canvas.getBoundingClientRect();
-    const scaleX = this.canvas.width / rect.width;
-    const scaleY = this.canvas.height / rect.height;
-    const rawX = (evt.clientX - rect.left) * scaleX;
-    const rawY = (evt.clientY - rect.top) * scaleY;
+    const room = this.state.getRoom();
+    const point = screenToRoom(evt.clientX, evt.clientY, rect,
+      { ...room.size, viewport: room.viewport ?? null }, this.getCameraOffset());
 
     return {
-      x: Math.max(0, Math.min(this.canvas.width, Math.round(rawX))),
-      y: Math.max(0, Math.min(this.canvas.height, Math.round(rawY)))
+      x: Math.max(0, Math.min(room.size.width, Math.round(point.x))),
+      y: Math.max(0, Math.min(room.size.height, Math.round(point.y)))
     };
   }
 

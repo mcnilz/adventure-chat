@@ -96,7 +96,8 @@ export class AdventureGame {
         },
       },
       () => this.state.room,
-      () => this.state.character.position
+      () => this.state.character.position,
+      () => this.renderer.camera.offset
     );
   }
 
@@ -337,6 +338,7 @@ export class AdventureGame {
       Array.from(this.state.remotePlayers.values()),
       this.networkClient.connectionStatus
     );
+    this.inputHandler.refreshHover();
 
     this.animationFrameId = requestAnimationFrame(this.loop);
   }

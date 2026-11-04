@@ -39,6 +39,7 @@ export interface RoomExitDto {
 }
 
 export interface RoomYamlDto {
+  viewport?: import('../../types.js').RoomViewport | null;
   perspective?: 'adventure' | 'top-down';
   actorHeight?: number;
   walkSpeed?: number;

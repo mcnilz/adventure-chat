@@ -4,9 +4,10 @@ export class SpeechBubbleRenderer {
   public drawSpeechBubble(
     ctx: CanvasRenderingContext2D,
     character: Character,
-    roomWidth: number,
+    viewportRight: number,
     now: number,
-    actorHeight = 64
+    actorHeight = 64,
+    viewportLeft = 0
   ): void {
     const bubble = character.speechBubble;
     if (!bubble) return;
@@ -19,6 +20,7 @@ export class SpeechBubbleRenderer {
 
     const footX = Math.round(character.position.x);
     const footY = Math.round(character.position.y);
+    if (footX < viewportLeft || footX > viewportRight) return;
     const frameHeight = actorHeight;
     const nameBadgeHeight = 14;
     const baseAnchorY = footY - frameHeight - nameBadgeHeight - 8;
@@ -59,11 +61,11 @@ export class SpeechBubbleRenderer {
     const bubbleWidth = Math.max(measuredMaxWidth + paddingX * 2, 40);
     const bubbleHeight = lines.length * lineHeight + paddingY * 2;
 
-    // Clamp horizontally within room
+    // Clamp horizontally within the visible viewport
     let bubbleX = footX - bubbleWidth / 2;
-    if (bubbleX < 8) bubbleX = 8;
-    if (bubbleX + bubbleWidth > roomWidth - 8) {
-      bubbleX = roomWidth - 8 - bubbleWidth;
+    if (bubbleX < viewportLeft + 8) bubbleX = viewportLeft + 8;
+    if (bubbleX + bubbleWidth > viewportRight - 8) {
+      bubbleX = viewportRight - 8 - bubbleWidth;
     }
     const bubbleY = baseAnchorY - bubbleHeight;
 

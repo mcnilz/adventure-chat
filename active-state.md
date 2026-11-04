@@ -1,5 +1,5 @@
 # Aktueller Stand
-Revision 30 · 04.11.2026.
+Revision 31 · 04.11.2026.
 
 ## Vorhanden
 - [x] Gespräch in Spezifikation, Architektur, Autorenformat und Tickets überführt.
@@ -32,11 +32,13 @@ Revision 30 · 04.11.2026.
 - [ ] Git-Repository und endgültiger Projektname festgelegt.
 
 ## Aktives Ticket
+- **Ticket 12: `in-progress`.** Umfang, Details und Testgrenzen am 04.11.2026 bestätigt („ja“). Horizontale Kamera, Format 1.2.0, Editor und Referenzwelt implementiert; gezielte Tests grün. Vollsuite und Abschlussreview folgen. Details im Ticket 12.
+
 - **Ticket 11: `done`.** Bestätigt am 04.11.2026 („ja“), implementiert und geprüft. Kartenwelt `worlds/map`, Draufsichtfigur, feste Höhe 16–128 Raumpixel (Standard 64), separate Geschwindigkeit (Standard 130), Editor und gemeinsame Vorschau, Format 1.1.0 mit unveränderten alten Schemas/Referenzwelten. Vollsuite 183 Tests grün; beide Reviewachsen nach Sackgassenkorrektur ohne offene Befunde. Menschlich am 04.11.2026 abgenommen („funktioniert super“). Details und konkrete Abnahmeschritte: `.scratch/adventure-chat/issues/11-map-view.md`. Implementierungscommit: `a3497dc`.
 - Ticket 10 ist `done`, ausdrücklich am 04.11.2026 abgenommen („abegnommen“), Implementierungscommit `28e3b7f`. Tickets 01–09 bleiben `done`; dokumentierte Reviewpunkte von Ticket 09 bleiben offen.
 
 ## Nächste Aktion
-Als Nächstes Ticket 12 (horizontal scrollende Räume) mit Umfang, Detailentscheidungen und Testgrenzen vorschlagen und vor Implementierung bestätigen lassen. Tickets 12–13 bleiben draft.
+Ticket 12 abschließend prüfen, Reviewbefunde beheben, Vollsuite ausführen und zur menschlichen Abnahme vorlegen. Ticket 13 bleibt draft.
 
 ## Offene Annahmen
 Privater Testbetrieb, ca. zehn Personen, Desktop-Mausbedienung; keine kollidierenden Figuren; Reconnect als frischer Eintritt.

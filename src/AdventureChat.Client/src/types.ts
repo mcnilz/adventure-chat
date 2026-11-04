@@ -54,7 +54,14 @@ export interface RoomExit {
   readonly targetSpawnId: string;
 }
 
+export interface RoomViewport {
+  width: number;
+  height: number;
+  scrollMode: 'horizontal';
+}
+
 export interface RoomDefinition {
+  viewport?: RoomViewport | null;
   perspective?: 'adventure' | 'top-down';
   actorHeight?: number;
   walkSpeed?: number;

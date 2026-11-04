@@ -1,3 +1,4 @@
+import { screenToRoom } from '../rendering/camera.js';
 import { EXIT_TRIGGER_DISTANCE } from '../constants.js';
 import type { Point, RoomDefinition, RoomExit } from '../types.js';
 
@@ -9,11 +10,13 @@ export interface InputHandlerCallbacks {
 }
 
 export class InputHandler {
+  private pointer: Point | null = null;
   public constructor(
     private readonly canvas: HTMLCanvasElement,
     private readonly callbacks: InputHandlerCallbacks,
     private getRoom: () => RoomDefinition,
-    private getPlayerPosition: () => Point
+    private getPlayerPosition: () => Point,
+    private getCameraOffset: () => number = () => 0
   ) {
     this.setupListeners();
   }
@@ -21,12 +24,7 @@ export class InputHandler {
   public screenToLogical(clientX: number, clientY: number): Point {
     const room = this.getRoom();
     const rect = this.canvas.getBoundingClientRect();
-    const scaleX = room.width / rect.width;
-    const scaleY = room.height / rect.height;
-    return {
-      x: (clientX - rect.left) * scaleX,
-      y: (clientY - rect.top) * scaleY,
-    };
+    return screenToRoom(clientX, clientY, rect, room, this.getCameraOffset());
   }
 
   public findClickedExit(point: Point): RoomExit | null {
@@ -53,6 +51,7 @@ export class InputHandler {
   }
 
   public handleMouseMove(clientX: number, clientY: number): void {
+    this.pointer = { x: clientX, y: clientY };
     const logical = this.screenToLogical(clientX, clientY);
     const exit = this.findClickedExit(logical);
 
@@ -67,8 +66,13 @@ export class InputHandler {
   }
 
   public handleMouseLeave(): void {
+    this.pointer = null;
     this.canvas.style.cursor = 'default';
     this.callbacks.onHoverExitChanged(null, '');
+  }
+
+  public refreshHover(): void {
+    if (this.pointer) this.handleMouseMove(this.pointer.x, this.pointer.y);
   }
 
   public async handleCanvasClick(clientX: number, clientY: number): Promise<{ point: Point; exit: RoomExit | null }> {

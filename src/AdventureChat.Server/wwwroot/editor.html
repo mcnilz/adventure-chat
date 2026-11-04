@@ -183,16 +183,18 @@
           <div class="form-row">
             <div class="form-group">
               <label for="input-width">Breite:</label>
-              <input type="number" id="input-width" value="640" readonly>
+              <input type="number" id="input-width" value="640" min="1" step="1" required>
             </div>
             <div class="form-group">
               <label for="input-height">Höhe:</label>
-              <input type="number" id="input-height" value="360" readonly>
+              <input type="number" id="input-height" value="360" min="1" step="1" required>
             </div>
           </div>
           <div class="form-group">
             <label for="input-perspective">Ansicht</label>
           <select id="input-perspective" title="Raumperspektive (Weltformat 1.1.0)"><option value="adventure">Adventure</option><option value="top-down">Draufsicht</option></select>
+          <label for="input-viewport-width">Ausschnittsbreite (leer: ganzer Raum)</label>
+          <input id="input-viewport-width" type="number" min="1" step="1" title="Horizontales Scrollen; Ausschnittshöhe entspricht der Raumhöhe">
           <label for="input-actor-height">Figurenhöhe (Raumpixel)</label>
           <input id="input-actor-height" type="number" min="16" max="128" value="64" title="Feste optische Höhe, unabhängig von der Bewegungsgeometrie">
           <label for="input-walk-speed">Laufgeschwindigkeit (Raumpixel/s)</label>

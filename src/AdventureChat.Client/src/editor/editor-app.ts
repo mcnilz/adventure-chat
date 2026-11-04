@@ -1,3 +1,4 @@
+import { EditorCamera } from './canvas/editor-camera.js';
 import { EditorApi } from './core/editor-api.js';
 import { EditorState } from './core/editor-state.js';
 import type {
@@ -34,6 +35,7 @@ export interface EditorElements {
   inputPerspective: HTMLSelectElement;
   inputActorHeight: HTMLInputElement;
   inputWalkSpeed: HTMLInputElement;
+  inputViewportWidth: HTMLInputElement;
   inputNotes: HTMLTextAreaElement;
   statusBanner: HTMLElement;
   errorsSection: HTMLElement;
@@ -92,6 +94,7 @@ export interface EditorElements {
 }
 
 export class EditorApp {
+  private readonly camera: EditorCamera;
   private readonly state: EditorState;
   private readonly editorRenderer: EditorRenderer;
   private readonly preview: EditorPreview;
@@ -110,6 +113,7 @@ export class EditorApp {
     private readonly elements: EditorElements
   ) {
     this.state = new EditorState();
+    this.camera = new EditorCamera(canvas, () => this.render());
     this.editorRenderer = new EditorRenderer(this.canvas);
     this.preview = new EditorPreview(this.canvas);
 
@@ -154,6 +158,7 @@ export class EditorApp {
         this.form.applyToRoom(this.state.getRoom());
         this.state.updateMetadata({});
         this.form.setUnsaved(this.state.isDirty());
+        this.render();
       },
       (bg) => {
         this.editorRenderer.setBackground(EditorApi.backgroundUrl(bg));
@@ -181,7 +186,8 @@ export class EditorApp {
       },
       () => this.currentTool,
       () => this.mode === 'preview',
-      (x, y) => void this.preview.handleCanvasClick(x, y, this.state.getRoom())
+      (x, y) => void this.preview.handleCanvasClick(x, y, this.state.getRoom()),
+      () => this.mode === 'preview' ? this.preview.cameraOffset : this.camera.camera.offset
     );
 
     window.addEventListener('beforeunload', (e) => {
@@ -277,6 +283,7 @@ export class EditorApp {
   }
 
   public async saveRoom(): Promise<boolean> {
+    if (!this.form.validateDimensions()) return false;
     this.form.applyToRoom(this.state.getRoom());
     this.form.clearValidationErrors();
 
@@ -307,6 +314,7 @@ export class EditorApp {
   }
 
   public async validateRoom(): Promise<boolean> {
+    if (!this.form.validateDimensions()) return false;
     this.form.applyToRoom(this.state.getRoom());
     this.form.clearValidationErrors();
 
@@ -354,6 +362,7 @@ export class EditorApp {
   public toggleMode(): void {
     if (this.mode === 'edit') {
       this.mode = 'preview';
+      this.camera.configure(this.state.toRoomDefinition(), true);
       this.toolbar.updateModeButton('preview');
       this.setStatus('Vorschaumodus aktiv: Klicke auf die begehbare Fläche, um die Spielfigur zu steuern.', 'info');
       const room = this.state.toRoomDefinition();
@@ -376,6 +385,7 @@ export class EditorApp {
 
   public render(): void {
     if (this.mode === 'preview') return;
+    this.camera.configure(this.state.toRoomDefinition(), false);
 
     this.editorRenderer.setBackground(EditorApi.backgroundUrl(this.state.getRoom().background));
     this.editorRenderer.render(
@@ -386,7 +396,8 @@ export class EditorApp {
       this.canvasInput.getHoveredVertex(),
       this.canvasInput.getHoveredEdge(),
       this.canvasInput.getHoveredEntity(),
-      this.canvasInput.getDragOffset()
+      this.canvasInput.getDragOffset(),
+      this.camera.camera.offset
     );
   }
 
