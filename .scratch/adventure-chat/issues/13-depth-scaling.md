@@ -2,9 +2,11 @@
 
 **What to build:** Ein Autor hinterlegt im Raum einen kontinuierlichen Skalierungsverlauf. Figuren werden beim Laufen nach hinten kleiner und nach vorne größer. Mitgelieferte Demo-Welten demonstrieren sowohl horizontales Scrollen als auch räumlich nachvollziehbare Tiefenskalierung.
 
-**Blocked by:** 09, 11; Gesamtabnahme der Demo-Welten zusätzlich 12
+**Blocked by:** 09, 11, 14, 15, 16; Gesamtabnahme der Demo-Welten zusätzlich 12 (done)
 
 **Status:** draft
+
+Priorisierung am 04.11.2026 ausdrücklich geändert: Ticket 13 erst nach Abschluss der drei neuen Tickets 14 → 15 → 16 angehen. Diese Reihenfolge ist ein Benutzerauftrag, keine technische Notwendigkeit. Tiefenskalierung auf die dann vorhandene Figurenwahl, Vordergrundobjekte und überarbeitete Referenzwelt aufsetzen; keine Arbeiten aus 13 als Voraussetzung für 16 vorziehen. Konkrete Formatversion erst anhand des dann veröffentlichten Stands festlegen.
 
 ## Acceptance criteria
 

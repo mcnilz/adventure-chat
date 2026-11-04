@@ -1,5 +1,5 @@
 # Umsetzungsplan
-Status: Tickets 01–08 sind menschlich abgenommen; 09 ist nach ausdrücklicher Benutzerabnahme auf Grundlage einer tolerierten KI-Prüfung done. 10 ist seit ausdrücklicher Benutzerabnahme am 04.11.2026 done; 11 ist seit menschlicher Abnahme am 04.11.2026 done; 12 ist implementiert und ready-for-human; 13 bleibt draft.
+Status: Tickets 01–08 sind menschlich abgenommen; 09 ist nach ausdrücklicher Benutzerabnahme auf Grundlage einer tolerierten KI-Prüfung done. 10, 11 und 12 sind menschlich abgenommen und done (Abnahme von 12 am 04.11.2026 ausdrücklich klargestellt). Tickets 13–16 bleiben draft; verbindliche nächste Reihenfolge: 14 → 15 → 16 → 13.
 
 | Ticket | Vorführbares Ergebnis | Blocked by |
 | --- | --- | --- |
@@ -15,7 +15,12 @@ Status: Tickets 01–08 sind menschlich abgenommen; 09 ist nach ausdrücklicher 
 | 10 | Weltwahl und isolierter Mehrweltbetrieb | 09 |
 | 11 | Begehbare Karte und feste Figurengröße | 09; Gesamtabnahme: 10 |
 | 12 | Horizontal scrollende Räume | 09; Gesamtabnahme: 10, 11 |
-| 13 | Tiefenskalierung und drei Demo-Szenarien | 09, 11; Gesamtabnahme: 12 |
+| 14 | Weltbezogene Figurenwahl mit passenden Sprites | 09, 10, 11 |
+| 15 | Vordergrundobjekte mit Tiefenordnung im Spiel und Editor | 06, 09, 11; Zusammenspiel: 12, 14 |
+| 16 | Neue Referenzwelt mit Mara/Bruno und Tischverdeckung | 14, 15 |
+| 13 | Tiefenskalierung und drei Demo-Szenarien | 09, 11, 14, 15, 16; Gesamtabnahme: 12 (done) |
+
+Tickets 14–16 wurden am 04.11.2026 auf Benutzerauftrag als draft angelegt. Nur Planung beauftragt; andere Agenten übernehmen die spätere Umsetzung nach Bestätigung von Umfang und Testgrenzen. Verbindliche Reihenfolge laut anschließendem Benutzerauftrag: 14 → 15 → 16 → 13. Keine automatische Parallelbeauftragung. Formatversionen fortlaufend anhand des tatsächlichen Stands wählen; Ticket 13 ergänzt seine Demo-Anforderungen erst nach der neuen Referenzwelt.
 
 Die Tickets liegen einzeln unter [.scratch/adventure-chat/issues](.scratch/adventure-chat/issues/).
 Die Reihenfolge 01–07 ist die empfohlene serielle Umsetzung. Ticket 06 hängt fachlich nur von 02 ab; das ist keine automatische Beauftragung paralleler Agenten.

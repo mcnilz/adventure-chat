@@ -1,7 +1,7 @@
 formatVersion: 1.0.0
 id: reference
 name: Referenzwelt
-contentVersion: 1.0.0
+contentVersion: 1.0.1
 startRoom: lounge
 startSpawn: entry
 roomFormat: legacy-1

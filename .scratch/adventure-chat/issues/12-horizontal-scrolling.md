@@ -4,7 +4,9 @@
 
 **Blocked by:** 09; für die Abnahme beider Darstellungen zusätzlich 11, für die Mehrwelt-Regressionsprüfung 10
 
-**Status:** ready-for-human
+**Status:** done
+
+Menschliche Abnahme am 04.11.2026 ausdrücklich klargestellt: „ticket 12 (scrolling) hatte ich schon abgenommen.“ Damit ist Ticket 12 einschließlich des dokumentierten Nachtrags abgeschlossen. Die nachfolgenden Übergabeangaben zu ausstehender Abnahme beschreiben den historischen Stand vor dieser Klarstellung.
 
 ## Acceptance criteria
 
@@ -69,7 +71,7 @@ Review gegen Ausgangscommit `2cb3dff82ffe511c872e2010999aee4886200530` durch zwe
 5. Eine bestehende Welt aus `worlds/reference` beziehungsweise `worlds/map` ohne Ausschnittsangaben starten: weiterhin vollständige Darstellung und bisherige Bewegung. Bewegungsgefühl und subjektive Editorbedienung bleiben menschliche Abnahme; automatisierte Tests ersetzen sie nicht.
 
 ## Übergabe · 04.11.2026
-Implementierungscommit: `6dd96c7`. Nur lokale Arbeit; keine neuen Abhängigkeiten. Status `ready-for-human`, menschliche Abnahme steht aus. Offene Implementierungsbefunde: keine. Nach ausdrücklicher Abnahme Ticket 12 auf done setzen; Ticket 13 anschließend gesondert vorschlagen und bestätigen lassen.
+Implementierungscommit: `6dd96c7`. Nur lokale Arbeit; keine neuen Abhängigkeiten. Offene Implementierungsbefunde: keine. Menschliche Abnahme am 04.11.2026 klargestellt, Status done. Weitere Reihenfolge auf Benutzerwunsch: 14 → 15 → 16 → 13; jedes neue Paket vor Umsetzung gesondert bestätigen lassen.
 
 ## Nachtrag: Sprechblasen außerhalb des Ausschnitts
 Benutzerfeedback am 04.11.2026: „das funktioniert schon super“, mit direktem Umsetzungsauftrag für Sprechblasen unsichtbarer Sprecher. Ticket für diese Ergänzung zurück auf in-progress. Blasen erscheinen am linken beziehungsweise rechten Ausschnittsrand mit seitlichem Zeiger in Richtung des Sprechers. Beim Wiedereintritt in den Ausschnitt folgt die Blase wieder der Figur mit unterem Zeiger. Laufzeit und Ausblenden bleiben erhalten.
@@ -80,4 +82,4 @@ Zusätzliche manuelle Abnahme: Zwei Browser an entgegengesetzten Enden desselben
 
 Nachtragsreview: Standards- und Spec-Prüfung durch getrennte Subagenten ohne offene Befunde. Gleichzeitige Blasen auf derselben Höhe können sich wie bisher überlagern; keine neue Stapel- oder Priorisierungsregel eingeführt.
 
-Abschluss des Nachtrags: Vollsuite 192 Tests bestanden, 0 Warnungen (158,3 Sekunden); Typcheck/Build und Diffprüfung bestanden. Implementierungscommit `a046edb`. Status wieder ready-for-human; menschliche Abnahme der Ergänzung steht aus.
+Abschluss des Nachtrags: Vollsuite 192 Tests bestanden, 0 Warnungen (158,3 Sekunden); Typcheck/Build und Diffprüfung bestanden. Implementierungscommit `a046edb`. Zunächst ready-for-human; nach Klarstellung der bereits erfolgten Ticketabnahme am 04.11.2026 done.
