@@ -4,9 +4,9 @@
 
 **Blocked by:** 09
 
-**Status:** ready-for-human
+**Status:** done
 
-Umfang, Fehlermodus, Reconnect-Regel und Testgrenzen am 02.11.2026 bestätigt. Implementierung und automatisierte Prüfung am 04.11.2026 abgeschlossen; 172 Tests bestanden, keine Warnungen. Beide Reviewachsen ohne offene Befunde nach Korrekturen. Menschliche Abnahme steht aus; Anleitung unten. Die Kriterienhaken bezeichnen den technisch geprüften Stand, keine menschliche Abnahme.
+Umfang, Fehlermodus, Reconnect-Regel und Testgrenzen am 02.11.2026 bestätigt. Implementierung und automatisierte Prüfung am 04.11.2026 abgeschlossen; 172 Tests bestanden, keine Warnungen. Beide Reviewachsen ohne offene Befunde nach Korrekturen. Am 04.11.2026 vom Benutzer ausdrücklich abgenommen („abegnommen“) nach Bereitstellung der manuellen Prüfschritte. Implementierungscommit: `28e3b7f`.
 
 ## Acceptance criteria
 
@@ -61,7 +61,7 @@ dotnet run --project src/AdventureChat.Server -- --authoring --urls http://127.0
 4. `http://127.0.0.1:5080/editor.html` öffnen, „Zweite Welt“ wählen. Raumname oder Notiz ändern, speichern und Seite neu laden. Änderung und gewähltes Bild müssen erhalten sein; Vorschau testen. Zur Weltwahl wechseln, Referenzwelt öffnen und prüfen, dass deren Inhalte unverändert sind. Bei ungespeicherter Änderung muss ein Weltwechsel die Browserwarnung auslösen.
 5. Optional nur einen `World:Roots`-Eintrag starten: Die Welt bleibt vor Eintritt auswählbar. Fehlerhafte oder doppelte Weltpakete müssen den Serverstart mit Fehler beenden.
 
-Testgrenzen: Automatisierte Prüfungen sichern HTTP-/Hubverträge und Browserabläufe. Bewegungsgefühl, Lesbarkeit, Bilddarstellung und Editorbedienung bleiben Teil dieser menschlichen Abnahme. Noch keine menschliche Abnahme erfolgt.
+Testgrenzen: Automatisierte Prüfungen sichern HTTP-/Hubverträge und Browserabläufe. Bewegungsgefühl, Lesbarkeit, Bilddarstellung und Editorbedienung ergänzen die menschliche Abnahme. Der Benutzer hat das Ticket am 04.11.2026 ausdrücklich abgenommen; einzelne manuelle Testergebnisse wurden nicht separat protokolliert.
 
 ### Zwischenstand 04.11.2026 – weltbezogene Rauminhalte
 
