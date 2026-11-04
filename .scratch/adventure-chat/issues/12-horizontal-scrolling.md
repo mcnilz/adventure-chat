@@ -4,7 +4,7 @@
 
 **Blocked by:** 09; für die Abnahme beider Darstellungen zusätzlich 11, für die Mehrwelt-Regressionsprüfung 10
 
-**Status:** ready-for-human
+**Status:** in-progress
 
 ## Acceptance criteria
 
@@ -70,3 +70,12 @@ Review gegen Ausgangscommit `2cb3dff82ffe511c872e2010999aee4886200530` durch zwe
 
 ## Übergabe · 04.11.2026
 Implementierungscommit: `6dd96c7`. Nur lokale Arbeit; keine neuen Abhängigkeiten. Status `ready-for-human`, menschliche Abnahme steht aus. Offene Implementierungsbefunde: keine. Nach ausdrücklicher Abnahme Ticket 12 auf done setzen; Ticket 13 anschließend gesondert vorschlagen und bestätigen lassen.
+
+## Nachtrag: Sprechblasen außerhalb des Ausschnitts
+Benutzerfeedback am 04.11.2026: „das funktioniert schon super“, mit direktem Umsetzungsauftrag für Sprechblasen unsichtbarer Sprecher. Ticket für diese Ergänzung zurück auf in-progress. Blasen erscheinen am linken beziehungsweise rechten Ausschnittsrand mit seitlichem Zeiger in Richtung des Sprechers. Beim Wiedereintritt in den Ausschnitt folgt die Blase wieder der Figur mit unterem Zeiger. Laufzeit und Ausblenden bleiben erhalten.
+
+Rot/Grün an der bestehenden öffentlichen Canvas-Renderergrenze nachgewiesen: beide Randrichtungen, Rückkehr zur Figur und abgelaufene Nachricht. Typcheck und Build grün. Kein Autorenformatbezug: ausschließlich lokale Darstellung vorübergehender Chatnachrichten; keine Änderung von Raumdaten, Schemas, Semantik oder unterstützten Formatversionen. Keine neuen Abhängigkeiten.
+
+Zusätzliche manuelle Abnahme: Zwei Browser an entgegengesetzten Enden desselben Raums positionieren und abwechselnd schreiben. Im jeweils anderen Browser muss die Sprechblase am passenden Rand mit seitlichem Zeiger erscheinen. Während die Nachricht noch sichtbar ist zum Sprecher laufen und den Wechsel zur normalen Blase prüfen.
+
+Nachtragsreview: Standards- und Spec-Prüfung durch getrennte Subagenten ohne offene Befunde. Gleichzeitige Blasen auf derselben Höhe können sich wie bisher überlagern; keine neue Stapel- oder Priorisierungsregel eingeführt.

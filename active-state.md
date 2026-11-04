@@ -1,5 +1,5 @@
 # Aktueller Stand
-Revision 31 · 04.11.2026.
+Revision 32 · 04.11.2026.
 
 ## Vorhanden
 - [x] Gespräch in Spezifikation, Architektur, Autorenformat und Tickets überführt.
@@ -32,6 +32,7 @@ Revision 31 · 04.11.2026.
 - [ ] Git-Repository und endgültiger Projektname festgelegt.
 
 ## Aktives Ticket
+- Nachtrag zu Ticket 12: `in-progress` nach Benutzerfeedback „das funktioniert schon super“ mit direktem Ergänzungsauftrag. Sprechblasen unsichtbarer Sprecher erscheinen nun mit Richtungszeiger am entsprechenden Bildrand; gezielter Rot/Grün-Test, Typcheck und Build bestanden. Vollsuite und Nachtragsreview laufen. Details und zusätzliche Abnahmeschritte im Ticket 12.
 - **Ticket 12: `ready-for-human`.** Umfang, Details und Testgrenzen am 04.11.2026 bestätigt („ja“). Horizontale Kamera (Ruhebereich 35–65 %, ohne Nachschwingen), Format 1.2.0, Editor mit bearbeitbaren Raummaßen/Ausschnitt und Referenzwelt `worlds/scroll` implementiert. Typcheck/Build und Vollsuite mit 191 Tests bestanden, keine Warnungen. Beide Reviewachsen nach Korrekturen ohne offene Befunde; Screenshotprüfung bestanden. Implementierungscommit `6dd96c7`. Menschliche Abnahme steht aus. Details und konkrete Abnahmeschritte: `.scratch/adventure-chat/issues/12-horizontal-scrolling.md`.
 
 - **Ticket 11: `done`.** Bestätigt am 04.11.2026 („ja“), implementiert und geprüft. Kartenwelt `worlds/map`, Draufsichtfigur, feste Höhe 16–128 Raumpixel (Standard 64), separate Geschwindigkeit (Standard 130), Editor und gemeinsame Vorschau, Format 1.1.0 mit unveränderten alten Schemas/Referenzwelten. Vollsuite 183 Tests grün; beide Reviewachsen nach Sackgassenkorrektur ohne offene Befunde. Menschlich am 04.11.2026 abgenommen („funktioniert super“). Details und konkrete Abnahmeschritte: `.scratch/adventure-chat/issues/11-map-view.md`. Implementierungscommit: `a3497dc`.

@@ -20,7 +20,8 @@ export class SpeechBubbleRenderer {
 
     const footX = Math.round(character.position.x);
     const footY = Math.round(character.position.y);
-    if (footX < viewportLeft || footX > viewportRight) return;
+    const offscreenLeft = footX < viewportLeft;
+    const offscreenRight = footX > viewportRight;
     const frameHeight = actorHeight;
     const nameBadgeHeight = 14;
     const baseAnchorY = footY - frameHeight - nameBadgeHeight - 8;
@@ -83,16 +84,29 @@ export class SpeechBubbleRenderer {
     ctx.moveTo(bubbleX + radius, bubbleY);
     ctx.lineTo(bubbleX + bubbleWidth - radius, bubbleY);
     ctx.quadraticCurveTo(bubbleX + bubbleWidth, bubbleY, bubbleX + bubbleWidth, bubbleY + radius);
+    const sidePointerY = bubbleY + bubbleHeight / 2;
+    if (offscreenRight) {
+      ctx.lineTo(bubbleX + bubbleWidth, sidePointerY - 5);
+      ctx.lineTo(viewportRight - 2, sidePointerY);
+      ctx.lineTo(bubbleX + bubbleWidth, sidePointerY + 5);
+    }
     ctx.lineTo(bubbleX + bubbleWidth, bubbleY + bubbleHeight - radius);
     ctx.quadraticCurveTo(bubbleX + bubbleWidth, bubbleY + bubbleHeight, bubbleX + bubbleWidth - radius, bubbleY + bubbleHeight);
 
-    const pointerX = Math.min(Math.max(footX, bubbleX + 12), bubbleX + bubbleWidth - 12);
-    ctx.lineTo(pointerX + 5, bubbleY + bubbleHeight);
-    ctx.lineTo(pointerX, bubbleY + bubbleHeight + 6);
-    ctx.lineTo(pointerX - 5, bubbleY + bubbleHeight);
+    if (!offscreenLeft && !offscreenRight) {
+      const pointerX = Math.min(Math.max(footX, bubbleX + 12), bubbleX + bubbleWidth - 12);
+      ctx.lineTo(pointerX + 5, bubbleY + bubbleHeight);
+      ctx.lineTo(pointerX, bubbleY + bubbleHeight + 6);
+      ctx.lineTo(pointerX - 5, bubbleY + bubbleHeight);
+    }
 
     ctx.lineTo(bubbleX + radius, bubbleY + bubbleHeight);
     ctx.quadraticCurveTo(bubbleX, bubbleY + bubbleHeight, bubbleX, bubbleY + bubbleHeight - radius);
+    if (offscreenLeft) {
+      ctx.lineTo(bubbleX, sidePointerY + 5);
+      ctx.lineTo(viewportLeft + 2, sidePointerY);
+      ctx.lineTo(bubbleX, sidePointerY - 5);
+    }
     ctx.lineTo(bubbleX, bubbleY + radius);
     ctx.quadraticCurveTo(bubbleX, bubbleY, bubbleX + radius, bubbleY);
     ctx.closePath();
