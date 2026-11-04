@@ -38,3 +38,6 @@
 | Figurenkatalog | Optionales weltbezogenes Verzeichnis verfügbarer Figurengrafiken mit stabiler ID, Name, PNG und Quellraster |
 | Defaultfigur | Explizit benannte Figur des Weltkatalogs für vorbelegte Auswahl und Editor-Vorschau |
 | Quellraster | Framebreite und Framehöhe des PNG; unabhängig von der Zielhöhe im Raum |
+
+| Raumobjekt | Grafisches PNG-Element mit stabiler ID, Position, Zielgröße und Tiefenlinie; unabhängig von Kollision |
+| Tiefenlinie | Horizontale Raum-Y-Linie eines Objekts; Figuren dahinter werden von sichtbaren PNG-Pixeln verdeckt, bei gleicher Tiefe steht die Figur davor |

@@ -1,3 +1,4 @@
+import { EditorObjects } from './ui/editor-objects.js';
 import { EditorCamera } from './canvas/editor-camera.js';
 import { EditorApi } from './core/editor-api.js';
 import { EditorState } from './core/editor-state.js';
@@ -94,6 +95,7 @@ export interface EditorElements {
 }
 
 export class EditorApp {
+  private readonly objectPanel: EditorObjects;
   private readonly camera: EditorCamera;
   private readonly state: EditorState;
   private readonly editorRenderer: EditorRenderer;
@@ -113,6 +115,7 @@ export class EditorApp {
     private readonly elements: EditorElements
   ) {
     this.state = new EditorState();
+    canvas.addEventListener("object-loaded", () => this.render());
     this.camera = new EditorCamera(canvas, () => this.render());
     this.editorRenderer = new EditorRenderer(this.canvas);
     this.preview = new EditorPreview(this.canvas);
@@ -194,6 +197,7 @@ export class EditorApp {
       if (this.state.isDirty()) e.preventDefault();
     });
 
+    this.objectPanel = new EditorObjects(this.state, () => this.syncStateAndRender(), (m) => this.setStatus(m, "error"));
     this.syncAllViews();
     this.form.clearValidationErrors();
     this.render();
@@ -366,7 +370,7 @@ export class EditorApp {
       this.toolbar.updateModeButton('preview');
       this.setStatus('Vorschaumodus aktiv: Klicke auf die begehbare Fläche, um die Spielfigur zu steuern.', 'info');
       const room = this.state.toRoomDefinition();
-      this.preview.start({ ...room, backgroundUrl: EditorApi.backgroundUrl(room.backgroundUrl) });
+      this.preview.start({ ...room, objects: room.objects?.map(o => ({ ...o, image: EditorApi.backgroundUrl(o.image) })) ?? [], backgroundUrl: EditorApi.backgroundUrl(room.backgroundUrl) });
     } else {
       this.mode = 'edit';
       this.toolbar.updateModeButton('edit');
@@ -387,6 +391,7 @@ export class EditorApp {
     if (this.mode === 'preview') return;
     this.camera.configure(this.state.toRoomDefinition(), false);
 
+    this.objectPanel.update();
     this.editorRenderer.setBackground(EditorApi.backgroundUrl(this.state.getRoom().background));
     this.editorRenderer.render(
       this.state.getRoom(),

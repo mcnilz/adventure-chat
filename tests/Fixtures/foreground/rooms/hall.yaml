@@ -1,0 +1,20 @@
+version: 1
+id: hall
+name: hall
+background: assets/images/background.png
+size: { width: 640, height: 360 }
+perspective: top-down
+actorHeight: 64
+spawns:
+  - { id: entry, position: { x: 100, y: 300 } }
+walkable:
+  - id: floor
+    points: [{ x: 10, y: 100 }, { x: 630, y: 100 }, { x: 630, y: 350 }, { x: 10, y: 350 }]
+exits:
+  - id: door
+    position: { x: 100, y: 300 }
+    radius: 30
+    target: { room: next, spawn: entry }
+
+objects:
+  - { id: table, image: assets/images/table.png, position: {x: 200, y: 200}, size: {width: 120, height: 120}, depthY: 280 }

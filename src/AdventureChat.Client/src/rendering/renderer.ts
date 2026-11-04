@@ -1,3 +1,4 @@
+import { ObjectRenderer, compareObjectDepth } from './object-renderer.js';
 import { HorizontalCamera, resizeCanvas } from './camera.js';
 import { CLICK_MARKER_DURATION } from '../constants.js';
 import type { Character, RoomDefinition, RoomExit } from '../types.js';
@@ -8,6 +9,7 @@ import { SpeechBubbleRenderer } from './speech-bubble-renderer.js';
 export { type ClickMarker } from './overlay-renderer.js';
 
 export class RoomRenderer {
+  private readonly objects = new ObjectRenderer();
   private readonly ctx: CanvasRenderingContext2D;
   private readonly backgroundImage: HTMLImageElement;
   private readonly characterRenderer: CharacterRenderer;
@@ -115,12 +117,18 @@ export class RoomRenderer {
     const now = performance.now();
     this.clickMarkers = this.overlayRenderer.drawClickMarkers(ctx, this.clickMarkers, now);
 
-    // 5. Draw Characters sorted by Y position (painter's algorithm)
+    // Objects win over actors behind their line; actors win at equality.
     allCharacters.sort((a, b) => a.position.y - b.position.y);
+    const objects = [...(room.objects ?? [])].sort(compareObjectDepth);
+    let index = 0;
     for (const char of allCharacters) {
-      const isLocal = char.id === localCharacter.id;
-      this.characterRenderer.drawCharacter(ctx, char, isLocal, room);
+      while (index < objects.length && objects[index]!.depthY <= char.position.y) {
+        this.objects.draw(ctx, objects[index++]!);
+      }
+      this.characterRenderer.drawCharacter(ctx, char, char.id === localCharacter.id, room, objects.length === 0);
     }
+    while (index < objects.length) this.objects.draw(ctx, objects[index++]!);
+    if (objects.length > 0) for (const char of allCharacters) this.characterRenderer.drawName(ctx, char, char.id === localCharacter.id, room);
 
     // 6. Draw Speech Bubbles
     for (const char of allCharacters) {

@@ -643,3 +643,14 @@
   font-size: 0.7rem;
   color: #a0aec0;
 }
+
+.object-panel p { font-size: 0.8rem; color: #cbd5e0; line-height: 1.5; }
+.object-panel label { display: block; margin: 10px 0; font-size: 0.8rem; color: #cbd5e0; }
+.object-panel input, .object-panel select {
+  display: block; box-sizing: border-box; width: 100%; margin-top: 5px;
+  padding: 7px; border: 1px solid #4a5568; border-radius: 4px;
+  background: #1a202c; color: #edf2f7;
+}
+.object-panel button { margin-top: 10px; width: 100%; padding: 7px; border-radius: 4px; cursor: pointer; }
+.object-panel input:focus, .object-panel select:focus { outline: 2px solid #63b3ed; }
+.object-panel [hidden] { display: none; }

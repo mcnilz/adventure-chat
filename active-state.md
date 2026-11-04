@@ -1,5 +1,5 @@
 # Aktueller Stand
-Revision 36 · 04.11.2026.
+Revision 37 · 04.11.2026.
 
 ## Vorhanden
 - [x] Gespräch in Spezifikation, Architektur, Autorenformat und Tickets überführt.
@@ -32,8 +32,9 @@ Revision 36 · 04.11.2026.
 - [ ] Git-Repository und endgültiger Projektname festgelegt.
 
 ## Aktives Ticket
-- **Ticket 14: `done`.** Menschlich am 04.11.2026 abgenommen („funktioniert“). Name/Figur vor Eintritt, Katalog 1.3.0, gemeinsamer Renderer und Editor umgesetzt. Typcheck/Build, 213 Tests (0 Warnungen), beide Reviewachsen ohne offene Befunde. Implementierungscommit `8761c42`. Details im Ticket 14. Tickets 15/16 bleiben draft.
-- **Planung 15/16:** Weiterhin draft, vor Umsetzung bestätigen. Verbindliche Reihenfolge nach Abnahme von 14: 15 → 16 → 13. Ticket 13 ist kein Blocker für 16.
+- **Ticket 15: ready-for-human.** Am 04.11.2026 mit „ok“ für Umfang, Datenvertrag und Testgrenzen bestätigt und umgesetzt: Vordergrundobjekte mit PNG-Alpha/Tiefenlinie, gemeinsamer Spiel-/Editorrenderer, Objektverwaltung/Upload/Alt-Klick. Format 1.4.0 additive Minor-Erweiterung; alte Schemas/Fixtures und Benutzerbilder unverändert. Typcheck/Build, Vollsuite 230 Tests (0 Warnungen), 14 gezielte Inhaltsfälle und drei Objekt-Browsertests einschließlich Reviewnachträgen erfolgreich. Beide Reviewachsen nach Korrekturen ohne offene Funktions-/Standardsbefunde. Manuelle Abnahme und Details im Ticket 15; kein done ohne Benutzerabnahme.
+- **Ticket 14: `done`.** Menschlich am 04.11.2026 abgenommen („funktioniert“). Name/Figur vor Eintritt, Katalog 1.3.0, gemeinsamer Renderer und Editor umgesetzt. Typcheck/Build, 213 Tests (0 Warnungen), beide Reviewachsen ohne offene Befunde. Implementierungscommit `8761c42`. Details im Ticket 14. Ticket 15 ist jetzt ready-for-human; Ticket 16 bleibt draft.
+- **Reihenfolge:** Nach Abnahme von 15 folgt Ticket 16 (draft; vor Umsetzung bestätigen), danach 13. Ticket 13 ist kein Blocker für 16.
 - **Vorhandene Benutzeränderungen:** neue Lounge-/Gartenbilder und Design Guide unter `worlds/reference` unverändert erhalten; ihre Bildabmessungen passen derzeit nicht zu den alten Raumdaten. Integration und Animationsabnahme gehören zu Ticket 16. Alte Referenzwelt aus b3d0b83 bereits unter `tests/Fixtures/reference-v1` bytegetreu gesichert und für Regressionstests verwendet.
 - **Ticket 12: `done`.** Benutzer hat am 04.11.2026 ausdrücklich klargestellt: „ticket 12 (scrolling) hatte ich schon abgenommen.“ Abnahme einschließlich dokumentiertem Randsprechblasen-Nachtrag nachgetragen. Implementierungscommits `6dd96c7` und `a046edb`. Horizontale Kamera, Format 1.2.0, Editor und Scrollwelt implementiert; abschließende Nachtrags-Vollsuite 192 Tests, 0 Warnungen; Typcheck/Build, beide Reviewachsen und Diffprüfung bestanden. Details im Ticket 12.
 
@@ -41,7 +42,7 @@ Revision 36 · 04.11.2026.
 - Ticket 10 ist `done`, ausdrücklich am 04.11.2026 abgenommen („abegnommen“), Implementierungscommit `28e3b7f`. Tickets 01–09 bleiben `done`; dokumentierte Reviewpunkte von Ticket 09 bleiben offen.
 
 ## Nächste Aktion
-Als Nächstes Ticket 15 (Vordergrundobjekte und Verdeckung im Raumeditor) mit Umfang, Detailentscheidungen und Testgrenzen vorschlagen und vor Umsetzung bestätigen lassen. Danach verbindlich 16 → 13. Die alte Referenzwelt ist bereits bytegetreu aus b3d0b83 unter tests/Fixtures/reference-v1 gesichert, weil die neuen Hintergrundbilder nicht zu den bisherigen Raumabmessungen passen. Testfixture-Nutzung ändert die neuen Inhalte unter worlds/reference nicht.
+Ticket 15 manuell anhand der Schritte im Ticket abnehmen: Objekt bearbeiten/speichern/neuladen, Vorschau und zwei Browser vor/hinter transparenter Maske, Namen/Sprechblasen. Nach ausdrücklicher Abnahme Ticket 16 mit Umfang und Testgrenzen vorschlagen und bestätigen lassen; danach 13. Referenzweltbilder bleiben bis Ticket 16 unverändert.
 
 ## Offene Annahmen
 Privater Testbetrieb, ca. zehn Personen, Desktop-Mausbedienung; keine kollidierenden Figuren; Reconnect als frischer Eintritt.

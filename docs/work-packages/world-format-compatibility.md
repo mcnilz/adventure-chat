@@ -81,3 +81,24 @@ Katalogfiguren werden auch in Draufsichträumen verwendet. Die Raum-Figurengrö�
 Teilnehmer wählen Name und Figur vor Eintritt; gleiche Figuren dürfen mehrfach vorkommen. Server akzeptiert nur weltbezogene IDs, fehlende ID verwendet den Weltdefault. Auswahl bleibt über Raumwechsel und frischen Reconnect erhalten; bei Weltwechsel wird neu gewählt. Keine Persistenz über Seiten-/Browserneustart. Bildadressen und Browsercache sind weltgebunden.
 
 Kompatibilitätsnachweis: `tests/Fixtures/reference-v1` ist die unveränderte Referenzwelt aus Commit b3d0b83 (vor den Inhaltsänderungen für Ticket 16). Zusätzlich bleiben `content/rooms`, `worlds/map`, `worlds/scroll` und alle älteren Schema-Bündel unverändert. Neue synthetische Testwelten unter `tests/Fixtures/characters-a` und `characters-b` weisen Katalograster und Weltisolation nach.
+
+## Raumobjekte seit Weltformat 1.4.0 (Ticket 15)
+
+Unterstützung: ausdrücklich 1.0.0, 1.1.0, 1.2.0, 1.3.0 und 1.4.0. Neues Offline-Bündel unter schemas/world/1.4.0. Minor-Erweiterung: objects ist optional; ohne Liste bleiben Darstellung, Bewegung und Defaults älterer Welten erhalten. Alte Schemas einschließlich Teilschemas und Referenzfixtures bleiben unverändert. Alte Server dürfen 1.4.0 ablehnen.
+
+Raum-YAML:
+
+```yaml
+objects:
+  - id: table
+    image: assets/images/table.png
+    position: { x: 200, y: 200 }
+    size: { width: 120, height: 120 }
+    depthY: 280
+```
+
+Maximal 128 Objekte; IDs sind eindeutig und groß-/kleinschreibungssensitiv, 1–64 ASCII-Buchstaben, Ziffern, Unterstrich oder Bindestrich. Position ist links oben. Position, Zielgröße und depthY sind ganzzahlige logische Raumpixel. Positive Zielgröße und gesamtes Rechteck müssen in den Raum passen; depthY liegt zwischen 0 und Raumhöhe einschließlich. Quellgröße darf von Zielgröße abweichen. PNG unter assets/images mit bestehenden Pfad-, Link-, Datei- und Dekodierlimits; Upload maximal 10 MiB, Inhaltsprüfung vor Raumübernahme.
+
+Objekte und Figuren werden gemeinsam nach Raum-Y gezeichnet. Figuren mit Fußpunkt unter depthY erscheinen vor dem Objekt, ebenso bei Gleichstand. Objekte gleicher Tiefe werden nach ordinaler ID aufsteigend gezeichnet. PNG-Alpha bleibt erhalten, Namen und Sprechblasen folgen darüber. Kamera und Bildschirmskalierung verändern diese Ordnung nicht. Grafische Objekte erzeugen keine Kollisionsflächen.
+
+Editor: Bereich „Raumobjekte“, Auswahlliste für überlappende Motive, Objekt anlegen, PNG-Pfad oder vorhandenes PNG zuordnen/hochladen, Werte bearbeiten, per Maus verschieben und löschen. Umriss und Tiefenlinie erscheinen in der Bearbeitung. Die Vorschau verwendet denselben Objektzeichner wie das Spiel. Ein bestehendes Weltmanifest wird nicht automatisch hochgestuft. Kleine synthetische Testwelt: tests/Fixtures/foreground; Referenzweltgestaltung folgt in Ticket 16.

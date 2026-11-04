@@ -28,6 +28,7 @@ public sealed partial class RoomValidator : IRoomValidator
     private readonly JsonSchema? _jsonSchema;
     private readonly bool _supportsDisplay;
     private readonly bool _supportsViewport;
+    private readonly bool _supportsObjects;
     private readonly IPathfindingService _pathfinder;
 
     public RoomValidator(string? schemaPath = null, IPathfindingService? pathfinder = null)
@@ -37,6 +38,7 @@ public sealed partial class RoomValidator : IRoomValidator
         {
             var schemaText = File.ReadAllText(schemaPath);
             _jsonSchema = JsonSchema.FromText(schemaText);
+            _supportsObjects = JsonNode.Parse(schemaText)?["properties"]?["objects"] is not null;
             _supportsViewport = JsonNode.Parse(schemaText)?["properties"]?["viewport"] is not null;
             _supportsDisplay = JsonNode.Parse(schemaText)?["properties"]?["perspective"] is not null;
         }
@@ -115,6 +117,8 @@ public sealed partial class RoomValidator : IRoomValidator
             if (viewport.Width <= 0 || viewport.Height != dto.Size.Height || viewport.ScrollMode != "horizontal")
                 errors.Add("viewport requires positive width, room height and horizontal scrollMode.");
         }
+
+        RoomObjectValidation.Validate(dto, _supportsObjects, errors);
 
         // 2. ID
         if (string.IsNullOrWhiteSpace(dto.Id))

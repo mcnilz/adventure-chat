@@ -85,6 +85,7 @@ export class EditorGeometry {
       actorHeight: r.actorHeight ?? 64,
       walkSpeed: r.walkSpeed ?? 130,
       viewport: r.viewport ?? null,
+      objects: r.objects ?? [],
       geometry: {
         outerBoundary,
         obstacles

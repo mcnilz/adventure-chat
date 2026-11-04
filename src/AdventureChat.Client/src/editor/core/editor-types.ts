@@ -38,7 +38,12 @@ export interface RoomExitDto {
   target: RoomExitTargetDto;
 }
 
+export interface RoomObjectDto {
+ id: string; image: string; position: RoomPointDto; size: {width: number; height: number}; depthY: number;
+}
+
 export interface RoomYamlDto {
+  objects?: RoomObjectDto[] | null;
   viewport?: import('../../types.js').RoomViewport | null;
   perspective?: 'adventure' | 'top-down';
   actorHeight?: number;
@@ -67,10 +72,11 @@ export interface RoomSummaryDto {
 }
 
 export interface SelectedEntity {
-  type: 'vertex' | 'polygon' | 'spawn' | 'exit' | null;
+  type: 'vertex' | 'polygon' | 'spawn' | 'exit' | 'object' | null;
   polyType?: 'walkable' | 'obstacle';
   polyIndex?: number;
   vertexIndex?: number;
+  objectId?: string;
   spawnId?: string;
   exitId?: string;
 }

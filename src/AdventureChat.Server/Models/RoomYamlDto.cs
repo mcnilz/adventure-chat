@@ -38,6 +38,7 @@ public sealed class RoomYamlDto
     public double? ActorHeight { get; set; }
     public double? WalkSpeed { get; set; }
     public RoomViewportYamlDto? Viewport { get; set; }
+    public List<RoomObjectYamlDto>? Objects { get; set; }
 
     public RoomDefinition ToRoomDefinition()
     {
@@ -76,6 +77,7 @@ public sealed class RoomYamlDto
             Perspective: Perspective ?? "adventure",
             ActorHeight: ActorHeight ?? 64,
             WalkSpeed: WalkSpeed ?? 130,
+            Objects: Objects?.Select(o => new RoomObject(o.Id, o.Image, new Point2D(o.Position.X, o.Position.Y), new RoomObjectSize(o.Size.Width, o.Size.Height), o.DepthY)).ToList(),
             Viewport: Viewport is null ? null : new RoomViewport(Viewport.Width, Viewport.Height, Viewport.ScrollMode)
         );
     }
@@ -134,6 +136,7 @@ public sealed class RoomYamlDto
                 }).ToList()
                 : null,
             Notes = room.Notes,
+            Objects = room.Objects?.Select(o => new RoomObjectYamlDto { Id = o.Id, Image = o.Image, Position = new RoomPointYamlDto { X = o.Position.X, Y = o.Position.Y }, Size = new RoomSizeYamlDto { Width = o.Size.Width, Height = o.Size.Height }, DepthY = o.DepthY }).ToList(),
             Perspective = room.Perspective == "adventure" ? null : room.Perspective,
             ActorHeight = room.ActorHeight == 64 ? null : room.ActorHeight,
             WalkSpeed = room.WalkSpeed == 130 ? null : room.WalkSpeed,
@@ -228,4 +231,13 @@ public sealed class RoomViewportYamlDto
     public int Width { get; set; }
     public int Height { get; set; }
     public string ScrollMode { get; set; } = string.Empty;
+}
+
+public sealed class RoomObjectYamlDto
+{
+ public string Id { get; set; } = "";
+ public string Image { get; set; } = "";
+ public RoomPointYamlDto Position { get; set; } = new();
+ public RoomSizeYamlDto Size { get; set; } = new();
+ public double DepthY { get; set; }
 }

@@ -74,7 +74,16 @@ export interface RoomViewport {
   scrollMode: 'horizontal';
 }
 
+export interface RoomObject {
+ readonly id: string;
+ readonly image: string;
+ readonly position: Point;
+ readonly size: { readonly width: number; readonly height: number };
+ readonly depthY: number;
+}
+
 export interface RoomDefinition {
+  objects?: ReadonlyArray<RoomObject> | null;
   viewport?: RoomViewport | null;
   perspective?: 'adventure' | 'top-down';
   actorHeight?: number;

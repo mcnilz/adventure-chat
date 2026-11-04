@@ -17,6 +17,9 @@ public sealed record RoomExit(
     string? Label = null
 );
 
+public sealed record RoomObject(string Id, string Image, Point2D Position, RoomObjectSize Size, double DepthY);
+public sealed record RoomObjectSize(int Width, int Height);
+
 public sealed record RoomViewport(int Width, int Height, string ScrollMode);
 
 public sealed record RoomDefinition(
@@ -33,7 +36,8 @@ public sealed record RoomDefinition(
     string Perspective = "adventure",
     double ActorHeight = 64,
     double WalkSpeed = 130,
-    RoomViewport? Viewport = null
+    RoomViewport? Viewport = null,
+    IReadOnlyList<RoomObject>? Objects = null
 )
 {
     public IReadOnlyList<RoomSpawn> Spawns { get; init; } = Spawns ?? new List<RoomSpawn> { new("entry", SpawnPoint) };

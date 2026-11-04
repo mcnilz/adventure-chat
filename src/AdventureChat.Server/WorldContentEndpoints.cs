@@ -68,6 +68,7 @@ internal static class WorldContentEndpoints
                 label = e.Label,
                 target = new { room = e.TargetRoomId, spawn = e.TargetSpawnId }
             }),
+            room.Objects, room.Perspective, room.ActorHeight, room.WalkSpeed, room.Viewport,
             notes = room.Notes
         });
     }

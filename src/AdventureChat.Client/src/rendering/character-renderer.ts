@@ -14,8 +14,8 @@ export class CharacterRenderer {
     };
   }
 
-  public drawCharacter(ctx: CanvasRenderingContext2D, character: Character, isLocal: boolean, room?: RoomDefinition): void {
-    const { position, facing, state, walkFrame, name } = character;
+  public drawCharacter(ctx: CanvasRenderingContext2D, character: Character, isLocal: boolean, room?: RoomDefinition, showName = true): void {
+    const { position, facing, state, walkFrame } = character;
 
     const appearance = character.appearance;
     let sprite = this.characterSprite;
@@ -96,6 +96,13 @@ export class CharacterRenderer {
 
     ctx.restore();
 
+    if (showName) this.drawName(ctx, character, isLocal, room);
+  }
+
+  public drawName(ctx: CanvasRenderingContext2D, character: Character, isLocal: boolean, room?: RoomDefinition): void {
+    const { name, position } = character;
+    const footX = Math.round(position.x), footY = Math.round(position.y);
+    const height = room?.actorHeight ?? 64;
     // Draw Name Tag
     ctx.save();
     ctx.font = '10px sans-serif';

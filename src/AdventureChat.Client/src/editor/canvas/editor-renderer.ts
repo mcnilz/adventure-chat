@@ -1,3 +1,5 @@
+import { ObjectRenderer, compareObjectDepth } from '../../rendering/object-renderer.js';
+import { EditorApi } from '../core/editor-api.js';
 import { resizeCanvas } from '../../rendering/camera.js';
 import { EditorDrawUtils } from './editor-draw-utils.js';
 import type {
@@ -8,6 +10,7 @@ import type {
 } from '../core/editor-types.js';
 
 export class EditorRenderer {
+  private readonly objects = new ObjectRenderer();
   private readonly ctx: CanvasRenderingContext2D;
   private readonly backgroundImage: HTMLImageElement;
   private backgroundLoaded = false;
@@ -59,6 +62,13 @@ export class EditorRenderer {
     } else {
       ctx.fillStyle = '#1a202c';
       ctx.fillRect(0, 0, room.size.width, room.size.height);
+    }
+
+    for (const object of [...(room.objects ?? [])].sort(compareObjectDepth)) {
+      this.objects.draw(ctx, {...object, image: EditorApi.backgroundUrl(object.image)}, () => this.canvas.dispatchEvent(new Event('object-loaded')));
+      ctx.strokeStyle = selection.type === 'object' && selection.objectId === object.id ? '#ecc94b' : '#63b3ed';
+      ctx.strokeRect(object.position.x, object.position.y, object.size.width, object.size.height);
+      ctx.beginPath(); ctx.moveTo(object.position.x, object.depthY); ctx.lineTo(object.position.x+object.size.width, object.depthY); ctx.stroke();
     }
 
     // 2. Subtle coordinate grid (every 40px)

@@ -213,6 +213,7 @@ public sealed class RoomService : IRoomService
         return room with
         {
             BackgroundUrl = background,
+            Objects = room.Objects?.Select(o => o with { Image = $"/world-assets/{Uri.EscapeDataString(_world.Id)}/images/{o.Image[prefix.Length..]}" }).ToList(),
             SpawnPoint = room.Id == _world.StartRoom ? room.GetSpawnPosition(_world.StartSpawn) : room.SpawnPoint
         };
     }

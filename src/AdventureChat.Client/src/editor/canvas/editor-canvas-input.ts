@@ -182,6 +182,12 @@ export class EditorCanvasInput {
 
     // Select mode
     if (tool === 'select') {
+      const object = [...(room.objects ?? [])].reverse().find(o => pos.x >= o.position.x && pos.x <= o.position.x+o.size.width && pos.y >= o.position.y && pos.y <= o.position.y+o.size.height);
+      if (object && !evt.altKey) {
+        this.state.setSelection({type:'object', objectId:object.id});
+        this.isDragging = true; this.dragStartLogicalPos = pos; this.dragPos = pos;
+        this.callbacks.onStateChange(); return;
+      }
       // 1. Edge click -> Split edge into new vertex
       if (this.hoveredEdge) {
         const edgeToSplit = this.hoveredEdge;
@@ -259,7 +265,9 @@ export class EditorCanvasInput {
         this.state.movePolygon(sel.polyType, sel.polyIndex, this.dragOffset.dx, this.dragOffset.dy);
       }
     } else if (this.dragPos) {
-      if (sel.type === 'vertex' && sel.polyType && sel.polyIndex !== undefined && sel.vertexIndex !== undefined) {
+      if (sel.type === 'object' && this.dragStartLogicalPos) {
+        if (sel.objectId) this.state.moveObject(sel.objectId, this.dragPos.x-this.dragStartLogicalPos.x, this.dragPos.y-this.dragStartLogicalPos.y);
+      } else if (sel.type === 'vertex' && sel.polyType && sel.polyIndex !== undefined && sel.vertexIndex !== undefined) {
         this.state.moveVertex(sel.polyType, sel.polyIndex, sel.vertexIndex, this.dragPos);
       } else if (sel.type === 'spawn' && sel.spawnId) {
         this.state.moveSpawn(sel.spawnId, this.dragPos);

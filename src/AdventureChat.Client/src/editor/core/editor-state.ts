@@ -31,6 +31,32 @@ export class EditorState {
     return this.dirty;
   }
 
+  public addObject(object: import('./editor-types.js').RoomObjectDto): void {
+    this.currentRoom.objects ??= [];
+    this.currentRoom.objects.push(object);
+    this.selected = { type: 'object', objectId: object.id };
+    this.dirty = true;
+  }
+
+  public updateObject(id: string, object: import('./editor-types.js').RoomObjectDto): void {
+    const index = this.currentRoom.objects?.findIndex(o => o.id === id) ?? -1;
+    if (index < 0 || !this.currentRoom.objects) return;
+    this.currentRoom.objects[index] = object;
+    this.selected = { type: 'object', objectId: object.id };
+    this.dirty = true;
+  }
+
+  public moveObject(id: string, dx: number, dy: number): void {
+    const object = this.currentRoom.objects?.find(o => o.id === id);
+    if (!object) return;
+    dx = Math.round(Math.max(-object.position.x, Math.min(this.currentRoom.size.width-object.position.x-object.size.width, dx)));
+    dy = Math.round(Math.max(-object.position.y, Math.min(this.currentRoom.size.height-object.position.y-object.size.height, dy)));
+    this.updateObject(id, { ...object,
+      position: { x: object.position.x+dx, y: object.position.y+dy },
+      depthY: Math.max(0, Math.min(this.currentRoom.size.height, object.depthY+dy))
+    });
+  }
+
   public markClean(): void {
     this.dirty = false;
   }
@@ -311,6 +337,10 @@ export class EditorState {
       }
     }
 
+    if (sel.type === "object") {
+      this.currentRoom.objects = (this.currentRoom.objects ?? []).filter(o => o.id !== sel.objectId);
+      this.clearSelection(); this.dirty = true; return true;
+    }
     return false;
   }
 
