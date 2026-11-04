@@ -126,6 +126,7 @@ export interface UserLeftDto {
 export interface JoinRoomRequestDto {
   readonly roomId: string;
   readonly displayName: string;
+  readonly worldId?: string | null;
 }
 
 export interface JoinRoomResultDto {

@@ -1,5 +1,5 @@
 # Aktueller Stand
-Revision 24 · 02.11.2026.
+Revision 25 · 02.11.2026.
 
 ## Vorhanden
 - [x] Gespräch in Spezifikation, Architektur, Autorenformat und Tickets überführt.
@@ -32,16 +32,17 @@ Revision 24 · 02.11.2026.
 - [ ] Git-Repository und endgültiger Projektname festgelegt.
 
 ## Aktives Ticket
-- **Kein aktives Ticket.** Ticket 09 ist `done`: ausdrücklich vom Benutzer am 02.11.2026 abgenommen auf Grundlage einer vom Menschen tolerierten KI-Prüfung; der Benutzer hat nicht selbst getestet. Offene Reviewpunkte und Testgrenzen stehen im Ticket.
+- **Ticket 10: `in-progress`.** Umfang und Testgrenzen bestätigt. Weltliste, weltbezogener Start und PNG-Auslieferung vorhanden. `JoinRoom` akzeptiert optional `worldId`; unbekannte IDs und wiederholter Beitritt werden abgewiesen. Pro Welt eigener Raum-/Sitzungszustand und eigene SignalR-Gruppen. Öffentlicher Hubtest mit zwei Welten und gleichen Raum-IDs weist Snapshot-, Chatverlaufs- und Ereignisisolation sowie Empfang innerhalb derselben Welt nach. Ohne `worldId` nutzt der bestehende Client vorläufig weiterhin die erste konfigurierte Welt. Weltwahl im Browser, Verlassen/Wechsel, Reconnect-Weltauswahl, weltbezogener HTTP-Pfad-Fallback und Editor fehlen noch. Weltbezogene Raumabfragen und Bildadressen in HTTP-Antworten und Hub-Snapshots sind umgesetzt. Kein `ready-for-human`. Ticket 09 ist `done`; seine dokumentierten Reviewpunkte bleiben offen.
 - Tickets 01–08 bleiben `done`; Ticket 08 wurde am 01.11.2026 ausdrücklich abgenommen.
 
 ## Nächste Aktion
-Ticket 10 ist durch die Abnahme von 09 nicht mehr blockiert. Paketumfang, offene Entscheidungen und Testgrenzen vor Umsetzung gemäß Arbeitsregeln vorstellen und Bestätigung abwarten. Tickets 10–13 bleiben draft; die übrigen Abhängigkeiten stehen in PLAN.md.
+Ticket 10 an den bestätigten öffentlichen Grenzen weiter umsetzen; anschließend vollständige Checks, Review und Abnahmeanleitung. Tickets 11–13 bleiben draft; die übrigen Abhängigkeiten stehen in PLAN.md.
 
 ## Offene Annahmen
 Privater Testbetrieb, ca. zehn Personen, Desktop-Mausbedienung; keine kollidierenden Figuren; Reconnect als frischer Eintritt.
 
 ## Checks
+- Ticket 10, Zwischenstand 04.11.: HTTP-Raum-/Bildisolation zuerst rot, dann gr�n; Hubtest pr�ft weltbezogene Bildadressen. Review durch zwei Subagenten (Standards/Spec); DTO-Vertrag erg�nzt und Weltendpunkte ausgelagert. Vollsuite: 168 bestanden, keine Warnungen; nach Strukturkorrektur 36 Weltpakettests sowie Typcheck/Build erfolgreich. Keine manuelle Mehrweltabnahme. Vorheriger Nachweis 02.11.: TypeScript-Typcheck und Client-Build bestanden; vollständiger .NET-/Browserlauf mit 168 erfolgreichen Tests und ohne Warnungen. Neuer Mehrwelt-Hubtest zuerst rot, dann grün; Diff-Whitespaceprüfung ohne Befund. Keine manuelle Mehrweltabnahme; Browserauswahl und weitere offene Teile stehen oben.
 - Ticket 09: Am 02.11. TypeScript-Typcheck, vollständiger .NET-/Browserlauf (163 bestanden), externe Browserprüfung und 31 gezielte Weltpakettests erfolgreich. Vorher Locked Restore offline und Build erfolgreich. Symbolischer Datei-Link-Test mangels Windows-Berechtigung übersprungen; Junction-Test bestanden. Details im Ticket.
 - Ticket 08: Client-Typcheck und Build, Locked Restore, .NET-Build, 87 Server- und 43 Browsertests erfolgreich. Ein vorheriger Gesamtlauf hatte einen Browserstartfehler; die getrennten abschließenden Suiten bestanden.
 

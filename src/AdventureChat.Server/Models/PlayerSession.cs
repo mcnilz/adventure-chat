@@ -104,7 +104,8 @@ public record SendChatMessageResultDto(
 
 public record JoinRoomRequestDto(
     string RoomId,
-    string DisplayName
+    string DisplayName,
+    string? WorldId = null
 );
 
 public record JoinRoomResultDto(

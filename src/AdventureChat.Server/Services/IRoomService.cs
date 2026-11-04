@@ -98,6 +98,7 @@ public sealed class RoomService : IRoomService
     private readonly IContentPathProvider? _pathProvider;
     private readonly IRoomYamlSerializer? _yamlSerializer;
     private readonly IRoomValidator? _validator;
+    private readonly WorldPackage? _world;
     private readonly Dictionary<string, RoomDefinition> _rooms = new(StringComparer.OrdinalIgnoreCase);
     private readonly object _lock = new();
 
@@ -106,14 +107,14 @@ public sealed class RoomService : IRoomService
         _pathProvider = pathProvider;
         _yamlSerializer = yamlSerializer;
         _validator = validator;
+        _world = world;
 
         if (world is not null)
         {
             foreach (var dto in world.LoadRooms())
             {
                 var room = dto.ToRoomDefinition();
-                if (room.Id == world.StartRoom) room = room with { SpawnPoint = room.GetSpawnPosition(world.StartSpawn) };
-                _rooms.Add(room.Id, room);
+                _rooms.Add(room.Id, WithWorldAsset(room));
             }
             return;
         }
@@ -146,12 +147,22 @@ public sealed class RoomService : IRoomService
         ArgumentNullException.ThrowIfNull(room);
         lock (_lock)
         {
-            _rooms[room.Id] = room;
+            _rooms[room.Id] = WithWorldAsset(room);
         }
     }
 
     public void ReloadRooms()
     {
+        if (_world is not null)
+        {
+            var rooms = _world.LoadRooms().Select(dto => dto.ToRoomDefinition()).ToList();
+            lock (_lock)
+            {
+                _rooms.Clear();
+                foreach (var room in rooms) _rooms.Add(room.Id, WithWorldAsset(room));
+            }
+            return;
+        }
         if (_pathProvider is null || _yamlSerializer is null)
         {
             return;
@@ -190,6 +201,20 @@ public sealed class RoomService : IRoomService
             foreach (var candidate in candidates)
                 _rooms[candidate.Dto.Id] = candidate.Dto.ToRoomDefinition();
         }
+    }
+
+    private RoomDefinition WithWorldAsset(RoomDefinition room)
+    {
+        if (_world is null) return room;
+        const string prefix = "assets/images/";
+        var background = room.BackgroundUrl;
+        if (background.StartsWith(prefix, StringComparison.Ordinal))
+            background = $"/world-assets/{Uri.EscapeDataString(_world.Id)}/images/{background[prefix.Length..]}";
+        return room with
+        {
+            BackgroundUrl = background,
+            SpawnPoint = room.Id == _world.StartRoom ? room.GetSpawnPosition(_world.StartSpawn) : room.SpawnPoint
+        };
     }
 }
 

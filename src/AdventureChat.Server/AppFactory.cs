@@ -62,6 +62,9 @@ public static class AppFactory
             sp.GetRequiredService<IRoomValidator>(), world));
         builder.Services.AddHostedService<RoomStartupValidation>();
         builder.Services.AddSingleton<IRoomSessionManager, RoomSessionManager>();
+        builder.Services.AddSingleton(sp => new WorldRuntimeCatalog(worlds,
+            sp.GetRequiredService<IRoomService>(), sp.GetRequiredService<IRoomSessionManager>(),
+            sp.GetRequiredService<IPathfindingService>()));
         builder.Services.AddSingleton<IEditorService>(sp =>
         {
             var pathProvider = sp.GetRequiredService<IContentPathProvider>();
@@ -111,45 +114,12 @@ public static class AppFactory
         }
 
         app.MapGet("/app-assets/character.png", () => Results.File(Path.Combine(app.Environment.WebRootPath, "assets", "images", "character.png"), "image/png"));
+        app.MapWorldContent(worlds);
         app.MapGet("/api/world/start", () => Results.Ok(new { roomId = world?.StartRoom ?? "lounge", external = world is not null }));
 
         app.MapHub<RoomHub>("/hub/room");
 
-        app.MapGet("/api/rooms/{id}", (string id, IRoomService roomService) =>
-        {
-            var room = roomService.GetRoom(id);
-            if (room is null)
-            {
-                return Results.NotFound(new { error = $"Room '{id}' not found." });
-            }
-
-            return Results.Ok(new
-            {
-                id = room.Id,
-                name = room.Name,
-                width = room.Width,
-                height = room.Height,
-                backgroundUrl = room.BackgroundUrl,
-                spawnPoint = new { x = room.SpawnPoint.X, y = room.SpawnPoint.Y },
-                geometry = new
-                {
-                    outerBoundary = room.Geometry.OuterBoundary.Vertices.Select(v => new { x = v.X, y = v.Y }),
-                    obstacles = room.Geometry.Obstacles.Select(obs => obs.Vertices.Select(v => new { x = v.X, y = v.Y }))
-                },
-                spawns = room.Spawns.Select(s => new { id = s.Id, position = new { x = s.Position.X, y = s.Position.Y } }),
-                exits = room.Exits.Select(e => new
-                {
-                    id = e.Id,
-                    position = new { x = e.Position.X, y = e.Position.Y },
-                    radius = e.Radius,
-                    bounds = e.Bounds != null ? new { x = e.Bounds.X, y = e.Bounds.Y, width = e.Bounds.Width, height = e.Bounds.Height } : null,
-                    label = e.Label,
-                    target = new { room = e.TargetRoomId, spawn = e.TargetSpawnId }
-                }),
-                notes = room.Notes
-            });
-        });
-
+        app.MapGet("/api/rooms/{id}", (string id, IRoomService roomService) => WorldContentEndpoints.RoomContent(roomService.GetRoom(id)));
         app.MapPost("/api/rooms/{id}/path", (string id, PathRequestDto request, IRoomService roomService, IPathfindingService pathfinder) =>
         {
             var room = roomService.GetRoom(id);

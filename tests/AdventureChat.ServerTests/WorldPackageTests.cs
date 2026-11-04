@@ -55,6 +55,121 @@ public class WorldPackageTests
     }
 
     [Test]
+    public async Task Server_ConfiguredWorld_ListsPublicMetadata()
+    {
+        var solution = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../../"));
+        var server = Path.Combine(solution, "src", "AdventureChat.Server");
+        var root = Path.Combine(solution, "worlds", "reference");
+        var app = AdventureChat.Server.AppFactory.CreateApp([], new Microsoft.AspNetCore.Builder.WebApplicationOptions
+        {
+            ContentRootPath = server,
+            WebRootPath = Path.Combine(server, "wwwroot"),
+            Args = ["--urls", "http://127.0.0.1:0", "--World:Root", root]
+        });
+        try
+        {
+            await app.StartAsync();
+            using var client = new HttpClient { BaseAddress = new Uri(app.Urls.Single()) };
+            var response = await client.GetAsync("/api/worlds");
+            Assert.That(response.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.OK));
+            var body = await response.Content.ReadAsStringAsync();
+            Assert.That(body, Does.Contain("reference").And.Not.Contain(root));
+        }
+        finally { await app.DisposeAsync(); }
+    }
+
+    [Test]
+    public async Task Server_WorldAssets_SeparateIdenticalRelativePaths()
+    {
+        var solution = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../../"));
+        var server = Path.Combine(solution, "src", "AdventureChat.Server");
+        var original = Path.Combine(solution, "worlds", "reference");
+        var copy = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+        foreach (var file in Directory.GetFiles(original, "*", SearchOption.AllDirectories))
+        {
+            var target = Path.Combine(copy, Path.GetRelativePath(original, file));
+            Directory.CreateDirectory(Path.GetDirectoryName(target)!);
+            File.Copy(file, target);
+        }
+        var manifest = Path.Combine(copy, "world.yaml");
+        File.WriteAllText(manifest, File.ReadAllText(manifest).Replace("id: reference", "id: other"));
+        File.Copy(Path.Combine(copy, "assets", "images", "garden.png"), Path.Combine(copy, "assets", "images", "lounge.png"), true);
+        var app = AdventureChat.Server.AppFactory.CreateApp([], new Microsoft.AspNetCore.Builder.WebApplicationOptions
+        {
+            ContentRootPath = server, WebRootPath = Path.Combine(server, "wwwroot"),
+            Args = ["--urls", "http://127.0.0.1:0", "--World:Roots:0", original, "--World:Roots:1", copy]
+        });
+        try
+        {
+            await app.StartAsync();
+            using var client = new HttpClient { BaseAddress = new Uri(app.Urls.Single()) };
+            var first = await client.GetByteArrayAsync("/world-assets/reference/images/lounge.png");
+            var second = await client.GetByteArrayAsync("/world-assets/other/images/lounge.png");
+            Assert.That(first, Is.EqualTo(File.ReadAllBytes(Path.Combine(original, "assets", "images", "lounge.png"))));
+            Assert.That(second, Is.EqualTo(File.ReadAllBytes(Path.Combine(copy, "assets", "images", "lounge.png"))));
+            Assert.That(second, Is.Not.EqualTo(first));
+            var firstRoom = await client.GetAsync("/api/worlds/reference/rooms/lounge");
+            var otherRoom = await client.GetAsync("/api/worlds/other/rooms/lounge");
+            Assert.That(firstRoom.IsSuccessStatusCode, Is.True);
+            Assert.That(otherRoom.IsSuccessStatusCode, Is.True);
+            Assert.That(await firstRoom.Content.ReadAsStringAsync(), Does.Contain("/world-assets/reference/images/lounge.png"));
+            Assert.That(await otherRoom.Content.ReadAsStringAsync(), Does.Contain("/world-assets/other/images/lounge.png"));
+            Assert.That((await client.GetAsync("/api/worlds/missing/rooms/lounge")).StatusCode, Is.EqualTo(System.Net.HttpStatusCode.NotFound));
+            Assert.That((await client.GetAsync("/api/worlds/other/rooms/missing")).StatusCode, Is.EqualTo(System.Net.HttpStatusCode.NotFound));
+        }
+        finally { await app.DisposeAsync(); Directory.Delete(copy, true); }
+    }
+
+    [Test]
+    public async Task Server_WorldAssets_ResolveByConfiguredWorldId()
+    {
+        var solution = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../../"));
+        var server = Path.Combine(solution, "src", "AdventureChat.Server");
+        var root = Path.Combine(solution, "worlds", "reference");
+        var app = AdventureChat.Server.AppFactory.CreateApp([], new Microsoft.AspNetCore.Builder.WebApplicationOptions
+        {
+            ContentRootPath = server,
+            WebRootPath = Path.Combine(server, "wwwroot"),
+            Args = ["--urls", "http://127.0.0.1:0", "--World:Root", root]
+        });
+        try
+        {
+            await app.StartAsync();
+            using var client = new HttpClient { BaseAddress = new Uri(app.Urls.Single()) };
+            var image = await client.GetAsync("/world-assets/reference/images/lounge.png");
+            Assert.That(image.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.OK));
+            Assert.That(await image.Content.ReadAsByteArrayAsync(), Is.EqualTo(File.ReadAllBytes(Path.Combine(root, "assets", "images", "lounge.png"))));
+            Assert.That((await client.GetAsync("/world-assets/missing/images/lounge.png")).StatusCode, Is.EqualTo(System.Net.HttpStatusCode.NotFound));
+        }
+        finally { await app.DisposeAsync(); }
+    }
+
+    [Test]
+    public async Task Server_WorldStart_RequiresKnownWorldId()
+    {
+        var solution = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../../"));
+        var server = Path.Combine(solution, "src", "AdventureChat.Server");
+        var root = Path.Combine(solution, "worlds", "reference");
+        var app = AdventureChat.Server.AppFactory.CreateApp([], new Microsoft.AspNetCore.Builder.WebApplicationOptions
+        {
+            ContentRootPath = server,
+            WebRootPath = Path.Combine(server, "wwwroot"),
+            Args = ["--urls", "http://127.0.0.1:0", "--World:Root", root]
+        });
+        try
+        {
+            await app.StartAsync();
+            using var client = new HttpClient { BaseAddress = new Uri(app.Urls.Single()) };
+            var known = await client.GetAsync("/api/worlds/reference/start");
+            Assert.That(known.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.OK));
+            Assert.That(await known.Content.ReadAsStringAsync(), Does.Contain("lounge").And.Not.Contain(root));
+            var unknown = await client.GetAsync("/api/worlds/missing/start");
+            Assert.That(unknown.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.NotFound));
+        }
+        finally { await app.DisposeAsync(); }
+    }
+
+    [Test]
     public async Task Server_ExternalWorld_ExposesDeclaredStartRoom()
     {
         var solution = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../../"));
