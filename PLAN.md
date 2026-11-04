@@ -1,5 +1,5 @@
 # Umsetzungsplan
-Status: Tickets 01–08 sind menschlich abgenommen; 09 ist nach ausdrücklicher Benutzerabnahme auf Grundlage einer tolerierten KI-Prüfung done. 10–13 sind geplante Entwürfe.
+Status: Tickets 01–08 sind menschlich abgenommen; 09 ist nach ausdrücklicher Benutzerabnahme auf Grundlage einer tolerierten KI-Prüfung done. 10 ist ready-for-human; 11–13 bleiben draft.
 
 | Ticket | Vorführbares Ergebnis | Blocked by |
 | --- | --- | --- |

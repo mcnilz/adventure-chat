@@ -1,0 +1,3 @@
+[hidden] { display: none !important; }
+#world-picker { padding: 2rem; max-width: 40rem; margin: auto; }
+#world-picker select, #world-picker button { margin: 1rem; padding: .6rem; }

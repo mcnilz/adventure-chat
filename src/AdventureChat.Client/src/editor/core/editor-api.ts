@@ -23,14 +23,27 @@ export interface UploadBackgroundResponse {
 }
 
 export class EditorApi {
+  public static worldId: string | undefined;
+
+  private static request(path: string, init?: RequestInit): Promise<Response> {
+    const url = new URL(path, location.origin);
+    if (this.worldId) url.searchParams.set("worldId", this.worldId);
+    return fetch(url, init);
+  }
+
+  public static backgroundUrl(path: string): string {
+    return this.worldId && path.startsWith("assets/images/")
+      ? `/world-assets/${encodeURIComponent(this.worldId)}/images/${path.slice(14)}` : path;
+  }
+
   private static async authorToken(): Promise<string> {
-    const response = await fetch('/api/editor/status');
+    const response = await this.request('/api/editor/status');
     if (!response.ok) throw new Error(`Autorenmodus nicht verfügbar: HTTP ${response.status}`);
     const status = await response.json() as { token: string };
     return status.token;
   }
   public static async fetchRooms(): Promise<RoomSummaryDto[]> {
-    const res = await fetch('/api/editor/rooms');
+    const res = await this.request('/api/editor/rooms');
     if (!res.ok) {
       throw new Error(`Fehler beim Laden der Raumliste: HTTP ${res.status}`);
     }
@@ -38,7 +51,7 @@ export class EditorApi {
   }
 
   public static async fetchRoom(id: string): Promise<RoomYamlDto> {
-    const res = await fetch(`/api/editor/rooms/${encodeURIComponent(id)}`);
+    const res = await this.request(`/api/editor/rooms/${encodeURIComponent(id)}`);
     if (!res.ok) {
       throw new Error(`Fehler beim Laden des Raumes '${id}': HTTP ${res.status}`);
     }
@@ -46,7 +59,7 @@ export class EditorApi {
   }
 
   public static async validateRoom(room: RoomYamlDto): Promise<ValidationResponse> {
-    const res = await fetch('/api/editor/validate', {
+    const res = await this.request('/api/editor/validate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Author-Token': await this.authorToken() },
       body: JSON.stringify(room)
@@ -60,7 +73,7 @@ export class EditorApi {
   }
 
   public static async validateWorld(): Promise<ValidationResponse> {
-    const res = await fetch('/api/editor/validate-world');
+    const res = await this.request('/api/editor/validate-world');
     if (!res.ok) {
       throw new Error(`Welt-Validierungsdienst antwortete mit Status ${res.status}`);
     }
@@ -69,7 +82,7 @@ export class EditorApi {
   }
 
   public static async validateWorldPayload(rooms: RoomYamlDto[]): Promise<ValidationResponse> {
-    const res = await fetch('/api/editor/validate-world', {
+    const res = await this.request('/api/editor/validate-world', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Author-Token': await this.authorToken() },
       body: JSON.stringify(rooms)
@@ -83,7 +96,7 @@ export class EditorApi {
   }
 
   public static async saveRoom(room: RoomYamlDto): Promise<SaveRoomResponse> {
-    const res = await fetch(`/api/editor/rooms/${encodeURIComponent(room.id)}`, {
+    const res = await this.request(`/api/editor/rooms/${encodeURIComponent(room.id)}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Author-Token': await this.authorToken() },
       body: JSON.stringify(room)
@@ -99,7 +112,7 @@ export class EditorApi {
   }
 
   public static async fetchBackgrounds(): Promise<BackgroundsOverviewDto> {
-    const res = await fetch('/api/editor/backgrounds');
+    const res = await this.request('/api/editor/backgrounds');
     if (!res.ok) {
       throw new Error(`Fehler beim Laden der Hintergrundbilder: HTTP ${res.status}`);
     }
@@ -110,7 +123,7 @@ export class EditorApi {
     const formData = new FormData();
     formData.append('file', file);
 
-    const res = await fetch('/api/editor/backgrounds', {
+    const res = await this.request('/api/editor/backgrounds', {
       method: 'POST',
       headers: { 'X-Author-Token': await this.authorToken() },
       body: formData

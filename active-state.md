@@ -1,5 +1,5 @@
 # Aktueller Stand
-Revision 25 · 02.11.2026.
+Revision 27 · 04.11.2026.
 
 ## Vorhanden
 - [x] Gespräch in Spezifikation, Architektur, Autorenformat und Tickets überführt.
@@ -32,17 +32,17 @@ Revision 25 · 02.11.2026.
 - [ ] Git-Repository und endgültiger Projektname festgelegt.
 
 ## Aktives Ticket
-- **Ticket 10: `in-progress`.** Umfang und Testgrenzen bestätigt. Weltliste, weltbezogener Start und PNG-Auslieferung vorhanden. `JoinRoom` akzeptiert optional `worldId`; unbekannte IDs und wiederholter Beitritt werden abgewiesen. Pro Welt eigener Raum-/Sitzungszustand und eigene SignalR-Gruppen. Öffentlicher Hubtest mit zwei Welten und gleichen Raum-IDs weist Snapshot-, Chatverlaufs- und Ereignisisolation sowie Empfang innerhalb derselben Welt nach. Ohne `worldId` nutzt der bestehende Client vorläufig weiterhin die erste konfigurierte Welt. Weltwahl im Browser, Verlassen/Wechsel, Reconnect-Weltauswahl, weltbezogener HTTP-Pfad-Fallback und Editor fehlen noch. Weltbezogene Raumabfragen und Bildadressen in HTTP-Antworten und Hub-Snapshots sind umgesetzt. Kein `ready-for-human`. Ticket 09 ist `done`; seine dokumentierten Reviewpunkte bleiben offen.
+- **Ticket 10: `ready-for-human`.** Weltwahl auch bei einem Paket, Start-Spawn, weltgebundene Sitzungen, Inhalte und Bilder, explizites Verlassen/Wechsel über Seitenneustart, Reconnect in die gewählte Welt sowie lokale Editorwahl mit isoliertem Speichern und Vorschau vollständig umgesetzt. Ohne konfigurierte Welt bleibt der Legacy-Betrieb erhalten. 172 Tests bestanden; zwei Reviewachsen nach Korrekturen ohne offene Befunde. Menschliche Abnahme ausstehend; Startbefehle und Prüfschritte stehen in `.scratch/adventure-chat/issues/10-world-selection.md`, Abschnitt „Manuelle Abnahme“. Ticket 09 ist `done`; seine dokumentierten Reviewpunkte bleiben offen.
 - Tickets 01–08 bleiben `done`; Ticket 08 wurde am 01.11.2026 ausdrücklich abgenommen.
 
 ## Nächste Aktion
-Ticket 10 an den bestätigten öffentlichen Grenzen weiter umsetzen; anschließend vollständige Checks, Review und Abnahmeanleitung. Tickets 11–13 bleiben draft; die übrigen Abhängigkeiten stehen in PLAN.md.
+Ticket 10 anhand der dokumentierten Schritte menschlich abnehmen. Erst ausdrückliche Abnahme setzt es auf done; Feedback setzt es zurück auf in-progress. Tickets 11–13 bleiben draft; die übrigen Abhängigkeiten stehen in PLAN.md.
 
 ## Offene Annahmen
 Privater Testbetrieb, ca. zehn Personen, Desktop-Mausbedienung; keine kollidierenden Figuren; Reconnect als frischer Eintritt.
 
 ## Checks
-- Ticket 10, Zwischenstand 04.11.: HTTP-Raum-/Bildisolation zuerst rot, dann gr�n; Hubtest pr�ft weltbezogene Bildadressen. Review durch zwei Subagenten (Standards/Spec); DTO-Vertrag erg�nzt und Weltendpunkte ausgelagert. Vollsuite: 168 bestanden, keine Warnungen; nach Strukturkorrektur 36 Weltpakettests sowie Typcheck/Build erfolgreich. Keine manuelle Mehrweltabnahme. Vorheriger Nachweis 02.11.: TypeScript-Typcheck und Client-Build bestanden; vollständiger .NET-/Browserlauf mit 168 erfolgreichen Tests und ohne Warnungen. Neuer Mehrwelt-Hubtest zuerst rot, dann grün; Diff-Whitespaceprüfung ohne Befund. Keine manuelle Mehrweltabnahme; Browserauswahl und weitere offene Teile stehen oben.
+- Ticket 10, 04.11.: Weltwahl-/Wechseltest, Editor-Speichertest und initialer Verbindungsfehler jeweils zuerst rot, dann grün. Fünf gezielte Mehrwelt-Browsertests bestanden, einschließlich Tür/Reconnect/Disconnect mit fremder Welt, Bildzuordnung in Bearbeitung und Vorschau und Bereinigung alter Gruppen. Typcheck/Build bestanden. Abschließende Vollsuite: 172 bestanden, keine Warnungen; Diffprüfung sauber. Beide Subagent-Reviews korrigiert und nachgeprüft. Keine manuelle Abnahme. Frühere Umgebungsfehler (Browserstartrechte, Dateisperre bei überlappenden Tests) sind im Ticket dokumentiert.
 - Ticket 09: Am 02.11. TypeScript-Typcheck, vollständiger .NET-/Browserlauf (163 bestanden), externe Browserprüfung und 31 gezielte Weltpakettests erfolgreich. Vorher Locked Restore offline und Build erfolgreich. Symbolischer Datei-Link-Test mangels Windows-Berechtigung übersprungen; Junction-Test bestanden. Details im Ticket.
 - Ticket 08: Client-Typcheck und Build, Locked Restore, .NET-Build, 87 Server- und 43 Browsertests erfolgreich. Ein vorheriger Gesamtlauf hatte einen Browserstartfehler; die getrennten abschließenden Suiten bestanden.
 

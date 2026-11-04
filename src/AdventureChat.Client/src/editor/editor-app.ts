@@ -127,7 +127,7 @@ export class EditorApp {
       (bgPath) => {
         this.elements.inputBg.value = bgPath;
         this.state.updateMetadata({ background: bgPath });
-        this.editorRenderer.setBackground(bgPath);
+        this.editorRenderer.setBackground(EditorApi.backgroundUrl(bgPath));
         this.render();
       },
       (msg, type) => this.setStatus(msg, type),
@@ -153,7 +153,7 @@ export class EditorApp {
         this.form.setUnsaved(this.state.isDirty());
       },
       (bg) => {
-        this.editorRenderer.setBackground(bg);
+        this.editorRenderer.setBackground(EditorApi.backgroundUrl(bg));
         this.render();
       }
     );
@@ -353,7 +353,8 @@ export class EditorApp {
       this.mode = 'preview';
       this.toolbar.updateModeButton('preview');
       this.setStatus('Vorschaumodus aktiv: Klicke auf die begehbare Fläche, um die Spielfigur zu steuern.', 'info');
-      this.preview.start(this.state.toRoomDefinition());
+      const room = this.state.toRoomDefinition();
+      this.preview.start({ ...room, backgroundUrl: EditorApi.backgroundUrl(room.backgroundUrl) });
     } else {
       this.mode = 'edit';
       this.toolbar.updateModeButton('edit');
@@ -373,7 +374,7 @@ export class EditorApp {
   public render(): void {
     if (this.mode === 'preview') return;
 
-    this.editorRenderer.setBackground(this.state.getRoom().background);
+    this.editorRenderer.setBackground(EditorApi.backgroundUrl(this.state.getRoom().background));
     this.editorRenderer.render(
       this.state.getRoom(),
       this.state.getSelection(),
@@ -415,7 +416,7 @@ export class EditorApp {
   private syncAllViews(): void {
     const room = this.state.getRoom();
     this.form.updateFromRoom(room, this.state.isDirty());
-    this.editorRenderer.setBackground(room.background);
+    this.editorRenderer.setBackground(EditorApi.backgroundUrl(room.background));
     this.inspector.update(room, this.state.getSelection());
   }
 }

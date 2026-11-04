@@ -65,7 +65,7 @@ public static class AppFactory
         builder.Services.AddSingleton(sp => new WorldRuntimeCatalog(worlds,
             sp.GetRequiredService<IRoomService>(), sp.GetRequiredService<IRoomSessionManager>(),
             sp.GetRequiredService<IPathfindingService>()));
-        builder.Services.AddSingleton<IEditorService>(sp =>
+        builder.Services.AddKeyedSingleton<IEditorService>("default", (sp, _) =>
         {
             var pathProvider = sp.GetRequiredService<IContentPathProvider>();
             var yamlSerializer = sp.GetRequiredService<IRoomYamlSerializer>();
@@ -74,9 +74,25 @@ public static class AppFactory
             return new EditorService(pathProvider, yamlSerializer, validator, roomService, authoring, world);
         });
 
+        builder.Services.AddSingleton(sp => new EditorWorldCatalog(worlds, sp.GetRequiredService<WorldRuntimeCatalog>(),
+            sp.GetRequiredKeyedService<IEditorService>("default"), authoring));
+        builder.Services.AddHttpContextAccessor();
+        builder.Services.AddScoped<IEditorService>(sp => sp.GetRequiredService<EditorWorldCatalog>().Find(
+            sp.GetRequiredService<IHttpContextAccessor>().HttpContext?.Request.Query["worldId"].ToString())!);
+
         var app = builder.Build();
 
         app.UseAuthoringAccess(authoring);
+        app.Use(async (context, next) =>
+        {
+            if (context.Request.Path.StartsWithSegments("/api/editor") &&
+                context.RequestServices.GetRequiredService<EditorWorldCatalog>().Find(context.Request.Query["worldId"].ToString()) is null)
+            {
+                context.Response.StatusCode = StatusCodes.Status404NotFound;
+                return;
+            }
+            await next();
+        });
 
         if (world is not null) app.UseWorldAssets(world);
         app.UseDefaultFiles();

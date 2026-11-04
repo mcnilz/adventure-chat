@@ -96,7 +96,13 @@ export class RoomNetworkClient {
     this.events.onConnectionStatusChanged(status);
   }
 
-  public async joinRoom(roomId: string, displayName: string): Promise<JoinRoomResultDto> {
+  public async leaveWorld(): Promise<void> {
+    if (!this.hubConnection) return;
+    try { await this.hubConnection.invoke('LeaveWorld'); }
+    finally { await this.hubConnection.stop(); this.setStatus('disconnected'); }
+  }
+
+  public async joinRoom(roomId: string, displayName: string, worldId?: string): Promise<JoinRoomResultDto> {
     if (!this.hubConnection) {
       return { success: false, error: 'No connection', snapshot: null };
     }
@@ -105,6 +111,7 @@ export class RoomNetworkClient {
       const result: JoinRoomResultDto = await this.hubConnection.invoke('JoinRoom', {
         roomId,
         displayName,
+        worldId,
       });
 
       if (result.success) {

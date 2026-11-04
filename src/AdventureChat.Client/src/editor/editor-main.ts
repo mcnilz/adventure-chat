@@ -1,3 +1,5 @@
+import { chooseWorld, loadWorlds, showStartupError } from "../ui/world-picker.js";
+import { EditorApi } from "./core/editor-api.js";
 import { EditorApp } from './editor-app.js';
 
 declare global {
@@ -6,7 +8,22 @@ declare global {
   }
 }
 
-function initializeEditor(): void {
+async function initializeEditor(): Promise<void> {
+  const worlds = await loadWorlds();
+  if (worlds.length) {
+    const requested = new URL(location.href).searchParams.get("worldId");
+    const selected = requested && worlds.some(w => w.id === requested) ? requested : await chooseWorld(worlds);
+    EditorApi.worldId = selected;
+    const url = new URL(location.href);
+    url.searchParams.set("worldId", selected);
+    history.replaceState(null, "", url);
+    const leave = document.createElement("button");
+    leave.id = "world-leave";
+    leave.textContent = "Zur Weltwahl";
+    leave.onclick = () => { location.href = location.pathname; };
+    document.body.prepend(leave);
+  }
+
   const canvas = document.getElementById('editor-canvas') as HTMLCanvasElement | null;
   if (!canvas) {
     throw new Error('Canvas #editor-canvas not found');
@@ -91,12 +108,13 @@ function initializeEditor(): void {
   const app = new EditorApp(canvas, elements);
   window.__ROOM_EDITOR__ = app;
 
-  void app.init();
+  await app.init();
+  document.getElementById('editor-app-container')!.hidden = false;
   console.log('Room Editor initialized.');
 }
 
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initializeEditor);
+  document.addEventListener('DOMContentLoaded', () => { void initializeEditor().catch(showStartupError); });
 } else {
-  initializeEditor();
+  void initializeEditor().catch(showStartupError);
 }

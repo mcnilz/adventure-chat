@@ -1,6 +1,7 @@
 import { AdventureGame } from './game.js';
 import { ChatUiController } from './ui/chat-ui.js';
 import type { ChatMessageDto } from './types.js';
+import { chooseWorld, loadWorlds, showStartupError } from './ui/world-picker.js';
 
 declare global {
   interface Window {
@@ -8,13 +9,17 @@ declare global {
   }
 }
 
-function initialize(): void {
+async function initialize(): Promise<void> {
+  const container = document.getElementById('game-container')!;
+  container.hidden = true;
+  const worlds = await loadWorlds();
+  const worldId = worlds.length ? await chooseWorld(worlds) : undefined;
   const canvas = document.getElementById('game-canvas') as HTMLCanvasElement | null;
   if (!canvas) {
     throw new Error('Canvas element #game-canvas not found');
   }
 
-  const game = new AdventureGame(canvas);
+  const game = new AdventureGame(canvas, undefined, undefined, worldId);
   window.__ADVENTURE_GAME__ = game;
 
   const chatUi = new ChatUiController(
@@ -43,13 +48,27 @@ function initialize(): void {
 
   chatUi.setConnectionStatus(game.connectionStatus);
 
-  void game.start();
+  game.onWorldUnavailable = () => location.reload();
+  if (worldId) {
+    const leave = document.createElement('button');
+    leave.id = 'world-leave';
+    leave.textContent = 'Zur Weltwahl';
+    leave.addEventListener('click', async () => {
+      leave.disabled = true;
+      try { await game.networkClient.leaveWorld(); }
+      finally { location.reload(); }
+    });
+    container.prepend(leave);
+  }
+  container.hidden = false;
+  try { await game.start(); }
+  catch (error) { game.stop(); container.hidden = true; showStartupError(error); }
 
   console.log('Adventure Chat game initialized with modular architecture.');
 }
 
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initialize);
+  document.addEventListener('DOMContentLoaded', () => { void initialize().catch(showStartupError); });
 } else {
-  initialize();
+  void initialize().catch(showStartupError);
 }

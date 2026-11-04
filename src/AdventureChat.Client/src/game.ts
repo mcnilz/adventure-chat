@@ -26,6 +26,7 @@ export class AdventureGame {
   public onConnectionStatusChanged?: (status: 'connected' | 'connecting' | 'disconnected') => void;
   public onRoomChanged?: (room: RoomDefinition) => void;
   public onActionChanged?: (actionText: string) => void;
+  public onWorldUnavailable?: () => void;
 
   private lastTimestamp = 0;
   private isRunning = false;
@@ -40,7 +41,8 @@ export class AdventureGame {
   public constructor(
     private readonly canvas: HTMLCanvasElement,
     initialRoom: RoomDefinition = DEFAULT_ROOM,
-    playerName?: string
+    playerName?: string,
+    private readonly worldId?: string
   ) {
     this.state = new RoomState(initialRoom, playerName);
     this.renderer = new RoomRenderer(this.canvas, this.state.room);
@@ -61,7 +63,8 @@ export class AdventureGame {
       onChatMessageReceived: (dto) => this.dispatchRoomEvent(() => this.state.handleChatMessage(dto)),
       onConnectionStatusChanged: (status) => this.onConnectionStatusChanged?.(status),
       onReconnected: async () => {
-        await this.joinRoom();
+        try { await this.joinRoom(); }
+        catch { this.networkClient.setStatus('disconnected'); this.onWorldUnavailable?.(); }
       },
     });
 
@@ -157,6 +160,7 @@ export class AdventureGame {
     this.animationFrameId = requestAnimationFrame(this.loop);
 
     const connected = await this.networkClient.connect();
+    if (!connected && this.worldId) throw new Error('Verbindung zur gewählten Welt fehlgeschlagen.');
     if (connected) {
       await this.joinRoom();
     }
@@ -174,11 +178,12 @@ export class AdventureGame {
   private async joinRoom(): Promise<void> {
     this.changingRoom = true;
     try {
-      const response = await fetch('/api/world/start');
+      const response = await fetch(this.worldId ? `/api/worlds/${encodeURIComponent(this.worldId)}/start` : '/api/world/start');
       if (!response.ok) throw new Error('Weltstart konnte nicht geladen werden.');
       const start = await response.json() as { roomId: string; external: boolean };
-      const roomId = start.external ? start.roomId : this.state.room.id;
-      const result = await this.networkClient.joinRoom(roomId, this.state.playerName);
+      const roomId = this.worldId || start.external ? start.roomId : this.state.room.id;
+      const result = await this.networkClient.joinRoom(roomId, this.state.playerName, this.worldId);
+      if (!result.success) throw new Error(result.error ?? 'Weltbeitritt fehlgeschlagen.');
       if (result.success && result.snapshot) {
         this.applyRoomSnapshot(result.snapshot);
         this.state.chatMessages.length = 0;
@@ -244,6 +249,7 @@ export class AdventureGame {
     }
 
     // 2. HTTP Fallback Endpoint
+    if (this.worldId) return { accepted: false, error: 'Nicht mit der Welt verbunden.' };
     const fallback = await this.networkClient.calculatePathFallback(this.state.room.id, startPos, target);
     if (!fallback.success || !fallback.waypoints) {
       this.renderer.addClickMarker(target.x, target.y, 'invalid');

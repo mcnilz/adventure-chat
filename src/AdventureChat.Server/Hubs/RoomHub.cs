@@ -113,6 +113,12 @@ public class RoomHub : Hub
 
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
+        await LeaveWorld();
+        await base.OnDisconnectedAsync(exception);
+    }
+
+    public async Task LeaveWorld()
+    {
         var left = Sessions.Leave(Context.ConnectionId);
         if (left is not null)
         {
@@ -121,6 +127,6 @@ public class RoomHub : Hub
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, Group(left.RoomId));
         }
 
-        await base.OnDisconnectedAsync(exception);
+        Context.Items.Remove("world");
     }
 }

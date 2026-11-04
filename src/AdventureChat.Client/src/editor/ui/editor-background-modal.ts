@@ -150,7 +150,7 @@ export class EditorBackgroundModal {
 
       const img = document.createElement('img');
       img.className = 'bg-thumbnail-img';
-      img.src = item.path;
+      img.src = EditorApi.backgroundUrl(item.path);
       img.alt = item.name;
       img.loading = 'lazy';
       thumbWrapper.appendChild(img);

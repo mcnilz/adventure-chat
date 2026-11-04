@@ -47,6 +47,7 @@ public sealed class TestServerFixture : IAsyncDisposable
                     CopyDirectory(worldRoot, other);
                     var manifest = Path.Combine(other, "world.yaml");
                     File.WriteAllText(manifest, File.ReadAllText(manifest).Replace("id: reference", "id: other"));
+                    File.Copy(Path.Combine(other, "assets", "images", "lounge.png"), Path.Combine(other, "assets", "images", "garden.png"), true);
                 }
                 args.AddRange(["--World:Roots:0", other]);
             }
