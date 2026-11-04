@@ -4,7 +4,7 @@
 
 **Blocked by:** 09 (versioniertes Autorenformat); für die Gesamtabnahme im Mehrweltbetrieb zusätzlich 10
 
-**Status:** ready-for-human
+**Status:** done
 
 ## Acceptance criteria
 
@@ -67,4 +67,7 @@ Benutzer bestätigt Umfang und öffentliche Testgrenzen mit „ja“. Perspectiv
 4. Im Editor die Karte öffnen, feste Höhe 32 auf 48 ändern, speichern und neu laden; Vorschau, Fußpunkt, Namen und Sprechblasen prüfen.
 5. Unveränderte ältere Referenzwelt starten: bisherige Darstellung und Bewegung bestätigen. Erst ausdrückliche Benutzerabnahme setzt done.
 
-Abschluss: vollständige Suite nach Reviewkorrektur 183 Tests bestanden, keine Warnungen; Typcheck/Build und Diffprüfung sauber. Menschliche Abnahme ausstehend. Lokaler Implementierungscommit mit Betreff `Implement ticket 11 map perspective and fixed actor scale` (Commit-ID über Git auffindbar).
+Abschluss: vollständige Suite nach Reviewkorrektur 183 Tests bestanden, keine Warnungen; Typcheck/Build und Diffprüfung sauber. Menschlich am 04.11.2026 abgenommen („funktioniert super“). Implementierungscommit: `a3497dc`.
+
+## Menschliche Abnahme · 04.11.2026
+Benutzer: „funktioniert super“. Ticket 11 ist damit done. Keine zusätzliche manuelle Einzelprüfung wird daraus behauptet.
