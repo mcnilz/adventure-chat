@@ -34,6 +34,10 @@ public sealed class RoomYamlDto
     [YamlMember(Alias = "notes")]
     public string? Notes { get; set; }
 
+    public string? Perspective { get; set; }
+    public double? ActorHeight { get; set; }
+    public double? WalkSpeed { get; set; }
+
     public RoomDefinition ToRoomDefinition()
     {
         var outerPoly = Walkable.Count > 0 && Walkable[0].Points.Count >= 3
@@ -67,7 +71,10 @@ public sealed class RoomYamlDto
             Geometry: new RoomGeometry(outerPoly, obstacles),
             Spawns: spawns,
             Exits: exits,
-            Notes: Notes
+            Notes: Notes,
+            Perspective: Perspective ?? "adventure",
+            ActorHeight: ActorHeight ?? 64,
+            WalkSpeed: WalkSpeed ?? 130
         );
     }
 
@@ -124,7 +131,10 @@ public sealed class RoomYamlDto
                     }
                 }).ToList()
                 : null,
-            Notes = room.Notes
+            Notes = room.Notes,
+            Perspective = room.Perspective == "adventure" ? null : room.Perspective,
+            ActorHeight = room.ActorHeight == 64 ? null : room.ActorHeight,
+            WalkSpeed = room.WalkSpeed == 130 ? null : room.WalkSpeed
         };
     }
 }

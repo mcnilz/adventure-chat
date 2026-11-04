@@ -5,7 +5,8 @@ export class SpeechBubbleRenderer {
     ctx: CanvasRenderingContext2D,
     character: Character,
     roomWidth: number,
-    now: number
+    now: number,
+    actorHeight = 64
   ): void {
     const bubble = character.speechBubble;
     if (!bubble) return;
@@ -18,7 +19,7 @@ export class SpeechBubbleRenderer {
 
     const footX = Math.round(character.position.x);
     const footY = Math.round(character.position.y);
-    const frameHeight = 64;
+    const frameHeight = actorHeight;
     const nameBadgeHeight = 14;
     const baseAnchorY = footY - frameHeight - nameBadgeHeight - 8;
 

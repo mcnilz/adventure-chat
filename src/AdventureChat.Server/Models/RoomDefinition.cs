@@ -27,7 +27,10 @@ public sealed record RoomDefinition(
     RoomGeometry Geometry,
     IReadOnlyList<RoomSpawn>? Spawns = null,
     IReadOnlyList<RoomExit>? Exits = null,
-    string? Notes = null
+    string? Notes = null,
+    string Perspective = "adventure",
+    double ActorHeight = 64,
+    double WalkSpeed = 130
 )
 {
     public IReadOnlyList<RoomSpawn> Spawns { get; init; } = Spawns ?? new List<RoomSpawn> { new("entry", SpawnPoint) };

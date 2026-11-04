@@ -12,10 +12,11 @@ public sealed class TestServerFixture : IAsyncDisposable
     private readonly bool _authoring;
     private readonly bool _externalWorld;
     private readonly bool _multipleWorlds;
+    private readonly bool _mapWorld;
     public string TempRoot { get; } = Path.Combine(Path.GetTempPath(), "adventure_e2e_" + Guid.NewGuid().ToString("N"));
     public string BaseUrl { get; private set; } = string.Empty;
 
-    public TestServerFixture(bool authoring = false, bool externalWorld = false, bool multipleWorlds = false) { _authoring = authoring; _externalWorld = externalWorld || multipleWorlds; _multipleWorlds = multipleWorlds; }
+    public TestServerFixture(bool authoring = false, bool externalWorld = false, bool multipleWorlds = false, bool mapWorld = false) { _authoring = authoring; _externalWorld = externalWorld || multipleWorlds || mapWorld; _mapWorld = mapWorld; _multipleWorlds = multipleWorlds; }
 
     public async Task StartAsync()
     {
@@ -34,9 +35,9 @@ public sealed class TestServerFixture : IAsyncDisposable
             var worldRoot = Path.Combine(TempRoot, "world");
             if (!Directory.Exists(worldRoot))
             {
-                CopyDirectory(Path.Combine(solutionDir, "worlds", "reference"), worldRoot);
+                CopyDirectory(Path.Combine(solutionDir, "worlds", _mapWorld ? "map" : "reference"), worldRoot);
                 var manifest = Path.Combine(worldRoot, "world.yaml");
-                File.WriteAllText(manifest, File.ReadAllText(manifest).Replace("startRoom: lounge", "startRoom: garden").Replace("startSpawn: entry", "startSpawn: from-lounge"));
+                if (!_mapWorld) File.WriteAllText(manifest, File.ReadAllText(manifest).Replace("startRoom: lounge", "startRoom: garden").Replace("startSpawn: entry", "startSpawn: from-lounge"));
             }
             args.AddRange(["--World:Root", worldRoot]);
             if (_multipleWorlds)

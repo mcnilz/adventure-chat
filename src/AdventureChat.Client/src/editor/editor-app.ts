@@ -31,6 +31,9 @@ export interface EditorElements {
   inputBg: HTMLInputElement;
   inputWidth: HTMLInputElement;
   inputHeight: HTMLInputElement;
+  inputPerspective: HTMLSelectElement;
+  inputActorHeight: HTMLInputElement;
+  inputWalkSpeed: HTMLInputElement;
   inputNotes: HTMLTextAreaElement;
   statusBanner: HTMLElement;
   errorsSection: HTMLElement;
@@ -178,7 +181,7 @@ export class EditorApp {
       },
       () => this.currentTool,
       () => this.mode === 'preview',
-      (x, y) => this.preview.handleCanvasClick(x, y, this.state.toRoomDefinition())
+      (x, y) => void this.preview.handleCanvasClick(x, y, this.state.getRoom())
     );
 
     window.addEventListener('beforeunload', (e) => {

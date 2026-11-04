@@ -42,6 +42,16 @@ export class EditorApi {
     const status = await response.json() as { token: string };
     return status.token;
   }
+  public static async previewPath(room: RoomYamlDto, start: { x: number; y: number }, target: { x: number; y: number }): Promise<{ success: boolean; waypoints: { x: number; y: number }[] | null }> {
+    const response = await this.request('/api/editor/preview-path', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Author-Token': await this.authorToken() },
+      body: JSON.stringify({ room, start, target })
+    });
+    if (!response.ok) return { success: false, waypoints: null };
+    return response.json();
+  }
+
   public static async fetchRooms(): Promise<RoomSummaryDto[]> {
     const res = await this.request('/api/editor/rooms');
     if (!res.ok) {

@@ -1,0 +1,48 @@
+version: 1
+id: garden
+name: Tavernen-Garten
+background: assets/images/garden.png
+size:
+  width: 640
+  height: 360
+spawns:
+  - id: from-map
+    position: { x: 100, y: 300 }
+  - id: entry
+    position:
+      x: 80
+      y: 300
+  - id: from-lounge
+    position:
+      x: 80
+      y: 300
+walkable:
+  - id: floor
+    points:
+      - x: 40
+        y: 240
+      - x: 600
+        y: 240
+      - x: 600
+        y: 345
+      - x: 40
+        y: 345
+obstacles:
+  - id: table
+    points:
+      - x: 260
+        y: 260
+      - x: 380
+        y: 260
+      - x: 380
+        y: 310
+      - x: 260
+        y: 310
+exits:
+  - id: to-map
+    position: { x: 100, y: 300 }
+    radius: 35
+    label: Karte
+    target: { room: map, spawn: entry }
+
+notes: Der lauschige Gartenbereich hinter der Taverne.

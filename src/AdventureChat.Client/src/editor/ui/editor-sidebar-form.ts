@@ -6,6 +6,9 @@ export interface SidebarFormElements {
   inputBg: HTMLInputElement;
   inputWidth: HTMLInputElement;
   inputHeight: HTMLInputElement;
+  inputPerspective: HTMLSelectElement;
+  inputActorHeight: HTMLInputElement;
+  inputWalkSpeed: HTMLInputElement;
   inputNotes: HTMLTextAreaElement;
   unsavedBadge: HTMLElement;
   errorsSection: HTMLElement;
@@ -28,6 +31,9 @@ export class EditorSidebarForm {
     el.inputBg.value = room.background;
     el.inputWidth.value = String(room.size.width);
     el.inputHeight.value = String(room.size.height);
+    el.inputPerspective.value = room.perspective ?? 'adventure';
+    el.inputActorHeight.value = String(room.actorHeight ?? 64);
+    el.inputWalkSpeed.value = String(room.walkSpeed ?? 130);
     el.inputNotes.value = room.notes ?? '';
     el.unsavedBadge.style.display = isDirty ? 'inline-block' : 'none';
   }
@@ -37,6 +43,12 @@ export class EditorSidebarForm {
     room.id = el.inputId.value.trim() || 'unnamed-room';
     room.name = el.inputName.value.trim() || 'Unbenannter Raum';
     room.background = el.inputBg.value.trim() || 'assets/images/lounge.png';
+    if (el.inputPerspective.value === 'top-down') room.perspective = 'top-down';
+    else delete room.perspective;
+    const height = Number(el.inputActorHeight.value);
+    const speed = Number(el.inputWalkSpeed.value);
+    if (height !== 64) room.actorHeight = height; else delete room.actorHeight;
+    if (speed !== 130) room.walkSpeed = speed; else delete room.walkSpeed;
     const notesVal = el.inputNotes.value.trim();
     if (notesVal) {
       room.notes = notesVal;
@@ -69,6 +81,9 @@ export class EditorSidebarForm {
   private bindEvents(): void {
     const { elements: el } = this;
 
+    for (const input of [el.inputPerspective, el.inputActorHeight, el.inputWalkSpeed]) {
+      input.addEventListener('change', () => this.onFormChange());
+    }
     el.inputId.addEventListener('input', () => this.onFormChange());
     el.inputName.addEventListener('input', () => this.onFormChange());
     el.inputBg.addEventListener('input', () => {

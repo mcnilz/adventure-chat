@@ -12,9 +12,9 @@ public sealed class EditorWorldCatalog
         _defaultEditor = defaultEditor;
         foreach (var world in worlds)
         {
-            var paths = new ContentPathProvider(world.Root, WorldPackage.FindSchema("room.schema.json"), world.Root, world.Root);
+            var paths = new ContentPathProvider(world.Root, WorldPackage.FindSchema("room.schema.json", world.FormatVersion), world.Root, world.Root);
             _editors.Add(world.Id, new EditorService(paths,
-                new RoomYamlSerializer(WorldPackage.FindSchema("room.schema.json"), paths.GetRoomsDirectory()),
+                new RoomYamlSerializer(WorldPackage.FindSchema("room.schema.json", world.FormatVersion), paths.GetRoomsDirectory()),
                 new RoomValidator(paths.GetSchemaFilePath()), runtimes.Find(world.Id)!.Rooms, authoring, world));
         }
     }

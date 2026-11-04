@@ -249,7 +249,7 @@ public partial class RoomSessionManager : IRoomSessionManager
     {
         if (session.State != "walk") return;
         var now = _clock.GetUtcNow();
-        var distance = Math.Max(0, (now - session.MovementUpdatedAt).TotalSeconds) * 130;
+        var distance = Math.Max(0, (now - session.MovementUpdatedAt).TotalSeconds) * (_roomService.GetRoom(session.RoomId)?.WalkSpeed ?? 130);
         var position = session.Position;
         var remaining = session.Waypoints.Skip(1).ToList();
         while (remaining.Count > 0)

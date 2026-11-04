@@ -55,6 +55,9 @@ export interface RoomExit {
 }
 
 export interface RoomDefinition {
+  perspective?: 'adventure' | 'top-down';
+  actorHeight?: number;
+  walkSpeed?: number;
   readonly id: string;
   readonly name: string;
   readonly width: number;

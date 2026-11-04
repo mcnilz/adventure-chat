@@ -109,12 +109,12 @@ export class RoomRenderer {
     allCharacters.sort((a, b) => a.position.y - b.position.y);
     for (const char of allCharacters) {
       const isLocal = char.id === localCharacter.id;
-      this.characterRenderer.drawCharacter(ctx, char, isLocal);
+      this.characterRenderer.drawCharacter(ctx, char, isLocal, room);
     }
 
     // 6. Draw Speech Bubbles
     for (const char of allCharacters) {
-      this.speechBubbleRenderer.drawSpeechBubble(ctx, char, room.width, now);
+      this.speechBubbleRenderer.drawSpeechBubble(ctx, char, room.width, now, room.actorHeight ?? 64);
     }
 
     // 7. Hovered Exit Highlight (only in debug mode to keep screen clean)

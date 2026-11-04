@@ -41,3 +41,16 @@ Jede Änderung, auch eine reine Verhaltensänderung ohne YAML-Strukturänderung,
 5. Welche Schemas, Versionsmatrix, Editorfunktionen und Dokumente müssen ergänzt werden?
 
 Ältere Fixtures nicht auf das aktuelle Format umschreiben, um Tests grün zu machen. Parsererfolg allein beweist keine Verhaltenskompatibilität: Startpunkt, Raumwechsel und dokumentierte Defaults über öffentliche Grenzen prüfen. Neue veröffentlichte Schema-Bündel hinzufügen; alte nicht überschreiben. Keine generische Pluginplattform, Migrationsengine oder separate Schema-Registry nötig.
+
+
+## Unterstützung seit Ticket 11
+
+| Paketformat | Raumschema | Verhalten |
+| --- | --- | --- |
+| 1.0.0 | unverändertes Bündel 1.0.0, legacy-1 | Adventure, 64 Pixel, 130 Pixel/s; neue Felder abgewiesen |
+| 1.1.0 | neues Bündel 1.1.0, legacy-1 | optionale Perspektive, feste Höhe und Geschwindigkeit |
+| andere | keine | ausdrücklich abgewiesen |
+
+Minor-Einstufung: ausschließlich optionale Felder mit Defaults, die die bisherige Semantik erhalten. Kein bestehendes Schema, keine ältere Referenzwelt und kein Teilschema wird verändert. `worlds/reference` und `content/rooms` bleiben die älteren Fixtures; `worlds/map` demonstriert 1.1.0. Tests prüfen Schema-Hashes, unveränderte Dateien sowie Laden und Editor-Speichern.
+
+Die Figurengröße ist kein Kollisionsradius. Geprüft wird der Fußpunkt im erlaubten Polygon; Sichtlinien meiden Hindernisecken mit 4 Pixeln, Navigationsknoten liegen typischerweise 14 Pixel von Ecken entfernt. Das ist kein zugesicherter umlaufender Figurenradius. Eine große Figur kann optisch über eine Hecke ragen, während ihr Fußpunkt gültig bleibt. Die Referenzkarte prüft den 15 Pixel breiten unteren Durchgang und ein eingeschlossenes, unerreichbares Ziel. Kein Algorithmuswechsel.

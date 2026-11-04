@@ -39,6 +39,9 @@ export interface RoomExitDto {
 }
 
 export interface RoomYamlDto {
+  perspective?: 'adventure' | 'top-down';
+  actorHeight?: number;
+  walkSpeed?: number;
   version: number;
   id: string;
   name: string;

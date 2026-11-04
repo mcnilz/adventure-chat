@@ -19,9 +19,9 @@ public sealed record WorldPackage(string Root, string Id, string Name, string Fo
             var deserializer = new DeserializerBuilder().WithDuplicateKeyChecking().WithAttemptingUnquotedStringTypeDeserialization().Build();
             var raw = deserializer.Deserialize<Dictionary<object, object>>(yaml);
             var version = raw.TryGetValue("formatVersion", out var value) ? value?.ToString() : null;
-            if (version != "1.0.0") throw new InvalidOperationException($"World manifest '{file}', field formatVersion: unsupported version '{version}'.");
+            if (version is not ("1.0.0" or "1.1.0")) throw new InvalidOperationException($"World manifest '{file}', field formatVersion: unsupported version '{version}'.");
             var json = new SerializerBuilder().JsonCompatible().Build().Serialize(raw);
-            var schemaFile = FindSchema("world.schema.json");
+            var schemaFile = FindSchema("world.schema.json", version);
             var schema = JsonSchema.FromText(File.ReadAllText(schemaFile));
             var result = schema.Evaluate(JsonNode.Parse(json), new EvaluationOptions { OutputFormat = OutputFormat.List });
             if (!result.IsValid) throw new InvalidOperationException($"Invalid world manifest '{file}': {string.Join("; ", result.Details.Where(d => d.HasErrors).SelectMany(d => d.Errors!.Select(e => $"{d.InstanceLocation}: {e.Value}")))}");
@@ -48,7 +48,7 @@ public sealed record WorldPackage(string Root, string Id, string Name, string Fo
         var directory = SafePath(Root, "rooms");
         if (!Directory.Exists(directory)) throw new InvalidOperationException($"World '{Id}': rooms directory is missing.");
         var serializer = new RoomYamlSerializer();
-        var validator = new RoomValidator(FindSchema("room.schema.json"));
+        var validator = new RoomValidator(FindSchema("room.schema.json", FormatVersion));
         var candidates = new List<(string File, AdventureChat.Server.Models.RoomYamlDto Room)>();
         foreach (var file in Directory.GetFiles(directory, "*.yaml").OrderBy(path => path, StringComparer.Ordinal))
         {
@@ -94,12 +94,12 @@ public sealed record WorldPackage(string Root, string Id, string Name, string Fo
         catch (Exception ex) when (ex is IOException or InvalidOperationException) { throw new InvalidOperationException($"Invalid background PNG: {ex.Message}", ex); }
     }
 
-    public static string FindSchema(string name)
+    public static string FindSchema(string name, string version = "1.0.0")
     {
         var current = AppContext.BaseDirectory;
         while (!string.IsNullOrEmpty(current))
         {
-            var path = Path.Combine(current, "schemas", "world", "1.0.0", name);
+            var path = Path.Combine(current, "schemas", "world", version, name);
             if (File.Exists(path)) return path;
             current = Directory.GetParent(current)?.FullName;
         }

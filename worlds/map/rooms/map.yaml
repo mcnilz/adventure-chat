@@ -1,0 +1,249 @@
+version: 1
+id: "map"
+name: "Heckenlabyrinth"
+background: "assets/images/map.png"
+size:
+  width: 640
+  height: 360
+perspective: "top-down"
+actorHeight: 32
+walkSpeed: 100
+spawns:
+  -
+    id: "entry"
+    position:
+      x: 65
+      y: 300
+walkable:
+  -
+    id: "floor"
+    points:
+      -
+        x: 25
+        y: 45
+      -
+        x: 615
+        y: 45
+      -
+        x: 615
+        y: 340
+      -
+        x: 25
+        y: 340
+obstacles:
+  -
+    id: "wall-0"
+    points:
+      -
+        x: 130
+        y: 70
+      -
+        x: 155
+        y: 70
+      -
+        x: 155
+        y: 260
+      -
+        x: 130
+        y: 260
+  -
+    id: "wall-1"
+    points:
+      -
+        x: 245
+        y: 120
+      -
+        x: 270
+        y: 120
+      -
+        x: 270
+        y: 325
+      -
+        x: 245
+        y: 325
+  -
+    id: "wall-2"
+    points:
+      -
+        x: 360
+        y: 70
+      -
+        x: 385
+        y: 70
+      -
+        x: 385
+        y: 260
+      -
+        x: 360
+        y: 260
+  -
+    id: "wall-3"
+    points:
+      -
+        x: 480
+        y: 120
+      -
+        x: 505
+        y: 120
+      -
+        x: 505
+        y: 325
+      -
+        x: 480
+        y: 325
+  -
+    id: "wall-4"
+    points:
+      -
+        x: 155
+        y: 70
+      -
+        x: 210
+        y: 70
+      -
+        x: 210
+        y: 95
+      -
+        x: 155
+        y: 95
+  -
+    id: "wall-5"
+    points:
+      -
+        x: 385
+        y: 235
+      -
+        x: 440
+        y: 235
+      -
+        x: 440
+        y: 260
+      -
+        x: 385
+        y: 260
+  -
+    id: "wall-6"
+    points:
+      -
+        x: 540
+        y: 65
+      -
+        x: 600
+        y: 65
+      -
+        x: 600
+        y: 80
+      -
+        x: 540
+        y: 80
+  -
+    id: "wall-7"
+    points:
+      -
+        x: 540
+        y: 80
+      -
+        x: 555
+        y: 80
+      -
+        x: 555
+        y: 155
+      -
+        x: 540
+        y: 155
+  -
+    id: "wall-8"
+    points:
+      -
+        x: 585
+        y: 80
+      -
+        x: 600
+        y: 80
+      -
+        x: 600
+        y: 155
+      -
+        x: 585
+        y: 155
+  -
+    id: "wall-9"
+    points:
+      -
+        x: 540
+        y: 155
+      -
+        x: 600
+        y: 155
+      -
+        x: 600
+        y: 170
+      -
+        x: 540
+        y: 170
+  -
+    id: "dead-end-left"
+    points:
+      -
+        x: 175
+        y: 140
+      -
+        x: 185
+        y: 140
+      -
+        x: 185
+        y: 230
+      -
+        x: 175
+        y: 230
+  -
+    id: "dead-end-right"
+    points:
+      -
+        x: 215
+        y: 140
+      -
+        x: 225
+        y: 140
+      -
+        x: 225
+        y: 230
+      -
+        x: 215
+        y: 230
+  -
+    id: "dead-end-bottom"
+    points:
+      -
+        x: 185
+        y: 220
+      -
+        x: 215
+        y: 220
+      -
+        x: 215
+        y: 230
+      -
+        x: 185
+        y: 230
+exits:
+  -
+    id: "to-lounge"
+    position:
+      x: 65
+      y: 300
+    radius: 25
+    label: "Taverne"
+    target:
+      room: "lounge"
+      spawn: "from-map"
+  -
+    id: "to-garden"
+    position:
+      x: 570
+      y: 300
+    radius: 25
+    label: "Garten"
+    target:
+      room: "garden"
+      spawn: "from-map"

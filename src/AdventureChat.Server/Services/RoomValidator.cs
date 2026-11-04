@@ -26,6 +26,7 @@ public sealed partial class RoomValidator : IRoomValidator
     private static partial Regex SafeIdRegex();
 
     private readonly JsonSchema? _jsonSchema;
+    private readonly bool _supportsDisplay;
     private readonly IPathfindingService _pathfinder;
 
     public RoomValidator(string? schemaPath = null, IPathfindingService? pathfinder = null)
@@ -35,6 +36,7 @@ public sealed partial class RoomValidator : IRoomValidator
         {
             var schemaText = File.ReadAllText(schemaPath);
             _jsonSchema = JsonSchema.FromText(schemaText);
+            _supportsDisplay = JsonNode.Parse(schemaText)?["properties"]?["perspective"] is not null;
         }
     }
 
@@ -98,6 +100,12 @@ public sealed partial class RoomValidator : IRoomValidator
         {
             errors.Add($"Unsupported version '{dto.Version}'. Expected version 1.");
         }
+
+        if (!_supportsDisplay && (dto.Perspective is not null || dto.ActorHeight is not null || dto.WalkSpeed is not null))
+            errors.Add("Display settings require world format 1.1.0; older schemas cannot save these fields.");
+        if (dto.Perspective is not (null or "adventure" or "top-down")) errors.Add("Unknown perspective; use adventure or top-down.");
+        if (dto.ActorHeight is double height && (!double.IsFinite(height) || height < 16 || height > 128)) errors.Add("actorHeight must be between 16 and 128 logical pixels.");
+        if (dto.WalkSpeed is double speed && (!double.IsFinite(speed) || speed < 1 || speed > 1000)) errors.Add("walkSpeed must be between 1 and 1000 logical pixels per second.");
 
         // 2. ID
         if (string.IsNullOrWhiteSpace(dto.Id))

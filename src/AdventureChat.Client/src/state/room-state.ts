@@ -42,7 +42,7 @@ export class RoomState {
       waypoints: [],
       state: 'idle',
       facing: 'right',
-      speed: DEFAULT_SPEED,
+      speed: this.room.walkSpeed ?? DEFAULT_SPEED,
       walkFrame: 0,
       frameTimer: 0,
     };
@@ -62,6 +62,7 @@ export class RoomState {
       this.setSessionId(snapshot.yourSessionId);
     }
 
+    this.character.speed = this.room.walkSpeed ?? DEFAULT_SPEED;
     this.remotePlayers.clear();
     this.movementRevisions.clear();
     for (const player of snapshot.players) {
@@ -97,7 +98,7 @@ export class RoomState {
       waypoints: [],
       state: player.state,
       facing: player.direction,
-      speed: DEFAULT_SPEED,
+      speed: this.room.walkSpeed ?? DEFAULT_SPEED,
       walkFrame: 0,
       frameTimer: 0,
     };

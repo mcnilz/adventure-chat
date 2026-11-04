@@ -19,7 +19,7 @@ public class WorldPackageValidationTests
     [TearDown]
     public void TearDown() => Directory.Delete(_root, true);
 
-    [TestCase("formatVersion: 1.0.0", "formatVersion: 1.1.0", "1.1.0")]
+    [TestCase("formatVersion: 1.0.0", "formatVersion: 1.2.0", "1.2.0")]
     [TestCase("roomFormat: legacy-1", "roomFormat: 1.0.0", "roomFormat")]
     [TestCase("startSpawn: entry", "startSpawn: absent", "spawn")]
     public void InvalidManifestOrStart_Fails(string oldText, string newText, string diagnostic)
@@ -248,6 +248,61 @@ public class WorldPackageValidationTests
             Assert.That(rooms!.GetRoom("lounge"), Is.Not.Null);
         }
         finally { await app.DisposeAsync(); }
+    }
+
+    [Test]
+    public void DisplayExtension_LoadsOnlyWithNewWorldFormat()
+    {
+        Replace("rooms/lounge.yaml", "version: 1", "version: 1\nperspective: top-down\nactorHeight: 32\nwalkSpeed: 90");
+        Assert.Throws<InvalidOperationException>(() => WorldPackage.Load(_root).LoadRooms());
+        Replace("world.yaml", "formatVersion: 1.0.0", "formatVersion: 1.1.0");
+        var room = WorldPackage.Load(_root).LoadRooms().Single(r => r.Id == "lounge").ToRoomDefinition();
+        Assert.That(System.Text.Json.JsonSerializer.Serialize(room), Does.Contain("top-down").And.Contain("32").And.Contain("90"));
+    }
+
+    [TestCase("actorHeight: 15")]
+    [TestCase("actorHeight: 129")]
+    [TestCase("walkSpeed: 0")]
+    [TestCase("perspective: sideways")]
+    public void NewDisplayFormat_RejectsInvalidSettings(string setting)
+    {
+        Replace("world.yaml", "formatVersion: 1.0.0", "formatVersion: 1.1.0");
+        Replace("rooms/lounge.yaml", "version: 1", "version: 1\n" + setting);
+        Assert.Throws<InvalidOperationException>(() => WorldPackage.Load(_root).LoadRooms());
+    }
+
+    [Test]
+    public void Editor_NewDisplaySettings_SaveAndReload()
+    {
+        Replace("world.yaml", "formatVersion: 1.0.0", "formatVersion: 1.1.0");
+        var world = WorldPackage.Load(_root);
+        var paths = new ContentPathProvider(_root, WorldPackage.FindSchema("room.schema.json", world.FormatVersion), _root, _root);
+        var serializer = new RoomYamlSerializer(paths.GetSchemaFilePath(), paths.GetRoomsDirectory());
+        var validator = new RoomValidator(paths.GetSchemaFilePath());
+        var rooms = new RoomService(paths, serializer, validator, world);
+        var editor = new EditorService(paths, serializer, validator, rooms, true, world);
+        var room = editor.GetRoom("lounge")!;
+        room.Perspective = "top-down";
+        room.ActorHeight = 48;
+        room.WalkSpeed = 80;
+        Assert.That(editor.SaveRoom(room).Success, Is.True);
+        var loaded = editor.GetRoom("lounge")!;
+        Assert.Multiple(() =>
+        {
+            Assert.That(loaded.Perspective, Is.EqualTo("top-down"));
+            Assert.That(loaded.ActorHeight, Is.EqualTo(48));
+            Assert.That(loaded.WalkSpeed, Is.EqualTo(80));
+            Assert.That(editor.GetRoomRawYaml("lounge"), Does.Contain("1.1.0/room.schema.json"));
+        });
+    }
+
+    [Test]
+    public void LegacyEditor_RejectsDisplayExtensionWithoutSupportedSchema()
+    {
+        var validator = new RoomValidator(WorldPackage.FindSchema("room.schema.json"));
+        var dto = WorldPackage.Load(_root).LoadRooms().Single(r => r.Id == "lounge");
+        dto.Perspective = "top-down";
+        Assert.That(validator.Validate(dto).IsValid, Is.False);
     }
 
     private void Replace(string file, string oldText, string newText)

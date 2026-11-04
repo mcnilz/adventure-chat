@@ -109,3 +109,20 @@ Beispiel für VS Code mit installierter YAML-Erweiterung: Den externen Weltordne
 ```
 
 Die Pfade sind Beispiele und müssen auf das lokal vorhandene Schema-Bündel zeigen. Die Referenzdateien enthalten bewusst keine vorrangigen Schema-Kommentare. Unveränderte alte Raumdateien können einen früheren Kommentar enthalten; für eine eindeutige Zuordnung in einem Texteditor gegebenenfalls dessen Schema-Pfad im Kommentar korrigieren. Das ändert weder Raumdaten noch die beim Server maßgebliche Legacy-Zuordnung.
+
+
+## Kartenwelt (Format 1.1.0)
+
+```powershell
+dotnet run --project src/AdventureChat.Server -- --World:Root D:\adventure-chat\worlds\map --authoring
+```
+
+In der Weltwahl „Kartenwelt“ betreten. Die beiden braunen Kartenorte führen links zur Taverne und rechts zum Garten; dort führt „Karte“ zurück. Die U-Hecke links der Mitte bildet eine begehbare Sackgasse. Die Hecken sind Hindernisse, die geschlossene Hecke rechts oben enthält ein unerreichbares Ziel. Der untere Durchgang an den langen Hecken ist nur 15 Raumpixel breit und bleibt für den Fußpunktvertrag zulässig.
+
+Format 1.1.0 ergänzt optionale Raumfelder `perspective: adventure | top-down`, `actorHeight: 16..128` (logische Raumpixel, Standard 64) und `walkSpeed: 1..1000` (logische Raumpixel/s, Standard 130). Ohne Angaben bleibt bisheriges Verhalten erhalten. Der Fußpunkt ist der untere mittlere Anker des Figurenrahmens. Bildschirmskalierung passt nur die Anzeige an; Autorenmaßstab ändert weder Koordinaten noch Kollisionen. Kein Teilnehmerzoom und keine Kameraänderung.
+
+Der Editor bietet die drei Eigenschaften und speichert sie nur in einem Weltpaket mit `formatVersion: 1.1.0`. Ältere Pakete verweigern diese Felder verständlich. Für ein Upgrade das Manifest bewusst auf 1.1.0 setzen und den Server neu starten; der Editor ändert das Manifest nicht automatisch. Das neue Offline-Schema liegt unter `schemas/world/1.1.0/`; veröffentlichte ältere Schemas bleiben unverändert. `roomFormat: legacy-1` und `version: 1` bleiben das Grundmodell; das Manifest bestimmt das unterstützte Schema-Bündel.
+
+Die einzige auswählbare Figur ist weiterhin die mitgelieferte Referenzfigur. Ihre Draufsicht ist direkt in Canvas gezeichnet, mit vier Richtungen und wechselnden Schritten. Sie benötigt keine externe Draufsichtdatei, die fehlen könnte. Weitere Figuren oder Grafikzuordnungen gibt es noch nicht. Unbekannte Perspektiven werden abgewiesen statt auf Adventure zurückzufallen.
+
+Die Vorschau berechnet Wege für die aktuellen, auch ungespeicherten Raumdaten auf dem Server. Während der kurzen Anfrage bleibt die Figur stehen; die Vorschau ist keine Mehrteilnehmersitzung. Spiel und Vorschau verwenden denselben Renderer und dieselbe Raumgeschwindigkeit.

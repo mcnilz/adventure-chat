@@ -72,7 +72,10 @@ public record RoomDefinitionDto(
     PointDto SpawnPoint,
     RoomGeometryDto Geometry,
     IReadOnlyList<RoomSpawnDto> Spawns,
-    IReadOnlyList<RoomExitDto> Exits
+    IReadOnlyList<RoomExitDto> Exits,
+    string Perspective = "adventure",
+    double ActorHeight = 64,
+    double WalkSpeed = 130
 );
 
 public record RoomSnapshotDto(
@@ -175,7 +178,8 @@ public static class RoomDtoExtensions
                 e.TargetSpawnId,
                 e.Bounds != null ? new RectDto(e.Bounds.X, e.Bounds.Y, e.Bounds.Width, e.Bounds.Height) : null,
                 e.Label
-            )).ToList()
+            )).ToList(),
+            room.Perspective, room.ActorHeight, room.WalkSpeed
         );
     }
 }

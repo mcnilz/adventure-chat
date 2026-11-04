@@ -29,7 +29,7 @@
 | Abwärtskompatibilität | Erhalt zugesicherter Bedeutung unterstützter älterer Welten auf neueren Servern |
 | Legacy-Raumformat | Bestehendes Raumformat mit ganzzahligem `version: 1` |
 | Draufsicht | Raumdarstellung mit von oben sichtbarer Figur |
-| Figurengröße | Vom Autor festgelegter Raummaßstab der Figur |
+| Figurengröße | Feste Rahmenhöhe in logischen Raumpixeln (16–128, Standard 64), Anker unten mittig am Fußpunkt |
 | Bildschirmskalierung | Anpassung der Darstellung an den verfügbaren Bildschirm |
 | Laufgeschwindigkeit | Serverbestimmte Bewegungsgeschwindigkeit, unabhängig von der optischen Größe |
 | Kameraoffset | Lokale Verschiebung des sichtbaren Raumausschnitts |

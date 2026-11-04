@@ -45,10 +45,10 @@ public static class AppFactory
         builder.Services.AddSignalR();
         builder.Services.AddAntiforgery(o => o.HeaderName = "X-Author-Token");
         builder.Services.AddSingleton<IContentPathProvider>(_ => new ContentPathProvider(
-            world?.Root ?? builder.Configuration["Content:Root"], world is null ? builder.Configuration["Content:Schema"] : WorldPackage.FindSchema("room.schema.json"), builder.Configuration["Content:WebRoot"], world?.Root));
+            world?.Root ?? builder.Configuration["Content:Root"], world is null ? builder.Configuration["Content:Schema"] : WorldPackage.FindSchema("room.schema.json", world.FormatVersion), builder.Configuration["Content:WebRoot"], world?.Root));
         builder.Services.AddSingleton<IRoomYamlSerializer>(sp => world is null
             ? new RoomYamlSerializer()
-            : new RoomYamlSerializer(WorldPackage.FindSchema("room.schema.json"), sp.GetRequiredService<IContentPathProvider>().GetRoomsDirectory()));
+            : new RoomYamlSerializer(WorldPackage.FindSchema("room.schema.json", world.FormatVersion), sp.GetRequiredService<IContentPathProvider>().GetRoomsDirectory()));
         builder.Services.AddSingleton<IRoomValidator>(sp =>
         {
             var pathProvider = sp.GetRequiredService<IContentPathProvider>();
@@ -166,6 +166,7 @@ public static class AppFactory
         });
 
         var editorGroup = app.MapGroup("/api/editor");
+        editorGroup.MapPreviewPath();
 
         editorGroup.MapGet("/status", (HttpContext context, IEditorService editorService, IAntiforgery antiforgery) =>
         {

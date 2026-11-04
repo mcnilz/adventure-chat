@@ -33,3 +33,5 @@ Aktuelle tatsächliche Testläufe und Einschränkungen stehen im aktiven Ticket 
 
 ## Grenzen für 09–13
 Für 09 bestätigt: öffentliche Lade- und Dateisystemgrenze mit temporären Welten, bestehende Editor-/HTTP-Grenze und Browserablauf. Für 10 sind seit 02.11.2026 die öffentlichen Sitzungs-/Hub- und Inhaltsgrenzen sowie Browserabläufe bestätigt: identische lokale IDs und Bildpfade, getrennte Gruppen und Chatverläufe, Weltwahl und Wechsel, Reconnect, Editor-Speichern und Bild-/Vorschauzuordnung. Unveränderte ältere Formatfixtures prüfen zugesicherte Semantik und veröffentlichte Schemas. Visuelle Abnahme ergänzt die Automatisierung. Grenzen für 11–13 bleiben vor Umsetzung zu bestätigen; konkrete Fälle und tatsächliche Nachweise stehen im jeweiligen Ticket.
+
+Für Ticket 11 am 04.11.2026 bestätigt: öffentliche Inhalts-Lade-/Speichergrenze, serverseitige Bewegungs-/Raumwechselgrenze und bestehende Renderer-/Browsergrenzen. Konkrete Fälle und Grenzen im Ticket 11; keine privaten Schritte der Wegfindung testen. Richtungen, Stand-/Schrittzustand, feste Größen und Fußpunkt werden zusätzlich über die öffentliche Canvas-Darstellung geprüft.

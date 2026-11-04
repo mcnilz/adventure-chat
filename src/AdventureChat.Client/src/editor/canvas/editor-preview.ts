@@ -1,4 +1,5 @@
-import { isPointWalkable } from '../../math.js';
+import { EditorApi } from '../core/editor-api.js';
+import type { RoomYamlDto } from '../core/editor-types.js';
 import { RoomRenderer } from '../../rendering/renderer.js';
 import { assignPathToCharacter, updateCharacterMovement } from '../../simulation/movement.js';
 import type { Character, RoomDefinition } from '../../types.js';
@@ -9,6 +10,7 @@ export class EditorPreview {
   private previewAnimationId: number | null = null;
   private lastFrameTime = performance.now();
   private isRunning = false;
+  private requestRevision = 0;
 
   public constructor(private readonly canvas: HTMLCanvasElement) {}
 
@@ -30,7 +32,7 @@ export class EditorPreview {
       state: 'idle',
       target: null,
       waypoints: [],
-      speed: 120,
+      speed: roomDef.walkSpeed ?? 130,
       walkFrame: 0,
       frameTimer: 0,
       speechBubble: {
@@ -46,6 +48,7 @@ export class EditorPreview {
 
   public stop(): void {
     this.isRunning = false;
+    this.requestRevision++;
     if (this.previewAnimationId !== null) {
       cancelAnimationFrame(this.previewAnimationId);
       this.previewAnimationId = null;
@@ -54,15 +57,21 @@ export class EditorPreview {
     this.previewCharacter = null;
   }
 
-  public handleCanvasClick(logicalX: number, logicalY: number, roomDef: RoomDefinition): void {
+  public async handleCanvasClick(logicalX: number, logicalY: number, room: RoomYamlDto): Promise<void> {
     if (!this.previewCharacter || !this.isRunning) return;
-
-    const target = { x: logicalX, y: logicalY };
-    if (isPointWalkable(target, roomDef.geometry.outerBoundary, roomDef.geometry.obstacles)) {
-      this.previewRenderer?.addClickMarker(logicalX, logicalY, 'valid');
-      assignPathToCharacter(this.previewCharacter, [this.previewCharacter.position, target]);
-    } else {
-      this.previewRenderer?.addClickMarker(logicalX, logicalY, 'invalid');
+    const revision = ++this.requestRevision;
+    // Freeze at the request start so the returned route has the same footpoint.
+    const start = { ...this.previewCharacter.position };
+    this.previewCharacter.target = null;
+    this.previewCharacter.waypoints = [];
+    this.previewCharacter.state = 'idle';
+    try {
+      const result = await EditorApi.previewPath(room, start, { x: logicalX, y: logicalY });
+      if (!this.isRunning || revision !== this.requestRevision) return;
+      this.previewRenderer?.addClickMarker(logicalX, logicalY, result.success ? 'valid' : 'invalid');
+      if (result.success && result.waypoints) assignPathToCharacter(this.previewCharacter, result.waypoints);
+    } catch {
+      if (this.isRunning && revision === this.requestRevision) this.previewRenderer?.addClickMarker(logicalX, logicalY, 'invalid');
     }
   }
 

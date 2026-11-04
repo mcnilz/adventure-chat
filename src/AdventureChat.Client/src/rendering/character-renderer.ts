@@ -1,4 +1,5 @@
-import type { Character } from '../types.js';
+import { drawTopDownFigure } from './top-down-figure.js';
+import type { Character, RoomDefinition } from '../types.js';
 
 export class CharacterRenderer {
   private readonly characterSprite: HTMLImageElement;
@@ -12,7 +13,7 @@ export class CharacterRenderer {
     };
   }
 
-  public drawCharacter(ctx: CanvasRenderingContext2D, character: Character, isLocal: boolean): void {
+  public drawCharacter(ctx: CanvasRenderingContext2D, character: Character, isLocal: boolean, room?: RoomDefinition): void {
     const { position, facing, state, walkFrame, name } = character;
 
     const frameWidth = 48;
@@ -43,7 +44,14 @@ export class CharacterRenderer {
 
     ctx.save();
 
-    if (this.spriteLoaded) {
+    const height = room?.actorHeight ?? 64;
+    ctx.translate(footX, footY);
+    ctx.scale(height / 64, height / 64);
+    ctx.translate(-footX, -footY);
+    if (room?.perspective === 'top-down') {
+      ctx.translate(footX, footY);
+      drawTopDownFigure(ctx, character);
+    } else if (this.spriteLoaded) {
       if (flipX) {
         ctx.translate(footX, footY);
         ctx.scale(-1, 1);
@@ -88,7 +96,7 @@ export class CharacterRenderer {
     const textWidth = ctx.measureText(name).width;
     const badgeWidth = Math.max(textWidth + 10, 36);
     const badgeHeight = 14;
-    const textY = footY - frameHeight - 4;
+    const textY = footY - height - 4;
 
     ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
     ctx.fillRect(footX - badgeWidth / 2, textY - badgeHeight + 2, badgeWidth, badgeHeight);

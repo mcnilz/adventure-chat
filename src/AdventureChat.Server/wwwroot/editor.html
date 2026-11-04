@@ -191,7 +191,13 @@
             </div>
           </div>
           <div class="form-group">
-            <label for="input-notes">Notizen (Notes):</label>
+            <label for="input-perspective">Ansicht</label>
+          <select id="input-perspective" title="Raumperspektive (Weltformat 1.1.0)"><option value="adventure">Adventure</option><option value="top-down">Draufsicht</option></select>
+          <label for="input-actor-height">Figurenhöhe (Raumpixel)</label>
+          <input id="input-actor-height" type="number" min="16" max="128" value="64" title="Feste optische Höhe, unabhängig von der Bewegungsgeometrie">
+          <label for="input-walk-speed">Laufgeschwindigkeit (Raumpixel/s)</label>
+          <input id="input-walk-speed" type="number" min="1" max="1000" value="130" title="Serverbestimmte Geschwindigkeit (Weltformat 1.1.0)">
+          <label for="input-notes">Notizen (Notes):</label>
             <textarea id="input-notes" rows="3" placeholder="Interne Autorenhinweise..."></textarea>
           </div>
         </section>

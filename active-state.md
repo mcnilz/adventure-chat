@@ -1,5 +1,5 @@
 # Aktueller Stand
-Revision 28 · 04.11.2026.
+Revision 29 · 04.11.2026.
 
 ## Vorhanden
 - [x] Gespräch in Spezifikation, Architektur, Autorenformat und Tickets überführt.
@@ -32,16 +32,18 @@ Revision 28 · 04.11.2026.
 - [ ] Git-Repository und endgültiger Projektname festgelegt.
 
 ## Aktives Ticket
-- **Ticket 10: `done`.** Weltwahl, isolierter Mehrweltbetrieb, Wechsel/Reconnect und weltbezogener Editor vollständig umgesetzt. Vom Benutzer am 04.11.2026 ausdrücklich abgenommen („abegnommen“). Implementierungscommit: `28e3b7f`; 172 Tests bestanden, beide Reviewachsen nach Korrekturen ohne offene Befunde. Details und Abnahme in `.scratch/adventure-chat/issues/10-world-selection.md`. Ticket 09 ist `done`; seine dokumentierten Reviewpunkte bleiben offen.
-- Tickets 01–08 bleiben `done`; Ticket 08 wurde am 01.11.2026 ausdrücklich abgenommen.
+- **Ticket 11: `ready-for-human`.** Bestätigt am 04.11.2026 („ja“), implementiert und geprüft. Kartenwelt `worlds/map`, Draufsichtfigur, feste Höhe 16–128 Raumpixel (Standard 64), separate Geschwindigkeit (Standard 130), Editor und gemeinsame Vorschau, Format 1.1.0 mit unveränderten alten Schemas/Referenzwelten. Vollsuite 183 Tests grün; beide Reviewachsen nach Sackgassenkorrektur ohne offene Befunde. Menschliche Abnahme steht aus. Details und konkrete Abnahmeschritte: `.scratch/adventure-chat/issues/11-map-view.md`. Lokaler Commit: `Implement ticket 11 map perspective and fixed actor scale`.
+- Ticket 10 ist `done`, ausdrücklich am 04.11.2026 abgenommen („abegnommen“), Implementierungscommit `28e3b7f`. Tickets 01–09 bleiben `done`; dokumentierte Reviewpunkte von Ticket 09 bleiben offen.
 
 ## Nächste Aktion
-Als nächstes Ticket 11 (begehbare Karte und feste Figurengröße) mit Umfang, Detailentscheidungen und Testgrenzen vorschlagen und vor Implementierung bestätigen lassen. Tickets 11–13 bleiben draft; die übrigen Abhängigkeiten stehen in PLAN.md.
+Ticket 11 menschlich abnehmen: Karte/Labyrinth/Sackgasse, beide Kartenorte und Rückwege, zweiter Browser mit Chat und Bewegung, Editorgröße speichern/neu laden, ältere Welt prüfen. Erst ausdrückliche Abnahme setzt done. Tickets 12–13 bleiben draft; kein Folgepaket automatisch beginnen.
 
 ## Offene Annahmen
 Privater Testbetrieb, ca. zehn Personen, Desktop-Mausbedienung; keine kollidierenden Figuren; Reconnect als frischer Eintritt.
 
 ## Checks
+- Ticket 11, 04.11.: Typcheck und Clientbuild bestanden. Drei dokumentierte Rot/Grün-Nachweise für neues Format, alte Editorgrenze und Sackgassenwand. Vier gezielte Kartentests bestanden, einschließlich Renderer bei 32/48 Pixeln in vier Richtungen, Stand/Schritt/Fußpunkt, zwei Browser und Editor-Vorschauweg. Abschließende Vollsuite nach Reviewkorrektur: 183 bestanden, keine Warnungen. Standards-Review ohne Befund; Spec-Review fand fehlende begehbare Sackgasse, korrigiert und nachgeprüft. Screenshotprüfung Spiel/Editor bestanden. Keine neuen direkten Abhängigkeiten; Minor-Format und Unterstützungsmatrix dokumentiert. EPERM beim eingeschränkten Browserstart durch Testlauf mit Ausführungsrechten aufgelöst. Details im Ticket.
+
 - Ticket 10, 04.11.: Weltwahl-/Wechseltest, Editor-Speichertest und initialer Verbindungsfehler jeweils zuerst rot, dann grün. Fünf gezielte Mehrwelt-Browsertests bestanden, einschließlich Tür/Reconnect/Disconnect mit fremder Welt, Bildzuordnung in Bearbeitung und Vorschau und Bereinigung alter Gruppen. Typcheck/Build bestanden. Abschließende Vollsuite: 172 bestanden, keine Warnungen; Diffprüfung sauber. Beide Subagent-Reviews korrigiert und nachgeprüft. Menschlich am 04.11.2026 ausdrücklich abgenommen. Frühere Umgebungsfehler (Browserstartrechte, Dateisperre bei überlappenden Tests) sind im Ticket dokumentiert.
 - Ticket 09: Am 02.11. TypeScript-Typcheck, vollständiger .NET-/Browserlauf (163 bestanden), externe Browserprüfung und 31 gezielte Weltpakettests erfolgreich. Vorher Locked Restore offline und Build erfolgreich. Symbolischer Datei-Link-Test mangels Windows-Berechtigung übersprungen; Junction-Test bestanden. Details im Ticket.
 - Ticket 08: Client-Typcheck und Build, Locked Restore, .NET-Build, 87 Server- und 43 Browsertests erfolgreich. Ein vorheriger Gesamtlauf hatte einen Browserstartfehler; die getrennten abschließenden Suiten bestanden.
