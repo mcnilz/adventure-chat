@@ -32,18 +32,19 @@ Revision 31 · 04.11.2026.
 - [ ] Git-Repository und endgültiger Projektname festgelegt.
 
 ## Aktives Ticket
-- **Ticket 12: `in-progress`.** Umfang, Details und Testgrenzen am 04.11.2026 bestätigt („ja“). Horizontale Kamera, Format 1.2.0, Editor und Referenzwelt implementiert; gezielte Tests grün. Vollsuite und Abschlussreview folgen. Details im Ticket 12.
+- **Ticket 12: `ready-for-human`.** Umfang, Details und Testgrenzen am 04.11.2026 bestätigt („ja“). Horizontale Kamera (Ruhebereich 35–65 %, ohne Nachschwingen), Format 1.2.0, Editor mit bearbeitbaren Raummaßen/Ausschnitt und Referenzwelt `worlds/scroll` implementiert. Typcheck/Build und Vollsuite mit 191 Tests bestanden, keine Warnungen. Beide Reviewachsen nach Korrekturen ohne offene Befunde; Screenshotprüfung bestanden. Implementierungscommit `6dd96c7`. Menschliche Abnahme steht aus. Details und konkrete Abnahmeschritte: `.scratch/adventure-chat/issues/12-horizontal-scrolling.md`.
 
 - **Ticket 11: `done`.** Bestätigt am 04.11.2026 („ja“), implementiert und geprüft. Kartenwelt `worlds/map`, Draufsichtfigur, feste Höhe 16–128 Raumpixel (Standard 64), separate Geschwindigkeit (Standard 130), Editor und gemeinsame Vorschau, Format 1.1.0 mit unveränderten alten Schemas/Referenzwelten. Vollsuite 183 Tests grün; beide Reviewachsen nach Sackgassenkorrektur ohne offene Befunde. Menschlich am 04.11.2026 abgenommen („funktioniert super“). Details und konkrete Abnahmeschritte: `.scratch/adventure-chat/issues/11-map-view.md`. Implementierungscommit: `a3497dc`.
 - Ticket 10 ist `done`, ausdrücklich am 04.11.2026 abgenommen („abegnommen“), Implementierungscommit `28e3b7f`. Tickets 01–09 bleiben `done`; dokumentierte Reviewpunkte von Ticket 09 bleiben offen.
 
 ## Nächste Aktion
-Ticket 12 abschließend prüfen, Reviewbefunde beheben, Vollsuite ausführen und zur menschlichen Abnahme vorlegen. Ticket 13 bleibt draft.
+Ticket 12 anhand der dokumentierten Schritte menschlich abnehmen lassen. Erst ausdrückliche Abnahme macht es done; Feedback führt zurück zu in-progress. Danach Ticket 13 gesondert vorschlagen. Ticket 13 bleibt draft.
 
 ## Offene Annahmen
 Privater Testbetrieb, ca. zehn Personen, Desktop-Mausbedienung; keine kollidierenden Figuren; Reconnect als frischer Eintritt.
 
 ## Checks
+- Ticket 12, 04.11.: Rot/Grün-Nachweise für neuen Weltlader und öffentliche Kamera-/Koordinatenberechnung; drei Scroll-Browsertests für zwei Ausschnitte, Chat, Türen, echten Reconnect und Editor inklusive breiter Neuanlage/Speichern/Neuladen grün. Weltvalidierungs-/Scrolltests gezielt erfolgreich; Typcheck und Build bestanden. Abschließende Vollsuite: 191 bestanden, 0 Warnungen. Standards- und Spec-Befunde korrigiert und nachgeprüft, keine offen. Keine neuen Abhängigkeiten. Ältere Schemas/Teilschemas und Referenzfixtures unverändert. Details im Ticket 12.
 - Ticket 11, 04.11.: Typcheck und Clientbuild bestanden. Drei dokumentierte Rot/Grün-Nachweise für neues Format, alte Editorgrenze und Sackgassenwand. Vier gezielte Kartentests bestanden, einschließlich Renderer bei 32/48 Pixeln in vier Richtungen, Stand/Schritt/Fußpunkt, zwei Browser und Editor-Vorschauweg. Abschließende Vollsuite nach Reviewkorrektur: 183 bestanden, keine Warnungen. Standards-Review ohne Befund; Spec-Review fand fehlende begehbare Sackgasse, korrigiert und nachgeprüft. Screenshotprüfung Spiel/Editor bestanden. Keine neuen direkten Abhängigkeiten; Minor-Format und Unterstützungsmatrix dokumentiert. EPERM beim eingeschränkten Browserstart durch Testlauf mit Ausführungsrechten aufgelöst. Details im Ticket.
 
 - Ticket 10, 04.11.: Weltwahl-/Wechseltest, Editor-Speichertest und initialer Verbindungsfehler jeweils zuerst rot, dann grün. Fünf gezielte Mehrwelt-Browsertests bestanden, einschließlich Tür/Reconnect/Disconnect mit fremder Welt, Bildzuordnung in Bearbeitung und Vorschau und Bereinigung alter Gruppen. Typcheck/Build bestanden. Abschließende Vollsuite: 172 bestanden, keine Warnungen; Diffprüfung sauber. Beide Subagent-Reviews korrigiert und nachgeprüft. Menschlich am 04.11.2026 ausdrücklich abgenommen. Frühere Umgebungsfehler (Browserstartrechte, Dateisperre bei überlappenden Tests) sind im Ticket dokumentiert.

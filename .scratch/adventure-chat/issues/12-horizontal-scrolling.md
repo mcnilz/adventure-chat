@@ -4,7 +4,7 @@
 
 **Blocked by:** 09; für die Abnahme beider Darstellungen zusätzlich 11, für die Mehrwelt-Regressionsprüfung 10
 
-**Status:** in-progress
+**Status:** ready-for-human
 
 ## Acceptance criteria
 
@@ -53,7 +53,7 @@ Gemeinsame lokale Kamera mit Raumkoordinaten für Rendering und Eingabe; alle Ra
 - Rot/Grün: öffentlicher Kameratest scheiterte zunächst am fehlenden Modul, danach grün. Ruhebereich, Ränder, kurzer Raum und CSS-Umrechnung mit bekannten Sollwerten.
 - Zwei Browser: unabhängige Ausschnitte, Chat über Raumenden, echtes Hover/Klicken auf verschobene Tür, Kartenbewegung, Rückwechsel und frischer Eintritt nach Neuladen bestanden.
 - Editor: verschobenen Spawn auswählen, ändern, speichern, neu laden; Raumkoordinate 1190 bleibt erhalten; Vorschauweg und gesperrter Bearbeitungsregler geprüft.
-- Typcheck und Clientbuild bestanden. Abschlussprüfung und Review folgen.
+- Typcheck und Clientbuild bestanden. Abschließende Vollsuite nach Reviewkorrekturen: `dotnet test --no-restore`, 191 bestanden, 0 Warnungen (155,2 Sekunden). Diffprüfung sauber. Beide Reviewachsen nach Korrekturen ohne offene Befunde.
 
 ## Review und Korrekturen
 Review gegen Ausgangscommit `2cb3dff82ffe511c872e2010999aee4886200530` durch zwei getrennte Subagenten (Standards und Spec):
@@ -67,3 +67,6 @@ Review gegen Ausgangscommit `2cb3dff82ffe511c872e2010999aee4886200530` durch zwe
 3. Einen Browser am anderen Raumende stehen lassen und chatten. Ausschnitte müssen unabhängig, Chat und Teilnehmer weiterhin gemeinsam sein. Kartenraum ebenso prüfen, Fenstergröße ändern und anschließend eine Verbindung unterbrechen/wiederherstellen.
 4. `/editor.html` öffnen: Ausschnitt verschieben, Spawn oder Polygonpunkt am rechten Ende ändern, speichern und neu laden; Raumkoordinate im Inspektor kontrollieren. Im Vorschaumodus bis an beide Enden laufen. Einen neuen Raum mit breitem PNG, passenden Gesamtmaßen und kleinerer Ausschnittsbreite anlegen.
 5. Eine bestehende Welt aus `worlds/reference` beziehungsweise `worlds/map` ohne Ausschnittsangaben starten: weiterhin vollständige Darstellung und bisherige Bewegung. Bewegungsgefühl und subjektive Editorbedienung bleiben menschliche Abnahme; automatisierte Tests ersetzen sie nicht.
+
+## Übergabe · 04.11.2026
+Implementierungscommit: `6dd96c7`. Nur lokale Arbeit; keine neuen Abhängigkeiten. Status `ready-for-human`, menschliche Abnahme steht aus. Offene Implementierungsbefunde: keine. Nach ausdrücklicher Abnahme Ticket 12 auf done setzen; Ticket 13 anschließend gesondert vorschlagen und bestätigen lassen.
