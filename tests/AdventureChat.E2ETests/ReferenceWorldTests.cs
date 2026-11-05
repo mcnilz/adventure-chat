@@ -105,6 +105,9 @@ public class ReferenceWorldTests
               const out=sheet.getContext('2d');out.fillStyle='#d0d8d8';out.fillRect(0,0,1280,1440);
               let row=0;
               for(const appearance of catalog.characters) for(const facing of ['right','left','up','down']) {
+                const image=new Image();image.src=appearance.imageUrl;await image.decode();
+                const original=document.createElement('canvas');original.width=image.naturalWidth;original.height=image.naturalHeight;
+                original.getContext('2d').drawImage(image,0,0);
                 for(let phase=0;phase<5;phase++) {
                   const c={id:'x',name:'',position:{x:128,y:160},facing,state:phase===0?'idle':'walk',walkFrame:Math.max(0,phase-1),appearance};
                   renderer.drawCharacter(ctx,c,true,room,false);
@@ -112,7 +115,13 @@ public class ReferenceWorldTests
                   renderer.drawCharacter(ctx,c,true,room,false);
                   const pixels=ctx.getImageData(0,0,256,180).data;let minX=256,maxX=0,minY=180,maxY=0;
                   for(let y=0;y<180;y++)for(let x=0;x<256;x++)if(pixels[(y*256+x)*4+3]>127){minX=Math.min(minX,x);maxX=Math.max(maxX,x);minY=Math.min(minY,y);maxY=Math.max(maxY,y)}
-                  results.push({id:appearance.id,facing,phase,minX,maxX,minY,maxY});
+                  const frame=phase===0?0:phase-1,rowIndex=facing==='up'?1:facing==='down'?2:0;
+                  const expected=original.getContext('2d').getImageData(frame*128,rowIndex*128,128,128).data;
+                  let nativeDifferences=0;
+                  for(let y=0;y<128;y++)for(let x=0;x<128;x++)for(let channel=0;channel<4;channel++) {
+                    if(pixels[((y+32)*256+x+64)*4+channel]!==expected[(y*128+(facing==='left'?127-x:x))*4+channel])nativeDifferences++;
+                  }
+                  results.push({id:appearance.id,facing,phase,minX,maxX,minY,maxY,nativeDifferences});
                   out.drawImage(canvas,phase*256,row*180);out.fillStyle='#172733';out.fillText(appearance.id+' '+facing+' '+(phase===0?'idle':phase-1),phase*256+4,row*180+12);
                 }
                 row++;
@@ -123,7 +132,8 @@ public class ReferenceWorldTests
         foreach (var sample in samples.EnumerateArray())
         {
             Assert.That(sample.GetProperty("maxY").GetInt32(), Is.EqualTo(159), sample.ToString());
-            Assert.That(sample.GetProperty("minY").GetInt32(), Is.InRange(32, 34), "Visible adult height should be about twice the 66px foreground table: " + sample);
+            Assert.That(sample.GetProperty("minY").GetInt32(), Is.EqualTo(35), "Delivered native art has 125 visible pixels and 3px top padding: " + sample);
+            Assert.That(sample.GetProperty("nativeDifferences").GetInt32(), Is.Zero, "Native art must render pixel-for-pixel without scaling: " + sample);
             Assert.That(sample.GetProperty("minX").GetInt32(), Is.GreaterThan(70), sample.ToString());
             Assert.That(sample.GetProperty("maxX").GetInt32(), Is.LessThan(186), sample.ToString());
         }

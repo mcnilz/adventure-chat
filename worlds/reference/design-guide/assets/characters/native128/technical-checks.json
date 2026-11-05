@@ -1,0 +1,379 @@
+{
+  "checks": [
+    "mara: RGBA 512x384; 12 Zellen; sichtbare Hoehe 125; Unterkante y=128; seitlicher Sicherheitsrand; binaeres Alpha",
+    "bruno: RGBA 512x384; 12 Zellen; sichtbare Hoehe 125; Unterkante y=128; seitlicher Sicherheitsrand; binaeres Alpha"
+  ],
+  "measurements": {
+    "mara": {
+      "generated_size": [
+        1448,
+        1086
+      ],
+      "final_size": [
+        512,
+        384
+      ],
+      "frames": [
+        {
+          "row": 0,
+          "column": 0,
+          "bounds": [
+            27,
+            3,
+            100,
+            128
+          ],
+          "anchor": [
+            64,
+            128
+          ]
+        },
+        {
+          "row": 0,
+          "column": 1,
+          "bounds": [
+            40,
+            3,
+            87,
+            128
+          ],
+          "anchor": [
+            64,
+            128
+          ]
+        },
+        {
+          "row": 0,
+          "column": 2,
+          "bounds": [
+            27,
+            3,
+            101,
+            128
+          ],
+          "anchor": [
+            64,
+            128
+          ]
+        },
+        {
+          "row": 0,
+          "column": 3,
+          "bounds": [
+            41,
+            3,
+            86,
+            128
+          ],
+          "anchor": [
+            64,
+            128
+          ]
+        },
+        {
+          "row": 1,
+          "column": 0,
+          "bounds": [
+            38,
+            3,
+            90,
+            128
+          ],
+          "anchor": [
+            64,
+            128
+          ]
+        },
+        {
+          "row": 1,
+          "column": 1,
+          "bounds": [
+            43,
+            3,
+            85,
+            128
+          ],
+          "anchor": [
+            64,
+            128
+          ]
+        },
+        {
+          "row": 1,
+          "column": 2,
+          "bounds": [
+            39,
+            3,
+            88,
+            128
+          ],
+          "anchor": [
+            64,
+            128
+          ]
+        },
+        {
+          "row": 1,
+          "column": 3,
+          "bounds": [
+            43,
+            3,
+            84,
+            128
+          ],
+          "anchor": [
+            64,
+            128
+          ]
+        },
+        {
+          "row": 2,
+          "column": 0,
+          "bounds": [
+            40,
+            3,
+            88,
+            128
+          ],
+          "anchor": [
+            64,
+            128
+          ]
+        },
+        {
+          "row": 2,
+          "column": 1,
+          "bounds": [
+            43,
+            3,
+            85,
+            128
+          ],
+          "anchor": [
+            64,
+            128
+          ]
+        },
+        {
+          "row": 2,
+          "column": 2,
+          "bounds": [
+            40,
+            3,
+            87,
+            128
+          ],
+          "anchor": [
+            64,
+            128
+          ]
+        },
+        {
+          "row": 2,
+          "column": 3,
+          "bounds": [
+            42,
+            3,
+            86,
+            128
+          ],
+          "anchor": [
+            64,
+            128
+          ]
+        }
+      ]
+    },
+    "bruno": {
+      "generated_size": [
+        1448,
+        1086
+      ],
+      "final_size": [
+        512,
+        384
+      ],
+      "frames": [
+        {
+          "row": 0,
+          "column": 0,
+          "bounds": [
+            31,
+            3,
+            97,
+            128
+          ],
+          "anchor": [
+            64,
+            128
+          ]
+        },
+        {
+          "row": 0,
+          "column": 1,
+          "bounds": [
+            37,
+            3,
+            90,
+            128
+          ],
+          "anchor": [
+            64,
+            128
+          ]
+        },
+        {
+          "row": 0,
+          "column": 2,
+          "bounds": [
+            30,
+            3,
+            98,
+            128
+          ],
+          "anchor": [
+            64,
+            128
+          ]
+        },
+        {
+          "row": 0,
+          "column": 3,
+          "bounds": [
+            37,
+            3,
+            90,
+            128
+          ],
+          "anchor": [
+            64,
+            128
+          ]
+        },
+        {
+          "row": 1,
+          "column": 0,
+          "bounds": [
+            38,
+            3,
+            89,
+            128
+          ],
+          "anchor": [
+            64,
+            128
+          ]
+        },
+        {
+          "row": 1,
+          "column": 1,
+          "bounds": [
+            40,
+            3,
+            87,
+            128
+          ],
+          "anchor": [
+            64,
+            128
+          ]
+        },
+        {
+          "row": 1,
+          "column": 2,
+          "bounds": [
+            37,
+            3,
+            90,
+            128
+          ],
+          "anchor": [
+            64,
+            128
+          ]
+        },
+        {
+          "row": 1,
+          "column": 3,
+          "bounds": [
+            39,
+            3,
+            89,
+            128
+          ],
+          "anchor": [
+            64,
+            128
+          ]
+        },
+        {
+          "row": 2,
+          "column": 0,
+          "bounds": [
+            37,
+            3,
+            91,
+            128
+          ],
+          "anchor": [
+            64,
+            128
+          ]
+        },
+        {
+          "row": 2,
+          "column": 1,
+          "bounds": [
+            38,
+            3,
+            90,
+            128
+          ],
+          "anchor": [
+            64,
+            128
+          ]
+        },
+        {
+          "row": 2,
+          "column": 2,
+          "bounds": [
+            35,
+            3,
+            93,
+            128
+          ],
+          "anchor": [
+            64,
+            128
+          ]
+        },
+        {
+          "row": 2,
+          "column": 3,
+          "bounds": [
+            38,
+            3,
+            90,
+            128
+          ],
+          "anchor": [
+            64,
+            128
+          ]
+        }
+      ]
+    }
+  },
+  "gif_checks": {
+    "phases": 4,
+    "duration_ms": 160,
+    "left_opaque_pixels_match_mirrored_right": true
+  },
+  "visual_review": {
+    "contact_sheet": true,
+    "room_previews_seen": 8,
+    "real_time_game_playback": false,
+    "human_acceptance": "open"
+  }
+}

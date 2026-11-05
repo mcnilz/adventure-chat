@@ -41,19 +41,6 @@ Table 'garden' @(
  '506,530 542,506 562,506 562,496 572,494 596,494 598,510 608,510 602,500 596,486 596,476 604,470 618,470 626,476 638,476 642,484 634,492 632,508 654,508 654,478 660,466 664,462 666,444 674,434 682,440 684,456 690,464 698,478 696,508 716,508 716,486 710,478 718,472 714,464 724,460 724,450 736,454 740,468 742,478 738,484 738,510 780,510 812,528 812,546 788,548 790,616 766,618 764,596 558,596 556,618 530,616 530,548 506,546'
  ) @('560,558 580,558 566,576 560,576','582,560 736,560 754,578 568,578','742,560 762,560 762,574') @(504,432,310,186)
 foreach($name in @('mara','bruno')) {
- $source=[System.Drawing.Bitmap]::FromFile((Join-Path $root "design-guide/assets/characters/$name.png"))
- # Runtime raster removes the unused 24px header; the delivered 64x96 originals stay intact.
- $sheet=[System.Drawing.Bitmap]::new(256,216)
- for($row=0;$row -lt 3;$row++){for($col=0;$col -lt 4;$col++){
-   $xmin=64;$xmax=0;$ymin=96;$ymax=0
-   for($y=0;$y -lt 96;$y++){for($x=0;$x -lt 64;$x++){if($source.GetPixel($col*64+$x,$row*96+$y).A -gt 127){$xmin=[Math]::Min($xmin,$x);$xmax=[Math]::Max($xmax,$x);$ymin=[Math]::Min($ymin,$y);$ymax=[Math]::Max($ymax,$y)}}}
-   # Normalize visible body height and anchor, including Mara's oversized rear idle pose.
-   $scale=72.0/($ymax-$ymin+1);$center=($xmin+$xmax)/2.0
-   for($ny=0;$ny -lt 72;$ny++){for($nx=0;$nx -lt 64;$nx++){
-     $x=[int][Math]::Floor(($nx-32)/$scale+$center+0.5);$y=$ymin+[int][Math]::Floor($ny/$scale)
-     if($x -ge 0 -and $x -lt 64 -and $y -le $ymax){$sheet.SetPixel($col*64+$nx,$row*72+$ny,$source.GetPixel($col*64+$x,$row*96+$y))}
-   }}
- }}
- $sheet.Save((Join-Path $target "$name.png"),[System.Drawing.Imaging.ImageFormat]::Png)
- $sheet.Dispose();$source.Dispose()
+ # Delivered native frames already match actorHeight 128. Preserve their pixels exactly.
+ Copy-Item -LiteralPath (Join-Path $root "design-guide/assets/characters/native128/$name.png") -Destination (Join-Path $target "$name.png") -Force
 }
