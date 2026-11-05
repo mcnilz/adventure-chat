@@ -1,54 +1,29 @@
 version: 1
 id: garden
 name: Tavernen-Garten
-background: assets/images/garden.png
-size:
-  width: 640
-  height: 360
+background: assets/images/garden-runtime.png
+size: { width: 640, height: 360 }
+actorHeight: 96
 spawns:
-  - id: entry
-    position:
-      x: 80
-      y: 300
-  - id: from-lounge
-    position:
-      x: 80
-      y: 300
+  - { id: entry, position: { x: 112, y: 320 } }
+  - { id: from-lounge, position: { x: 84, y: 304 } }
 walkable:
   - id: floor
-    points:
-      - x: 40
-        y: 240
-      - x: 600
-        y: 240
-      - x: 600
-        y: 345
-      - x: 40
-        y: 345
+    points: [{ x: 26, y: 304 }, { x: 112, y: 280 }, { x: 244, y: 276 }, { x: 408, y: 276 }, { x: 446, y: 280 }, { x: 616, y: 290 }, { x: 616, y: 348 }, { x: 26, y: 348 }]
 obstacles:
   - id: table
-    points:
-      - x: 260
-        y: 260
-      - x: 380
-        y: 260
-      - x: 380
-        y: 310
-      - x: 260
-        y: 310
+    points: [{ x: 252, y: 294 }, { x: 408, y: 294 }, { x: 408, y: 310 }, { x: 252, y: 310 }]
+objects:
+  - id: table
+    image: assets/images/garden-table.png
+    position: { x: 252, y: 216 }
+    size: { width: 155, height: 93 }
+    depthY: 310
 exits:
   - id: to-lounge
-    position:
-      x: 60
-      y: 300
-    radius: 45
-    bounds:
-      x: 25
-      y: 95
-      width: 75
-      height: 240
+    position: { x: 66, y: 304 }
+    radius: 28
+    bounds: { x: 24, y: 110, width: 82, height: 192 }
     label: Lounge
-    target:
-      room: lounge
-      spawn: from-garden
-notes: Der lauschige Gartenbereich hinter der Taverne.
+    target: { room: lounge, spawn: from-garden }
+notes: Tisch hinten bei (330,278), davor bei (330,330). Kollision am Bodenfußabdruck; Tischplatte überragt ihn.

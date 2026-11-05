@@ -1,5 +1,5 @@
 # Aktueller Stand
-Revision 38 · 04.11.2026.
+Revision 39 · 05.11.2026.
 
 ## Vorhanden
 - [x] Gespräch in Spezifikation, Architektur, Autorenformat und Tickets überführt.
@@ -32,17 +32,18 @@ Revision 38 · 04.11.2026.
 - [ ] Git-Repository und endgültiger Projektname festgelegt.
 
 ## Aktives Ticket
+- **Ticket 16: ready-for-human.** Umfang/Testgrenzen am 05.11.2026 mit „ja“ bestätigt, Referenzwelt mit Mara/Bruno, Tischmasken, Navigation/Türen und Editor integriert. Format 1.4.0; Inhalt 2.0.0. Unveränderte 1280×720-Originale plus proportionale 640×360-Spielkopien wegen bestehendem PNG-Größenvertrag; keine Vertragsänderung. Typcheck/Clientbuild und Vollsuite 234 Tests (0 Warnungen) bestanden; beide Subagent-Reviewachsen nach Korrekturen ohne offene Befunde. Abnahmeschritte, Grenzen und Screenshots im Ticket 16; menschliche Sichtabnahme offen. Lokaler Commit „Integrate redesigned reference world (ticket 16)“.
 - **Ticket 15: done.** Menschlich am 04.11.2026 nach Start der Testwelt foreground abgenommen („funktioniert“). Implementierungscommit e485525. Am 04.11.2026 mit „ok“ für Umfang, Datenvertrag und Testgrenzen bestätigt und umgesetzt: Vordergrundobjekte mit PNG-Alpha/Tiefenlinie, gemeinsamer Spiel-/Editorrenderer, Objektverwaltung/Upload/Alt-Klick. Format 1.4.0 additive Minor-Erweiterung; alte Schemas/Fixtures und Benutzerbilder unverändert. Typcheck/Build, Vollsuite 230 Tests (0 Warnungen), 14 gezielte Inhaltsfälle und drei Objekt-Browsertests einschließlich Reviewnachträgen erfolgreich. Beide Reviewachsen nach Korrekturen ohne offene Funktions-/Standardsbefunde. Abnahme und Details im Ticket 15.
-- **Ticket 14: `done`.** Menschlich am 04.11.2026 abgenommen („funktioniert“). Name/Figur vor Eintritt, Katalog 1.3.0, gemeinsamer Renderer und Editor umgesetzt. Typcheck/Build, 213 Tests (0 Warnungen), beide Reviewachsen ohne offene Befunde. Implementierungscommit `8761c42`. Details im Ticket 14. Ticket 15 ist done; Ticket 16 bleibt draft.
-- **Reihenfolge:** Nach erfolgter Abnahme von 15 folgt Ticket 16 (draft; vor Umsetzung bestätigen), danach 13. Ticket 13 ist kein Blocker für 16.
-- **Vorhandene Benutzeränderungen:** neue Lounge-/Gartenbilder und Design Guide unter `worlds/reference` unverändert erhalten; ihre Bildabmessungen passen derzeit nicht zu den alten Raumdaten. Integration und Animationsabnahme gehören zu Ticket 16. Alte Referenzwelt aus b3d0b83 bereits unter `tests/Fixtures/reference-v1` bytegetreu gesichert und für Regressionstests verwendet.
+- **Ticket 14: `done`.** Menschlich am 04.11.2026 abgenommen („funktioniert“). Name/Figur vor Eintritt, Katalog 1.3.0, gemeinsamer Renderer und Editor umgesetzt. Typcheck/Build, 213 Tests (0 Warnungen), beide Reviewachsen ohne offene Befunde. Implementierungscommit `8761c42`. Details im Ticket 14. Ticket 15 ist done; Ticket 16 ist ready-for-human.
+- **Reihenfolge:** Ticket 16 ist ready-for-human; nach dessen Abnahme Ticket 13 (draft) vorschlagen. Ticket 13 ist kein Blocker für 16.
+- **Benutzerdateien:** gelieferte Lounge-/Garten- und Figurenoriginale unverändert erhalten; Design-Guide-Integrationshinweise aktualisiert. Spielkopien und Tischmasken gesondert in Ticket 16 erzeugt. Alte Referenzwelt aus b3d0b83 unter `tests/Fixtures/reference-v1` bytegetreu erhalten. Benutzer-Arbeitskopie `.scratch/foreground-demo` unangetastet und nicht mitcommittiert.
 - **Ticket 12: `done`.** Benutzer hat am 04.11.2026 ausdrücklich klargestellt: „ticket 12 (scrolling) hatte ich schon abgenommen.“ Abnahme einschließlich dokumentiertem Randsprechblasen-Nachtrag nachgetragen. Implementierungscommits `6dd96c7` und `a046edb`. Horizontale Kamera, Format 1.2.0, Editor und Scrollwelt implementiert; abschließende Nachtrags-Vollsuite 192 Tests, 0 Warnungen; Typcheck/Build, beide Reviewachsen und Diffprüfung bestanden. Details im Ticket 12.
 
 - **Ticket 11: `done`.** Bestätigt am 04.11.2026 („ja“), implementiert und geprüft. Kartenwelt `worlds/map`, Draufsichtfigur, feste Höhe 16–128 Raumpixel (Standard 64), separate Geschwindigkeit (Standard 130), Editor und gemeinsame Vorschau, Format 1.1.0 mit unveränderten alten Schemas/Referenzwelten. Vollsuite 183 Tests grün; beide Reviewachsen nach Sackgassenkorrektur ohne offene Befunde. Menschlich am 04.11.2026 abgenommen („funktioniert super“). Details und konkrete Abnahmeschritte: `.scratch/adventure-chat/issues/11-map-view.md`. Implementierungscommit: `a3497dc`.
 - Ticket 10 ist `done`, ausdrücklich am 04.11.2026 abgenommen („abegnommen“), Implementierungscommit `28e3b7f`. Tickets 01–09 bleiben `done`; dokumentierte Reviewpunkte von Ticket 09 bleiben offen.
 
 ## Nächste Aktion
-Ticket 16 (Referenzwelt nach neuem Design Guide integrieren) mit Umfang, Detailentscheidungen und Testgrenzen vorschlagen und vor Umsetzung bestätigen lassen; danach 13. Benutzer-Arbeitskopie .scratch/foreground-demo erhalten und nicht mitcommittieren. Referenzweltbilder bleiben bis Ticket 16 unverändert.
+Menschliche Sichtabnahme von Ticket 16 anhand der konkreten Schritte im Ticket. Erst ausdrückliche Abnahme macht es done; Feedback setzt es zurück auf in-progress. Danach Ticket 13 vorschlagen und vor Umsetzung bestätigen lassen. Benutzer-Arbeitskopie .scratch/foreground-demo erhalten.
 
 ## Offene Annahmen
 Privater Testbetrieb, ca. zehn Personen, Desktop-Mausbedienung; keine kollidierenden Figuren; Reconnect als frischer Eintritt.

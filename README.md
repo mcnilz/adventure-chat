@@ -89,6 +89,20 @@ dotnet run --project src\AdventureChat.Server -- --World:Root C:\AdventureWorld 
 
 Alternativ lassen sich mehrere Pfade als `--World:Roots:0 <Pfad> --World:Roots:1 <Pfad>` konfigurieren. Alle werden geprüft, doppelte Welt-IDs abgewiesen. `World:Root` steht, falls zusätzlich angegeben, an erster Stelle. Ohne Weltkonfiguration bleibt der bisherige lokale Betrieb mit URL-Raumwahl erhalten.
 
+### Neue Taverne: Mara, Bruno und Tischverdeckung
+
+Lokal aus dem Projekt starten:
+
+```powershell
+dotnet run --project src/AdventureChat.Server -- --World:Root D:\adventure-chat\worlds\reference --authoring
+```
+
+In der Weltwahl „Referenzwelt“ wählen, Namen eingeben und Mara oder Bruno auswählen. Die rechte Tür der Lounge führt in den Garten, dessen linke Tür zurückführt. Mit zwei Browserfenstern unterschiedliche Figuren auswählen, laufen und eine Chatnachricht senden; Namen und Sprechblasen vergleichen.
+
+Zum Prüfen der Verdeckung hinter den großen Tisch laufen: Lounge ungefähr (330,258), Garten (330,278). Die Tischplatte verdeckt die unteren Körperteile; bei (330,330) steht die Figur davor. Beide Seiten erreicht man über die freien Wege links und rechts. Mit D wird die Geometrie sichtbar. Im Editor dieselbe Welt wählen, beide Räume speichern/neuladen und dieselben Ziele im Vorschaumodus anklicken. Die Raumobjekte lassen sich über ihre Auswahlliste bearbeiten.
+
+Die Räume bleiben 640 × 360 mit `actorHeight: 96` (sichtbarer Körper 72 Pixel). Gelieferte 1280 × 720-Originale bleiben erhalten; proportionale Spielkopien erfüllen den bestehenden Formatvertrag. Herkunft, Bearbeitungen und Inhaltsversion 2.0.0 stehen in [ART-PROVENANCE.md](worlds/reference/ART-PROVENANCE.md), die aktualisierte Gestaltung in [Design Guide](worlds/reference/design-guide/index.html). Animationsgefühl, anatomische Feinheiten und Maskenkanten bleiben Teil der menschlichen Sichtabnahme.
+
 Bei konfigurierten Weltpaketen erscheint im Spiel und im lokalen Editor zuerst die Weltwahl, auch bei nur einer Welt. Im Spiel führt „Zur Weltwahl“ aus der Sitzung zurück; anschließend lässt sich eine andere Welt betreten. Nach einem Verbindungsabbruch erfolgt der frische Eintritt in die zuletzt gewählte Welt am Start-Spawn. Ist diese Welt nicht mehr verfügbar, erscheint die Auswahl erneut. Bei Verbindungsverlust werden in diesem Modus keine lokalen Ersatzbewegungen berechnet.
 
 Im Editor merkt die Seitenadresse die gewählte Welt als `?worldId=...`. Laden, Speichern, Validierung, Bilder und Vorschau beziehen sich auf diese Welt. „Zur Weltwahl“ wechselt die Welt über einen Seitenwechsel; bei ungespeicherten Änderungen warnt der Browser. Weltpakete werden weiterhin ausschließlich über Serverkonfiguration eingebunden; die Browseradresse enthält keine Verzeichnispfade.

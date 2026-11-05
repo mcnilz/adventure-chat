@@ -1,5 +1,5 @@
 # Umsetzungsplan
-Status: Tickets 01–08 sind menschlich abgenommen; 09 ist nach ausdrücklicher Benutzerabnahme auf Grundlage einer tolerierten KI-Prüfung done. 10, 11 und 12 sind menschlich abgenommen und done (Abnahme von 12 am 04.11.2026 ausdrücklich klargestellt). Tickets 13–16 bleiben draft; verbindliche nächste Reihenfolge: 14 → 15 → 16 → 13.
+Status: Tickets 01–15 außer 13 sind menschlich abgenommen und done. Ticket 16 ist seit 05.11.2026 implementiert und ready-for-human; Ticket 13 bleibt draft und folgt nach Abnahme von 16. Details und Belege im jeweiligen Ticket und active-state.md.
 
 | Ticket | Vorführbares Ergebnis | Blocked by |
 | --- | --- | --- |
