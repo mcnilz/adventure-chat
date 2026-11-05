@@ -42,15 +42,16 @@ Table 'garden' @(
  ) @('560,558 580,558 566,576 560,576','582,560 736,560 754,578 568,578','742,560 762,560 762,574') @(504,432,310,186)
 foreach($name in @('mara','bruno')) {
  $source=[System.Drawing.Bitmap]::FromFile((Join-Path $root "design-guide/assets/characters/$name.png"))
- $sheet=[System.Drawing.Bitmap]::new(256,288)
+ # Runtime raster removes the unused 24px header; the delivered 64x96 originals stay intact.
+ $sheet=[System.Drawing.Bitmap]::new(256,216)
  for($row=0;$row -lt 3;$row++){for($col=0;$col -lt 4;$col++){
    $xmin=64;$xmax=0;$ymin=96;$ymax=0
    for($y=0;$y -lt 96;$y++){for($x=0;$x -lt 64;$x++){if($source.GetPixel($col*64+$x,$row*96+$y).A -gt 127){$xmin=[Math]::Min($xmin,$x);$xmax=[Math]::Max($xmax,$x);$ymin=[Math]::Min($ymin,$y);$ymax=[Math]::Max($ymax,$y)}}}
    # Normalize visible body height and anchor, including Mara's oversized rear idle pose.
    $scale=72.0/($ymax-$ymin+1);$center=($xmin+$xmax)/2.0
-   for($ny=24;$ny -lt 96;$ny++){for($nx=0;$nx -lt 64;$nx++){
-     $x=[int][Math]::Floor(($nx-32)/$scale+$center+0.5);$y=$ymin+[int][Math]::Floor(($ny-24)/$scale)
-     if($x -ge 0 -and $x -lt 64 -and $y -le $ymax){$sheet.SetPixel($col*64+$nx,$row*96+$ny,$source.GetPixel($col*64+$x,$row*96+$y))}
+   for($ny=0;$ny -lt 72;$ny++){for($nx=0;$nx -lt 64;$nx++){
+     $x=[int][Math]::Floor(($nx-32)/$scale+$center+0.5);$y=$ymin+[int][Math]::Floor($ny/$scale)
+     if($x -ge 0 -and $x -lt 64 -and $y -le $ymax){$sheet.SetPixel($col*64+$nx,$row*72+$ny,$source.GetPixel($col*64+$x,$row*96+$y))}
    }}
  }}
  $sheet.Save((Join-Path $target "$name.png"),[System.Drawing.Imaging.ImageFormat]::Png)

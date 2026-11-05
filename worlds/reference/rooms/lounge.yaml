@@ -3,7 +3,7 @@ id: lounge
 name: Lounge
 background: assets/images/lounge-runtime.png
 size: { width: 640, height: 360 }
-actorHeight: 96
+actorHeight: 128
 spawns:
   - { id: entry, position: { x: 180, y: 320 } }
   - { id: from-garden, position: { x: 564, y: 254 } }

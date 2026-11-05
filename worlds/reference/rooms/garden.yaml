@@ -3,7 +3,7 @@ id: garden
 name: Tavernen-Garten
 background: assets/images/garden-runtime.png
 size: { width: 640, height: 360 }
-actorHeight: 96
+actorHeight: 128
 spawns:
   - { id: entry, position: { x: 112, y: 320 } }
   - { id: from-lounge, position: { x: 84, y: 304 } }

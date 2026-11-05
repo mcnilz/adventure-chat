@@ -47,6 +47,7 @@ public class ReferenceWorldTests
         await b.WaitForFunctionAsync("[...window.__ADVENTURE_GAME__.remotePlayers.values()][0].speechBubble?.text==='Am Tisch'");
         foreach (var page in new[] { a, b })
         {
+            await page.ScreenshotAsync(new() { Path = Path.Combine(TestContext.CurrentContext.WorkDirectory, $"reference-lounge-front-{(page == a ? "mara" : "bruno")}.png") });
             await Walk(page, 330, 258);
             await page.ScreenshotAsync(new() { Path = Path.Combine(TestContext.CurrentContext.WorkDirectory, $"reference-lounge-behind-{(page == a ? "mara" : "bruno")}.png") });
             await Walk(page, 330, 330);
@@ -97,21 +98,22 @@ public class ReferenceWorldTests
               const {CharacterRenderer}=await import('/js/rendering/character-renderer.js');
               const catalog=await (await fetch('/api/worlds/reference/characters')).json();
               await Promise.all(catalog.characters.map(async c=>{const image=new Image();image.src=c.imageUrl;await image.decode()}));
-              const canvas=document.createElement('canvas');canvas.width=128;canvas.height=128;
+              const room=await (await fetch('/api/worlds/reference/rooms/lounge')).json();
+              const canvas=document.createElement('canvas');canvas.width=256;canvas.height=180;
               const ctx=canvas.getContext('2d'),renderer=new CharacterRenderer(),results=[];
-              const sheet=document.createElement('canvas');sheet.id='poses';sheet.width=640;sheet.height=1024;document.body.replaceChildren(sheet);
-              const out=sheet.getContext('2d');out.fillStyle='#d0d8d8';out.fillRect(0,0,640,1024);
+              const sheet=document.createElement('canvas');sheet.id='poses';sheet.width=1280;sheet.height=1440;document.body.replaceChildren(sheet);
+              const out=sheet.getContext('2d');out.fillStyle='#d0d8d8';out.fillRect(0,0,1280,1440);
               let row=0;
               for(const appearance of catalog.characters) for(const facing of ['right','left','up','down']) {
                 for(let phase=0;phase<5;phase++) {
-                  const c={id:'x',name:'',position:{x:64,y:120},facing,state:phase===0?'idle':'walk',walkFrame:Math.max(0,phase-1),appearance};
-                  renderer.drawCharacter(ctx,c,true,{actorHeight:96},false);
-                  await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));ctx.clearRect(0,0,128,128);
-                  renderer.drawCharacter(ctx,c,true,{actorHeight:96},false);
-                  const pixels=ctx.getImageData(0,0,128,128).data;let minX=128,maxX=0,minY=128,maxY=0;
-                  for(let y=0;y<128;y++)for(let x=0;x<128;x++)if(pixels[(y*128+x)*4+3]>127){minX=Math.min(minX,x);maxX=Math.max(maxX,x);minY=Math.min(minY,y);maxY=Math.max(maxY,y)}
+                  const c={id:'x',name:'',position:{x:128,y:160},facing,state:phase===0?'idle':'walk',walkFrame:Math.max(0,phase-1),appearance};
+                  renderer.drawCharacter(ctx,c,true,room,false);
+                  await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));ctx.clearRect(0,0,256,180);
+                  renderer.drawCharacter(ctx,c,true,room,false);
+                  const pixels=ctx.getImageData(0,0,256,180).data;let minX=256,maxX=0,minY=180,maxY=0;
+                  for(let y=0;y<180;y++)for(let x=0;x<256;x++)if(pixels[(y*256+x)*4+3]>127){minX=Math.min(minX,x);maxX=Math.max(maxX,x);minY=Math.min(minY,y);maxY=Math.max(maxY,y)}
                   results.push({id:appearance.id,facing,phase,minX,maxX,minY,maxY});
-                  out.drawImage(canvas,phase*128,row*128);out.fillStyle='#172733';out.fillText(appearance.id+' '+facing+' '+(phase===0?'idle':phase-1),phase*128+4,row*128+12);
+                  out.drawImage(canvas,phase*256,row*180);out.fillStyle='#172733';out.fillText(appearance.id+' '+facing+' '+(phase===0?'idle':phase-1),phase*256+4,row*180+12);
                 }
                 row++;
               }
@@ -120,10 +122,10 @@ public class ReferenceWorldTests
             """);
         foreach (var sample in samples.EnumerateArray())
         {
-            Assert.That(sample.GetProperty("maxY").GetInt32(), Is.EqualTo(119), sample.ToString());
-            Assert.That(sample.GetProperty("minY").GetInt32(), Is.GreaterThan(24), sample.ToString());
-            Assert.That(sample.GetProperty("minX").GetInt32(), Is.GreaterThan(32), sample.ToString());
-            Assert.That(sample.GetProperty("maxX").GetInt32(), Is.LessThan(95), sample.ToString());
+            Assert.That(sample.GetProperty("maxY").GetInt32(), Is.EqualTo(159), sample.ToString());
+            Assert.That(sample.GetProperty("minY").GetInt32(), Is.InRange(32, 34), "Visible adult height should be about twice the 66px foreground table: " + sample);
+            Assert.That(sample.GetProperty("minX").GetInt32(), Is.GreaterThan(70), sample.ToString());
+            Assert.That(sample.GetProperty("maxX").GetInt32(), Is.LessThan(186), sample.ToString());
         }
         await page.Locator("#poses").ScreenshotAsync(new() { Path = Path.Combine(TestContext.CurrentContext.WorkDirectory, "reference-poses.png") });
     }

@@ -1,5 +1,5 @@
 # Aktueller Stand
-Revision 39 · 05.11.2026.
+Revision 40 · 05.11.2026.
 
 ## Vorhanden
 - [x] Gespräch in Spezifikation, Architektur, Autorenformat und Tickets überführt.
@@ -32,6 +32,7 @@ Revision 39 · 05.11.2026.
 - [ ] Git-Repository und endgültiger Projektname festgelegt.
 
 ## Aktives Ticket
+- **Ticket-16-Größennachtrag: ready-for-human.** Benutzerfeedback vom05.11.: Figurengröße passte nicht zur Raum-/Möbelrelation. Sichtbarer Körper war nur72 Pixel (96er Rahmen mit24 transparenten Kopfzeilen). Runtime-Raster jetzt64×72, Raumhöhe128, sichtbarer Körper128; gelieferte Originale unverändert. Format1.4.0 unverändert, Inhalts-Patch2.0.1. Renderer-Regressionsnachweis erst rot (72 statt128), dann drei gezielte Browserfälle grün; Typcheck/Build und abschließende Vollsuite234 Tests (0 Warnungen) bestanden. Beide erneuten Subagent-Reviewachsen ohne offene Befunde. Screenshots im Ticket aktualisiert. Server neu starten und Browser hart neu laden; menschliche Sichtabnahme weiterhin offen. Lokaler Korrekturcommit „Fix reference character scale relative to furniture“. Die folgende Erststandsbeschreibung ist historisch.
 - **Ticket 16: ready-for-human.** Umfang/Testgrenzen am 05.11.2026 mit „ja“ bestätigt, Referenzwelt mit Mara/Bruno, Tischmasken, Navigation/Türen und Editor integriert. Format 1.4.0; Inhalt 2.0.0. Unveränderte 1280×720-Originale plus proportionale 640×360-Spielkopien wegen bestehendem PNG-Größenvertrag; keine Vertragsänderung. Typcheck/Clientbuild und Vollsuite 234 Tests (0 Warnungen) bestanden; beide Subagent-Reviewachsen nach Korrekturen ohne offene Befunde. Abnahmeschritte, Grenzen und Screenshots im Ticket 16; menschliche Sichtabnahme offen. Lokaler Commit „Integrate redesigned reference world (ticket 16)“.
 - **Ticket 15: done.** Menschlich am 04.11.2026 nach Start der Testwelt foreground abgenommen („funktioniert“). Implementierungscommit e485525. Am 04.11.2026 mit „ok“ für Umfang, Datenvertrag und Testgrenzen bestätigt und umgesetzt: Vordergrundobjekte mit PNG-Alpha/Tiefenlinie, gemeinsamer Spiel-/Editorrenderer, Objektverwaltung/Upload/Alt-Klick. Format 1.4.0 additive Minor-Erweiterung; alte Schemas/Fixtures und Benutzerbilder unverändert. Typcheck/Build, Vollsuite 230 Tests (0 Warnungen), 14 gezielte Inhaltsfälle und drei Objekt-Browsertests einschließlich Reviewnachträgen erfolgreich. Beide Reviewachsen nach Korrekturen ohne offene Funktions-/Standardsbefunde. Abnahme und Details im Ticket 15.
 - **Ticket 14: `done`.** Menschlich am 04.11.2026 abgenommen („funktioniert“). Name/Figur vor Eintritt, Katalog 1.3.0, gemeinsamer Renderer und Editor umgesetzt. Typcheck/Build, 213 Tests (0 Warnungen), beide Reviewachsen ohne offene Befunde. Implementierungscommit `8761c42`. Details im Ticket 14. Ticket 15 ist done; Ticket 16 ist ready-for-human.
