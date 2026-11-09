@@ -1,5 +1,5 @@
 # Umsetzungsplan
-Status: Tickets 01–17 sind menschlich abgenommen und done. Ticket 17 einschließlich Hintergrund-Nachtrag am 09.11.2026 ausdrücklich abgenommen („die Bilder sind jetzt sofort da, abgenommen“). Letzte Vollsuite: 268 Tests bestanden, 0 Warnungen. Details und Belege im jeweiligen Ticket und active-state.md.
+Status: Tickets 01–17 sind menschlich abgenommen und done. Ticket 17 einschließlich Hintergrund-Nachtrag am 09.11.2026 ausdrücklich abgenommen („die Bilder sind jetzt sofort da, abgenommen“). Ticket 18 ist umgesetzt und ready-for-human; letzte Vollsuite: 275 Tests bestanden, 0 Warnungen. Details und Belege im jeweiligen Ticket und active-state.md.
 
 | Ticket | Vorführbares Ergebnis | Blocked by |
 | --- | --- | --- |
@@ -20,6 +20,7 @@ Status: Tickets 01–17 sind menschlich abgenommen und done. Ticket 17 einschlie
 | 16 | Neue Referenzwelt mit Mara/Bruno und Tischverdeckung | 14, 15 |
 | 13 | Tiefenskalierung und drei Demo-Szenarien | 09, 11, 14, 15, 16; Gesamtabnahme: 12 (done) |
 | 17 (done) | Verlässliche Bearbeitungen und Ungespeichert-Status im Raumeditor | 06, 07, 11–15 (done); menschlich abgenommen am 09.11.2026 |
+| 18 (ready-for-human) | Gesamte Spieloberfläche an Fensterbreite und -höhe anpassen; Vergrößern per Button | keine; am 09.11.2026 bestätigt, menschliche Abnahme ausstehend |
 
 Tickets 14–16 wurden am 04.11.2026 auf Benutzerauftrag als draft angelegt. Nur Planung beauftragt; andere Agenten übernehmen die spätere Umsetzung nach Bestätigung von Umfang und Testgrenzen. Verbindliche Reihenfolge laut anschließendem Benutzerauftrag: 14 → 15 → 16 → 13. Keine automatische Parallelbeauftragung. Formatversionen fortlaufend anhand des tatsächlichen Stands wählen; Ticket 13 ergänzt seine Demo-Anforderungen erst nach der neuen Referenzwelt.
 

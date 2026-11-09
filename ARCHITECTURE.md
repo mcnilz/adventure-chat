@@ -37,6 +37,8 @@ Original-Pixelart ohne Glättung skalieren, Seitenverhältnis erhalten. Zeichenr
 Mindestens eine mitgelieferte Platzhalterfigur mit Stand- und Laufzustand. Bilder pro Richtung können zunächst einfach sein; polierte Charaktergrafik ist kein Abnahmekriterium.
 Mausklicks auf Chat und Editorbedienung dürfen keine Bewegung auslösen.
 
+Ticket 18: `ui/game-viewport.ts` passt die gesamte Spieloberfläche (960 CSS-Pixel Basisbreite einschließlich Rahmen) mit einem gemeinsamen CSS-Transform an die verfügbare Breite und Höhe an. Ein ResizeObserver beobachtet Fensterfläche und unskalierte Oberflächengröße, damit auch Räume mit anderem Seitenverhältnis passen. Der Standard begrenzt den Faktor auf eins; der umschaltbare Button erlaubt zusätzliches Vergrößern. Chat, Aktionszeile und Spielbedienung skalieren mit. Der Renderer und die Umrechnung anhand des tatsächlichen Canvas-Rechtecks bleiben unverändert. Kein persistenter Modus, kein Betriebssystem-Vollbild und keine Änderung am Autorenformat.
+
 ## Editorzugriff
 Editor nur in explizitem lokalen Autorenmodus und am Loopback-Interface. Öffentlicher Spielmodus enthält keine schreibbaren Editorendpunkte. Origin/Host prüfen und Schreibzugriffe gegen fremde Webseiten absichern.
 Der Schalter `--authoring` aktiviert den Editor; ohne ihn antworten die Autoren-APIs mit 403 und die Editorseite mit 404. Host und Origin werden geprüft, Schreibzugriffe benötigen ein sitzungsgebundenes Antiforgery-Token. Uploads akzeptieren ausschließlich PNG mit geprüfter Signatur bis 10 MiB.

@@ -2,6 +2,7 @@ import { AdventureGame } from './game.js';
 import { ChatUiController } from './ui/chat-ui.js';
 import type { ChatMessageDto } from './types.js';
 import { chooseWorld, loadWorlds, showStartupError } from './ui/world-picker.js';
+import { GameViewport } from './ui/game-viewport.js';
 
 declare global {
   interface Window {
@@ -64,11 +65,15 @@ async function initialize(): Promise<void> {
       try { await game.networkClient.leaveWorld(); }
       finally { location.reload(); }
     });
-    container.prepend(leave);
+    document.getElementById('game-toolbar')!.prepend(leave);
   }
   container.hidden = false;
+  const viewport = new GameViewport(
+    document.getElementById('app')!, container,
+    document.getElementById('game-scale') as HTMLButtonElement
+  );
   try { await game.start(); }
-  catch (error) { game.stop(); container.hidden = true; showStartupError(error); }
+  catch (error) { viewport.dispose(); game.stop(); container.hidden = true; showStartupError(error); }
 
   console.log('Adventure Chat game initialized with modular architecture.');
 }

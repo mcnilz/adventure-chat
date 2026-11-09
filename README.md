@@ -54,6 +54,7 @@ Im regulären Spielmodus sind die Editor- und Autoren-APIs deaktiviert. Spieler 
 dotnet run --project src\AdventureChat.Server\AdventureChat.Server.csproj
 ```
 Browser öffnen: `http://localhost:5000` (oder angezeigte Portadresse).
+Die gesamte Spieloberfläche einschließlich Chat passt sich bei kleinen Fenstern proportional an Breite und Höhe an. „Auf Fenstergröße“ oben rechts erlaubt zusätzlich das Vergrößern auf die verfügbare Browserfläche; „Normalgröße“ begrenzt wieder auf die bisherige Breite. Beide Modi passen sich bei Fenster- und Raumwechseln automatisch an; die Auswahl gilt bis zum Neuladen der Seite.
 Ohne Weltparameter startet automatisch die aktuelle Referenzwelt mit Lounge, Garten, Mara/Bruno und Demo-Runde. Das gilt auch beim Start der gebauten Anwendung. Im Projekt verwendet der Autorenmodus `worlds/reference`; außerhalb des Projekts die mitgelieferte Weltkopie. Explizite `World:Root`-/`World:Roots`-Angaben haben Vorrang. Ein ausdrücklich gesetztes `Content:Root` verwendet weiterhin den bisherigen Legacy-Inhaltsmodus.
 Mit URL-Parametern direkt einsteigen: `http://localhost:5000?name=Guybrush&room=lounge`
 

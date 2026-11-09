@@ -18,6 +18,8 @@ Automatisierung für fachliche Regeln und Mehrbenutzerzustand; manuelle Prüfung
 .NET: NUnit, ohne FluentAssertions. Browser: Playwright für zwei isolierte Kontexte und Editorablauf. Keine zusätzliche TS-Unit-Testplattform ohne konkreten Bedarf. Versions-/Lizenzprüfung dieser Testwerkzeuge gehört vor ihre Aufnahme.
 
 ## Kritische Szenarien
+Für Ticket 18 am 09.11.2026 mit „ja genau“ bestätigt: bestehende öffentliche Browser-/Canvasgrenze für Gesamtoberfläche bei 1280×480, 640×360, 800×900 und 1920×1080. Sichtbare Außenkanten, proportionaler Maßstab, Standardbegrenzung, Umschalten und Resize in beiden Modi, reale Klickbewegung, Chat und Raumwechsel; bestehende Scrolltests als Regression. Lesbarkeit und Pixelartwirkung bleiben menschliche Sichtabnahme. Keine zusätzliche Test-API und keine Änderung der Formatgrenzen.
+
 - Nicht rechteckiger Weg mit Hindernis, unerreichbares Ziel, Zieländerung während Bewegung.
 - Identische logische Zielposition bei unterschiedlichen Browsergrößen.
 - Zwei Teilnehmer, Raumwechsel während Chatversand, Verlassen/Verbindungsabbruch.
