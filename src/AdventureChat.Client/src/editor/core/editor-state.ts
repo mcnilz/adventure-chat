@@ -1,49 +1,75 @@
 import type { RoomDefinition } from '../../types.js';
+import { deleteSelected, editSelected } from './editor-entities.js';
 import { EditorGeometry } from './editor-geometry.js';
+import { applyRoomProperties, clampPosition, createRoomObject, validRoomObject } from './editor-room-properties.js';
 import type {
+  EntityEdit,
   HoveredEdge,
   RoomExitDto,
+  RoomObjectDto,
   RoomPointDto,
+  RoomPropertiesEdit,
   RoomYamlDto,
+  RoomView,
   SelectedEntity
 } from './editor-types.js';
+
+export interface EditorSave {
+  readonly room: RoomView;
+  readonly draft: number;
+  readonly revision: number;
+}
 
 export class EditorState {
   private currentRoom: RoomYamlDto;
   private selected: SelectedEntity = { type: null };
   private dirty = false;
+  private content: string;
+  private draft = 0;
+  private revision = 0;
 
   public constructor(initialRoom?: RoomYamlDto) {
-    this.currentRoom = initialRoom ?? this.createDefaultRoom();
+    this.currentRoom = structuredClone(initialRoom ?? this.createDefaultRoom());
+    this.content = JSON.stringify(this.currentRoom);
   }
 
-  public getRoom(): RoomYamlDto {
+  public getRoom(): RoomView {
     return this.currentRoom;
   }
 
   public setRoom(room: RoomYamlDto): void {
-    this.currentRoom = JSON.parse(JSON.stringify(room)) as RoomYamlDto;
+    this.currentRoom = structuredClone(room);
     this.selected = { type: null };
     this.dirty = false;
+    this.content = JSON.stringify(this.currentRoom);
+    this.draft++;
+    this.revision = 0;
   }
 
   public isDirty(): boolean {
     return this.dirty;
   }
 
-  public addObject(object: import('./editor-types.js').RoomObjectDto): void {
-    this.currentRoom.objects ??= [];
-    this.currentRoom.objects.push(object);
-    this.selected = { type: 'object', objectId: object.id };
-    this.dirty = true;
+  public getEditVersion(): string {
+    return `${this.draft}:${this.revision}`;
   }
 
-  public updateObject(id: string, object: import('./editor-types.js').RoomObjectDto): void {
-    const index = this.currentRoom.objects?.findIndex(o => o.id === id) ?? -1;
-    if (index < 0 || !this.currentRoom.objects) return;
-    this.currentRoom.objects[index] = object;
+  public addObject(object = createRoomObject(this.currentRoom)): boolean {
+    if ((this.currentRoom.objects?.length ?? 0) >= 128 || !validRoomObject(this.currentRoom, object)) return false;
+    this.currentRoom.objects ??= [];
+    this.currentRoom.objects.push(structuredClone(object));
     this.selected = { type: 'object', objectId: object.id };
-    this.dirty = true;
+    this.changed();
+    return true;
+  }
+
+  public updateObject(id: string, object: RoomObjectDto): boolean {
+    const index = this.currentRoom.objects?.findIndex(o => o.id === id) ?? -1;
+    if (index < 0 || !this.currentRoom.objects || !validRoomObject(this.currentRoom, object, id)) return false;
+    this.currentRoom.objects[index] = structuredClone(object);
+    this.selected = { type: 'object', objectId: object.id };
+    this.changed();
+    return true;
   }
 
   public moveObject(id: string, dx: number, dy: number): void {
@@ -57,16 +83,24 @@ export class EditorState {
     });
   }
 
-  public markClean(): void {
-    this.dirty = false;
+  public beginSave(): EditorSave {
+    return { room: structuredClone(this.currentRoom), draft: this.draft, revision: this.revision };
   }
 
-  public getSelection(): SelectedEntity {
+  public isCurrentDraft(save: EditorSave): boolean {
+    return this.draft === save.draft;
+  }
+
+  public completeSave(save: EditorSave): void {
+    if (this.isCurrentDraft(save) && this.revision === save.revision) this.dirty = false;
+  }
+
+  public getSelection(): Readonly<SelectedEntity> {
     return this.selected;
   }
 
   public setSelection(sel: SelectedEntity): void {
-    this.selected = sel;
+    this.selected = { ...sel };
   }
 
   public clearSelection(): void {
@@ -82,94 +116,56 @@ export class EditorState {
     if (metadata.name !== undefined) this.currentRoom.name = metadata.name;
     if (metadata.background !== undefined) this.currentRoom.background = metadata.background;
     if (metadata.notes !== undefined) this.currentRoom.notes = metadata.notes;
-    this.dirty = true;
+    this.changed();
+  }
+
+  public updateProperties(edit: RoomPropertiesEdit): void {
+    applyRoomProperties(this.currentRoom, edit);
+    this.changed();
+  }
+
+  public updateSelected(edit: EntityEdit): void {
+    this.selected = editSelected(this.currentRoom, this.selected, edit);
+    this.changed();
   }
 
   public addWalkablePoint(x: number, y: number): void {
-    if (!this.currentRoom.walkable || this.currentRoom.walkable.length === 0) {
-      this.addWalkablePolygon(x, y);
-      return;
-    }
-    const poly = this.currentRoom.walkable[0];
-    if (poly) {
-      if (poly.points.length < 3) {
-        this.addWalkablePolygon(x, y);
-        return;
-      }
-      poly.points.push({ x: Math.round(x), y: Math.round(y) });
-      this.selected = {
-        type: 'vertex',
-        polyType: 'walkable',
-        polyIndex: 0,
-        vertexIndex: poly.points.length - 1
-      };
-      this.dirty = true;
-    }
-  }
-
-  public addWalkablePolygon(x: number, y: number, width = 80, height = 60): number {
-    if (!this.currentRoom.walkable) {
-      this.currentRoom.walkable = [];
-    }
-    const id = `floor-${this.currentRoom.walkable.length + 1}`;
-    const poly = EditorGeometry.createDefaultBoxPolygon(
-      id,
-      x,
-      y,
-      width,
-      height,
-      this.currentRoom.size.width,
-      this.currentRoom.size.height
-    );
-    this.currentRoom.walkable.push(poly);
-    this.dirty = true;
-    const pIdx = this.currentRoom.walkable.length - 1;
-    this.selected = { type: 'polygon', polyType: 'walkable', polyIndex: pIdx };
-    return pIdx;
-  }
-
-  public addObstaclePolygon(x: number, y: number, width = 60, height = 40): number {
-    if (!this.currentRoom.obstacles) {
-      this.currentRoom.obstacles = [];
-    }
-    const id = `obs-${this.currentRoom.obstacles.length + 1}`;
-    const poly = EditorGeometry.createDefaultBoxPolygon(
-      id,
-      x,
-      y,
-      width,
-      height,
-      this.currentRoom.size.width,
-      this.currentRoom.size.height
-    );
-    this.currentRoom.obstacles.push(poly);
-    this.dirty = true;
-    const oIdx = this.currentRoom.obstacles.length - 1;
-    this.selected = { type: 'polygon', polyType: 'obstacle', polyIndex: oIdx };
-    return oIdx;
+    this.addPoint('walkable', 0, x, y);
   }
 
   public addObstaclePoint(x: number, y: number): void {
-    if (!this.currentRoom.obstacles || this.currentRoom.obstacles.length === 0) {
-      this.addObstaclePolygon(x, y);
+    this.addPoint('obstacle', (this.currentRoom.obstacles?.length ?? 1) - 1, x, y);
+  }
+
+  public addWalkablePolygon(x: number, y: number, width = 80, height = 60): number {
+    return this.addPolygon('walkable', x, y, width, height);
+  }
+
+  public addObstaclePolygon(x: number, y: number, width = 60, height = 40): number {
+    return this.addPolygon('obstacle', x, y, width, height);
+  }
+
+  private addPolygon(type: 'walkable' | 'obstacle', x: number, y: number, width: number, height: number): number {
+    const list = type === 'walkable' ? this.currentRoom.walkable : (this.currentRoom.obstacles ??= []);
+    const id = (type === 'walkable' ? 'floor-' : 'obs-') + (list.length + 1);
+    list.push(EditorGeometry.createDefaultBoxPolygon(id, x, y, width, height,
+      this.currentRoom.size.width, this.currentRoom.size.height));
+    const index = list.length - 1;
+    this.selected = { type: 'polygon', polyType: type, polyIndex: index };
+    this.changed();
+    return index;
+  }
+
+  private addPoint(type: 'walkable' | 'obstacle', index: number, x: number, y: number): void {
+    const list = type === 'walkable' ? this.currentRoom.walkable : this.currentRoom.obstacles;
+    const poly = list?.[index];
+    if (!poly || poly.points.length < 3) {
+      if (type === 'walkable') this.addWalkablePolygon(x, y); else this.addObstaclePolygon(x, y);
       return;
     }
-    const lastIdx = this.currentRoom.obstacles.length - 1;
-    const poly = this.currentRoom.obstacles[lastIdx];
-    if (poly) {
-      if (poly.points.length < 3) {
-        this.addObstaclePolygon(x, y);
-        return;
-      }
-      poly.points.push({ x: Math.round(x), y: Math.round(y) });
-      this.selected = {
-        type: 'vertex',
-        polyType: 'obstacle',
-        polyIndex: lastIdx,
-        vertexIndex: poly.points.length - 1
-      };
-      this.dirty = true;
-    }
+    poly.points.push({ x: Math.round(x), y: Math.round(y) });
+    this.selected = { type: 'vertex', polyType: type, polyIndex: index, vertexIndex: poly.points.length - 1 };
+    this.changed();
   }
 
   public splitEdge(edge: HoveredEdge): void {
@@ -185,7 +181,7 @@ export class EditorState {
       polyIndex: edge.polyIndex,
       vertexIndex: edge.edgeIndex + 1
     };
-    this.dirty = true;
+    this.changed();
   }
 
   public addSpawn(pos: RoomPointDto, id?: string): void {
@@ -196,7 +192,7 @@ export class EditorState {
       position: { x: Math.round(pos.x), y: Math.round(pos.y) }
     });
     this.selected = { type: 'spawn', spawnId };
-    this.dirty = true;
+    this.changed();
   }
 
   public addOrUpdateSpawn(id: string, x: number, y: number): void {
@@ -207,7 +203,7 @@ export class EditorState {
       this.currentRoom.spawns.push({ id, position: { x: Math.round(x), y: Math.round(y) } });
     }
     this.selected = { type: 'spawn', spawnId: id };
-    this.dirty = true;
+    this.changed();
   }
 
   public addExit(exitOrPos: RoomPointDto | RoomExitDto): void {
@@ -216,7 +212,7 @@ export class EditorState {
     }
 
     if ('target' in exitOrPos) {
-      this.currentRoom.exits.push({ ...exitOrPos });
+      this.currentRoom.exits.push(structuredClone(exitOrPos));
       this.selected = { type: 'exit', exitId: exitOrPos.id };
     } else {
       const nextNum = this.currentRoom.exits.length + 1;
@@ -234,7 +230,7 @@ export class EditorState {
       this.currentRoom.exits.push(newExit);
       this.selected = { type: 'exit', exitId };
     }
-    this.dirty = true;
+    this.changed();
   }
 
   public moveVertex(polyType: 'walkable' | 'obstacle', polyIdx: number, vIdx: number, pos: RoomPointDto): void {
@@ -242,10 +238,8 @@ export class EditorState {
     if (!list) return;
     const poly = list[polyIdx];
     if (poly && poly.points[vIdx]) {
-      const clampedX = Math.max(0, Math.min(this.currentRoom.size.width, Math.round(pos.x)));
-      const clampedY = Math.max(0, Math.min(this.currentRoom.size.height, Math.round(pos.y)));
-      poly.points[vIdx] = { x: clampedX, y: clampedY };
-      this.dirty = true;
+      poly.points[vIdx] = clampPosition(this.currentRoom, pos, poly.points[vIdx]);
+      this.changed();
     }
   }
 
@@ -261,18 +255,15 @@ export class EditorState {
         this.currentRoom.size.width,
         this.currentRoom.size.height
       );
-      this.dirty = true;
+      this.changed();
     }
   }
 
   public moveSpawn(id: string, pos: RoomPointDto): void {
     const spawn = this.currentRoom.spawns.find(s => s.id === id);
     if (spawn) {
-      spawn.position = {
-        x: Math.max(0, Math.min(this.currentRoom.size.width, Math.round(pos.x))),
-        y: Math.max(0, Math.min(this.currentRoom.size.height, Math.round(pos.y)))
-      };
-      this.dirty = true;
+      spawn.position = clampPosition(this.currentRoom, pos, spawn.position);
+      this.changed();
     }
   }
 
@@ -280,68 +271,25 @@ export class EditorState {
     if (!this.currentRoom.exits) return;
     const exit = this.currentRoom.exits.find(e => e.id === id);
     if (exit) {
-      exit.position = {
-        x: Math.max(0, Math.min(this.currentRoom.size.width, Math.round(pos.x))),
-        y: Math.max(0, Math.min(this.currentRoom.size.height, Math.round(pos.y)))
-      };
-      this.dirty = true;
+      exit.position = clampPosition(this.currentRoom, pos, exit.position);
+      this.changed();
     }
   }
 
   public deleteSelected(): boolean {
-    const sel = this.selected;
-    if (!sel || !sel.type) return false;
+    if (!deleteSelected(this.currentRoom, this.selected)) return false;
+    this.clearSelection();
+    this.changed();
+    return true;
+  }
 
-    if (sel.type === 'vertex' && sel.polyType && sel.polyIndex !== undefined && sel.vertexIndex !== undefined) {
-      const list = sel.polyType === 'walkable' ? this.currentRoom.walkable : this.currentRoom.obstacles;
-      if (list && list[sel.polyIndex]) {
-        const poly = list[sel.polyIndex];
-        if (poly && poly.points.length > 3) {
-          poly.points.splice(sel.vertexIndex, 1);
-          this.selected = { type: null };
-          this.dirty = true;
-          return true;
-        } else if (poly && poly.points.length <= 3 && list.length > 1) {
-          list.splice(sel.polyIndex, 1);
-          this.selected = { type: null };
-          this.dirty = true;
-          return true;
-        }
-      }
-    } else if (sel.type === 'polygon' && sel.polyType && sel.polyIndex !== undefined) {
-      const list = sel.polyType === 'walkable' ? this.currentRoom.walkable : this.currentRoom.obstacles;
-      if (list && list[sel.polyIndex]) {
-        if (sel.polyType === 'walkable' && list.length <= 1) {
-          return false;
-        }
-        list.splice(sel.polyIndex, 1);
-        this.selected = { type: null };
-        this.dirty = true;
-        return true;
-      }
-    } else if (sel.type === 'spawn' && sel.spawnId) {
-      const idx = this.currentRoom.spawns.findIndex(s => s.id === sel.spawnId);
-      if (idx >= 0 && this.currentRoom.spawns.length > 1) {
-        this.currentRoom.spawns.splice(idx, 1);
-        this.selected = { type: null };
-        this.dirty = true;
-        return true;
-      }
-    } else if (sel.type === 'exit' && sel.exitId && this.currentRoom.exits) {
-      const idx = this.currentRoom.exits.findIndex(e => e.id === sel.exitId);
-      if (idx >= 0) {
-        this.currentRoom.exits.splice(idx, 1);
-        this.selected = { type: null };
-        this.dirty = true;
-        return true;
-      }
-    }
-
-    if (sel.type === "object") {
-      this.currentRoom.objects = (this.currentRoom.objects ?? []).filter(o => o.id !== sel.objectId);
-      this.clearSelection(); this.dirty = true; return true;
-    }
-    return false;
+  // Compare only committed edits, never on the render/hover path. Selection alone is not an edit.
+  private changed(): void {
+    const content = JSON.stringify(this.currentRoom);
+    if (content === this.content) return;
+    this.content = content;
+    this.revision++;
+    this.dirty = true;
   }
 
   public toRoomDefinition(): RoomDefinition {

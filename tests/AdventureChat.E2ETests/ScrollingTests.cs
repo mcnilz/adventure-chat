@@ -29,6 +29,13 @@ public class ScrollingTests
         Assert.That(double.Parse(await page.InputValueAsync("#inspector-spawn-x")),Is.EqualTo(1200).Within(1));
         await page.FillAsync("#inspector-spawn-x","1190");
         await page.Locator("#inspector-spawn-x").BlurAsync();
+        await Assertions.Expect(page.Locator("#inspector-spawn-x")).ToHaveAttributeAsync("max", "1280");
+        Assert.That(await page.Locator("#inspector-spawn-x").EvaluateAsync<bool>("input => input.checkValidity()"), Is.True);
+        await page.FillAsync("#inspector-spawn-x", "1400");
+        await Assertions.Expect(page.Locator("#inspector-spawn-x")).ToHaveValueAsync("1280");
+        await page.FillAsync("#inspector-spawn-x", "-1");
+        await Assertions.Expect(page.Locator("#inspector-spawn-x")).ToHaveValueAsync("0");
+        await page.FillAsync("#inspector-spawn-x", "1190");
         await page.ClickAsync("#btn-save");
         await page.WaitForFunctionAsync("() => document.querySelector('#status-banner').textContent.includes('atomar gespeichert')");
         await page.ReloadAsync();

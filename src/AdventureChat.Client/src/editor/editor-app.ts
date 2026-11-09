@@ -9,94 +9,15 @@ import type {
 import { EditorCanvasInput } from './canvas/editor-canvas-input.js';
 import { EditorPreview } from './canvas/editor-preview.js';
 import { EditorRenderer } from './canvas/editor-renderer.js';
-import { EditorBackgroundModal } from './ui/editor-background-modal.js';
-import { EditorExitDialog } from './ui/editor-exit-dialog.js';
-import { EditorInspector } from './ui/editor-inspector.js';
-import { EditorSidebarForm } from './ui/editor-sidebar-form.js';
-import { EditorToolbar } from './ui/editor-toolbar.js';
+import { EditorBackgroundModal, type BackgroundModalElements } from './ui/editor-background-modal.js';
+import { EditorExitDialog, type ExitDialogElements } from './ui/editor-exit-dialog.js';
+import { EditorInspector, type InspectorElements } from './ui/editor-inspector.js';
+import { EditorSidebarForm, type SidebarFormElements } from './ui/editor-sidebar-form.js';
+import { EditorToolbar, type ToolbarElements } from './ui/editor-toolbar.js';
 
-export interface EditorElements {
-  roomSelect: HTMLSelectElement;
-  btnNewRoom: HTMLButtonElement;
-  btnSave: HTMLButtonElement;
-  btnValidate: HTMLButtonElement;
-  btnValidateWorld?: HTMLButtonElement | null;
-  btnToggleMode: HTMLButtonElement;
-  btnDeleteVertex: HTMLButtonElement;
-  toolSelect: HTMLButtonElement;
-  toolWalkable: HTMLButtonElement;
-  toolObstacle: HTMLButtonElement;
-  toolSpawn: HTMLButtonElement;
-  toolExit: HTMLButtonElement;
-  inputId: HTMLInputElement;
-  inputName: HTMLInputElement;
-  inputBg: HTMLInputElement;
-  inputWidth: HTMLInputElement;
-  inputHeight: HTMLInputElement;
-  inputPerspective: HTMLSelectElement;
-  inputActorHeight: HTMLInputElement;
-  inputDepthEnabled: HTMLInputElement;
-  inputDepthBackY: HTMLInputElement;
-  inputDepthBackFactor: HTMLInputElement;
-  inputDepthFrontY: HTMLInputElement;
-  inputDepthFrontFactor: HTMLInputElement;
-  inputWalkSpeed: HTMLInputElement;
-  inputViewportWidth: HTMLInputElement;
-  inputNotes: HTMLTextAreaElement;
+export interface EditorElements extends ToolbarElements, SidebarFormElements, InspectorElements,
+  BackgroundModalElements, ExitDialogElements {
   statusBanner: HTMLElement;
-  errorsSection: HTMLElement;
-  errorList: HTMLElement;
-  unsavedBadge: HTMLElement;
-  // Inspector
-  inspectorEmpty: HTMLElement;
-  inspectorVertex: HTMLElement;
-  inspectorVertexBadge: HTMLElement;
-  inspectorVertexX: HTMLInputElement;
-  inspectorVertexY: HTMLInputElement;
-  btnInspectorDeleteVertex: HTMLButtonElement;
-  inspectorPolygon: HTMLElement;
-  inspectorPolygonBadge: HTMLElement;
-  inspectorPolygonId: HTMLInputElement;
-  inspectorPolygonPointsCount: HTMLInputElement;
-  btnInspectorDeletePolygon: HTMLButtonElement;
-  inspectorSpawn: HTMLElement;
-  inspectorSpawnId: HTMLInputElement;
-  inspectorSpawnX: HTMLInputElement;
-  inspectorSpawnY: HTMLInputElement;
-  btnInspectorDeleteSpawn: HTMLButtonElement;
-  inspectorExit: HTMLElement;
-  inspectorExitId: HTMLInputElement;
-  inspectorExitRoom: HTMLSelectElement;
-  inspectorExitTargetSpawn: HTMLSelectElement;
-  inspectorExitLabel: HTMLInputElement;
-  inspectorExitX: HTMLInputElement;
-  inspectorExitY: HTMLInputElement;
-  inspectorExitRadius: HTMLInputElement;
-  btnInspectorDeleteExit: HTMLButtonElement;
-  // Background picker & upload
-  btnOpenBgModal: HTMLButtonElement;
-  btnUploadBgTrigger: HTMLButtonElement;
-  inputBgFile: HTMLInputElement;
-  bgFsHintPath: HTMLElement;
-  modalBgPicker: HTMLDialogElement;
-  btnCloseBgModal: HTMLButtonElement;
-  btnCloseBgModalFooter: HTMLButtonElement;
-  modalFsPath: HTMLElement;
-  btnCopyFsPath: HTMLButtonElement;
-  bgDropZone: HTMLElement;
-  btnModalUploadSelect: HTMLButtonElement;
-  bgGalleryGrid: HTMLElement;
-  bgCount: HTMLElement;
-  // Exit Dialog
-  modalExitDialog: HTMLDialogElement;
-  btnCloseExitModal: HTMLButtonElement;
-  btnCancelExitModal: HTMLButtonElement;
-  btnConfirmExitModal: HTMLButtonElement;
-  modalExitId: HTMLInputElement;
-  modalExitRoom: HTMLSelectElement;
-  modalExitTargetSpawn: HTMLSelectElement;
-  modalExitLabel: HTMLInputElement;
-  modalExitRadius: HTMLInputElement;
 }
 
 export class EditorApp {
@@ -114,6 +35,9 @@ export class EditorApp {
 
   private mode: EditorMode = 'edit';
   private currentTool: EditorTool = 'select';
+  private saving = false;
+  private loadedRoomId: string | null = null;
+  private loadRequest = 0;
 
   public constructor(
     private readonly canvas: HTMLCanvasElement,
@@ -142,8 +66,7 @@ export class EditorApp {
       (bgPath) => {
         this.elements.inputBg.value = bgPath;
         this.state.updateMetadata({ background: bgPath });
-        this.editorRenderer.setBackground(EditorApi.backgroundUrl(bgPath));
-        this.render();
+        this.syncStateAndRender();
       },
       (msg, type) => this.setStatus(msg, type),
       () => this.state.getRoom().background
@@ -163,10 +86,8 @@ export class EditorApp {
     this.form = new EditorSidebarForm(
       this.elements,
       () => {
-        this.form.applyToRoom(this.state.getRoom());
-        this.state.updateMetadata({});
-        this.form.setUnsaved(this.state.isDirty());
-        this.render();
+        this.state.updateProperties(this.form.readEdit());
+        this.syncStateAndRender();
       },
       (bg) => {
         this.editorRenderer.setBackground(EditorApi.backgroundUrl(bg));
@@ -252,8 +173,8 @@ export class EditorApp {
         this.elements.roomSelect.appendChild(opt);
       }
 
-      if (selectedRoomId) {
-        this.elements.roomSelect.value = selectedRoomId;
+      if (selectedRoomId !== undefined || this.loadedRoomId !== null) {
+        this.elements.roomSelect.value = this.loadedRoomId ?? '';
       } else if (rooms.length > 0) {
         await this.loadRoom(rooms[0]!.id);
       } else {
@@ -265,26 +186,45 @@ export class EditorApp {
   }
 
   public async loadRoom(id: string): Promise<void> {
+    if (!this.confirmDiscard()) return;
+    const request = ++this.loadRequest;
+    const version = this.state.getEditVersion();
     try {
       this.setStatus(`Lade Raum '${id}'...`, 'info');
       const room = await EditorApi.fetchRoom(id);
+      if (request !== this.loadRequest) return;
+      if (version !== this.state.getEditVersion()) {
+        this.elements.roomSelect.value = this.loadedRoomId ?? '';
+        this.setStatus('Raumwechsel abgebrochen: Der Entwurf wurde inzwischen bearbeitet.', 'info');
+        return;
+      }
+      if (this.mode === 'preview') this.toggleMode();
       this.state.setRoom(room);
+      this.loadedRoomId = room.id;
+      this.elements.roomSelect.value = room.id;
       this.syncAllViews();
       this.form.clearValidationErrors();
       this.setStatus(`Raum '${room.name}' geladen.`, 'success');
       this.render();
     } catch (err) {
+      if (request !== this.loadRequest) return;
+      this.elements.roomSelect.value = this.loadedRoomId ?? '';
       this.setStatus(`Fehler beim Laden von '${id}': ${String(err)}`, 'error');
     }
   }
 
   public newRoom(): void {
+    if (!this.confirmDiscard()) return;
+    this.loadRequest++;
+    if (this.mode === 'preview') this.toggleMode();
     const def = this.state.createDefaultRoom();
     const uniqueId = `room-${Math.random().toString(36).substring(2, 10)}`;
     def.id = uniqueId;
     def.name = 'Neuer Raum';
 
     this.state.setRoom(def);
+    this.loadedRoomId = null;
+    this.elements.roomSelect.value = '';
     this.syncAllViews();
     this.form.clearValidationErrors();
     this.setStatus('Neuer Raum erstellt.', 'info');
@@ -292,15 +232,21 @@ export class EditorApp {
   }
 
   public async saveRoom(): Promise<boolean> {
+    if (this.saving) return false;
     if (!this.form.validateDimensions()) return false;
-    this.form.applyToRoom(this.state.getRoom());
+    this.state.updateProperties(this.form.readEdit());
+    this.form.setUnsaved(this.state.isDirty());
     this.form.clearValidationErrors();
 
-    const room = this.state.getRoom();
+    const save = this.state.beginSave();
+    const room = save.room;
     this.setStatus(`Speichere Raum '${room.id}'...`, 'info');
+    this.saving = true;
+    this.elements.btnSave.disabled = true;
 
     try {
       const result = await EditorApi.saveRoom(room);
+      if (!this.state.isCurrentDraft(save)) return result.success;
       if (!result.success) {
         const errors = result.errors.length > 0 ? result.errors : ['Speichern fehlgeschlagen.'];
         this.form.showValidationErrors(errors);
@@ -308,23 +254,31 @@ export class EditorApp {
         return false;
       }
 
-      this.state.markClean();
-      this.form.setUnsaved(false);
+      this.state.completeSave(save);
+      this.loadedRoomId = room.id;
+      this.form.setUnsaved(this.state.isDirty());
       this.form.clearValidationErrors();
       await this.loadRoomList(room.id);
+      if (!this.state.isCurrentDraft(save)) return true;
       this.exitDialog.updateCachedRoom(room);
       await this.exitDialog.refreshRooms();
-      this.setStatus(`Raum '${room.name}' (${room.id}) erfolgreich atomar gespeichert!`, 'success');
+      if (!this.state.isCurrentDraft(save)) return true;
+      const remaining = this.state.isDirty() ? ' Weitere Änderungen sind noch ungespeichert.' : '';
+      this.setStatus(`Raum '${room.name}' (${room.id}) erfolgreich atomar gespeichert!${remaining}`, 'success');
       return true;
     } catch (err) {
-      this.setStatus(`Fehler beim Speichern: ${String(err)}`, 'error');
+      if (this.state.isCurrentDraft(save)) this.setStatus(`Fehler beim Speichern: ${String(err)}`, 'error');
       return false;
+    } finally {
+      this.saving = false;
+      this.elements.btnSave.disabled = false;
     }
   }
 
   public async validateRoom(): Promise<boolean> {
     if (!this.form.validateDimensions()) return false;
-    this.form.applyToRoom(this.state.getRoom());
+    this.state.updateProperties(this.form.readEdit());
+    this.form.setUnsaved(this.state.isDirty());
     this.form.clearValidationErrors();
 
     const room = this.state.getRoom();
@@ -412,22 +366,17 @@ export class EditorApp {
   }
 
   private handleInspectorInput(): void {
-    const room = this.state.getRoom();
-    const sel = this.state.getSelection();
-
-    if (sel.type === 'vertex') {
-      if (this.inspector.applyVertexChanges(room, sel)) {
-        this.syncStateAndRender();
-      }
-    } else if (sel.type === 'spawn') {
-      if (this.inspector.applySpawnChanges(room, sel)) {
-        this.syncStateAndRender();
-      }
-    } else if (sel.type === 'exit') {
-      if (this.inspector.applyExitChanges(room, sel)) {
-        this.syncStateAndRender();
-      }
+    const edit = this.inspector.readEdit(this.state.getSelection().type);
+    if (edit) {
+      this.state.updateSelected(edit);
+      this.syncStateAndRender();
     }
+  }
+
+  private confirmDiscard(): boolean {
+    if (!this.state.isDirty() || window.confirm('Ungespeicherte Änderungen verwerfen?')) return true;
+    this.elements.roomSelect.value = this.loadedRoomId ?? '';
+    return false;
   }
 
   private syncStateAndRender(): void {

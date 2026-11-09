@@ -64,6 +64,9 @@ export interface RoomYamlDto {
   notes?: string | null;
 }
 
+export type DeepReadonly<T> = T extends object ? { readonly [K in keyof T]: DeepReadonly<T[K]> } : T;
+export type RoomView = DeepReadonly<RoomYamlDto>;
+
 export interface RoomSummaryDto {
   id: string;
   name: string;
@@ -80,6 +83,24 @@ export interface SelectedEntity {
   objectId?: string;
   spawnId?: string;
   exitId?: string;
+}
+
+export type EntityEdit =
+  | { type: 'vertex'; x: number; y: number }
+  | { type: 'spawn'; id: string; x: number; y: number }
+  | { type: 'exit'; id: string; x: number; y: number; radius: number; room: string; spawn: string; label: string };
+
+export interface RoomPropertiesEdit {
+  id: string;
+  name: string;
+  background: string;
+  size: { width: number; height: number } | null;
+  perspective: 'adventure' | 'top-down';
+  actorHeight: number;
+  walkSpeed: number;
+  viewportWidth: number | null;
+  depthScale: import('../../types.js').DepthScale | null;
+  notes: string;
 }
 
 export interface HoveredEdge {

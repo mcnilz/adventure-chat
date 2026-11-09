@@ -3,7 +3,7 @@ import type {
   RoomExitDto,
   RoomPointDto,
   RoomSpawnDto,
-  RoomYamlDto,
+  RoomView,
   SelectedEntity
 } from '../core/editor-types.js';
 
@@ -15,7 +15,7 @@ export class EditorDrawUtils {
     strokeColor: string,
     polyType: 'walkable' | 'obstacle',
     polyIndex: number,
-    selection: SelectedEntity,
+    selection: Readonly<SelectedEntity>,
     hoveredVertex: { polyType: 'walkable' | 'obstacle'; polyIndex: number; vertexIndex: number } | null,
     dragPos: RoomPointDto | null,
     dragOffset: { dx: number; dy: number } | null
@@ -112,7 +112,7 @@ export class EditorDrawUtils {
 
   public static drawEdgeHighlight(
     ctx: CanvasRenderingContext2D,
-    room: RoomYamlDto,
+    room: RoomView,
     edge: HoveredEdge
   ): void {
     const list = edge.polyType === 'walkable' ? room.walkable : room.obstacles;
@@ -155,7 +155,7 @@ export class EditorDrawUtils {
   public static drawSpawn(
     ctx: CanvasRenderingContext2D,
     spawn: RoomSpawnDto,
-    selection: SelectedEntity,
+    selection: Readonly<SelectedEntity>,
     dragPos: RoomPointDto | null,
     isHovered: boolean
   ): void {
@@ -204,7 +204,7 @@ export class EditorDrawUtils {
   public static drawExit(
     ctx: CanvasRenderingContext2D,
     exit: RoomExitDto,
-    selection: SelectedEntity,
+    selection: Readonly<SelectedEntity>,
     dragPos: RoomPointDto | null,
     isHovered: boolean
   ): void {

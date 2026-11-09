@@ -6,7 +6,9 @@ import type {
   RoomPointDto,
   RoomPolygonDto,
   RoomSpawnDto,
-  RoomYamlDto
+  RoomYamlDto,
+  RoomView,
+  DeepReadonly
 } from './editor-types.js';
 
 export class EditorGeometry {
@@ -39,7 +41,7 @@ export class EditorGeometry {
     };
   }
 
-  public static roomYamlToRoomDefinition(r: RoomYamlDto): RoomDefinition {
+  public static roomYamlToRoomDefinition(r: RoomView): RoomDefinition {
     const outerBoundary: Point[] = r.walkable[0]?.points.map(p => ({ x: p.x, y: p.y })) ?? [];
     const obstacles: Point[][] = (r.obstacles ?? []).map(o => o.points.map(p => ({ x: p.x, y: p.y })));
 
@@ -98,7 +100,7 @@ export class EditorGeometry {
   }
 
   public static findHoveredVertex(
-    room: RoomYamlDto,
+    room: RoomView,
     pos: RoomPointDto,
     hitRadius = 8
   ): { polyType: 'walkable' | 'obstacle'; polyIndex: number; vertexIndex: number } | null {
@@ -130,7 +132,7 @@ export class EditorGeometry {
   }
 
   public static findHoveredEdge(
-    room: RoomYamlDto,
+    room: RoomView,
     pos: RoomPointDto,
     hitThreshold = 7
   ): HoveredEdge | null {
@@ -188,7 +190,7 @@ export class EditorGeometry {
   }
 
   public static findHoveredPolygon(
-    room: RoomYamlDto,
+    room: RoomView,
     pos: RoomPointDto
   ): { polyType: 'walkable' | 'obstacle'; polyIndex: number } | null {
     if (room.obstacles) {
@@ -211,10 +213,10 @@ export class EditorGeometry {
   }
 
   public static findHoveredSpawn(
-    room: RoomYamlDto,
+    room: RoomView,
     pos: RoomPointDto,
     hitRadius = 14
-  ): RoomSpawnDto | null {
+  ): DeepReadonly<RoomSpawnDto> | null {
     for (const spawn of room.spawns) {
       if (distance(pos, spawn.position) <= hitRadius) {
         return spawn;
@@ -224,9 +226,9 @@ export class EditorGeometry {
   }
 
   public static findHoveredExit(
-    room: RoomYamlDto,
+    room: RoomView,
     pos: RoomPointDto
-  ): RoomExitDto | null {
+  ): DeepReadonly<RoomExitDto> | null {
     if (!room.exits) return null;
     for (const exit of room.exits) {
       const hitR = Math.max(12, exit.radius || 20);

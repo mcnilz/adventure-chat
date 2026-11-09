@@ -147,29 +147,32 @@ public class ReferenceWorldTests
         using var playwright = await Playwright.CreateAsync();
         await using var browser = await playwright.Chromium.LaunchAsync(new() { Headless = true });
         var page = await browser.NewPageAsync(); await page.GotoAsync(server.BaseUrl);
-        var samples = await page.EvaluateAsync<JsonElement>("""
+        await using var comparison = await page.EvaluateHandleAsync("""
             async () => {
               const {RoomRenderer}=await import('/js/rendering/renderer.js');
               const catalog=await (await fetch('/api/worlds/reference/characters')).json();
               const results=[];
               for(const id of ['lounge','garden']) {
                 const room=await (await fetch('/api/worlds/reference/rooms/'+id)).json();
-                await Promise.all([room.backgroundUrl,...room.objects.map(o=>o.image),...catalog.characters.map(c=>c.imageUrl)].map(async src=>{const image=new Image();image.src=src;await image.decode()}));
                 for(const appearance of catalog.characters) for(const y of [id==='lounge'?258:278,330]) {
                   const canvases=[document.createElement('canvas'),document.createElement('canvas')];
                   const renderers=[new RoomRenderer(canvases[0],room),new RoomRenderer(canvases[1],{...room,objects:[]})];
                   const c={id:'x',name:'',position:{x:330,y},facing:'down',state:'idle',walkFrame:0,appearance};
                   for(let i=0;i<2;i++)renderers[i].render(c);
-                  await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
-                  for(let i=0;i<2;i++)renderers[i].render(c);
-                  const pixels=canvases.map(c=>c.getContext('2d').getImageData(0,0,640,360).data);
-                  let changed=0;for(let i=0;i<pixels[0].length;i+=4)if(pixels[0][i]!==pixels[1][i]||pixels[0][i+1]!==pixels[1][i+1]||pixels[0][i+2]!==pixels[1][i+2])changed++;
-                  results.push({id,figure:appearance.id,y,changed});
+                  results.push(() => {
+                    for(let i=0;i<2;i++)renderers[i].render(c);
+                    const pixels=canvases.map(c=>c.getContext('2d').getImageData(0,0,640,360).data);
+                    let changed=0;for(let i=0;i<pixels[0].length;i+=4)if(pixels[0][i]!==pixels[1][i]||pixels[0][i+1]!==pixels[1][i+1]||pixels[0][i+2]!==pixels[1][i+2])changed++;
+                    return {id,figure:appearance.id,y,changed};
+                  });
                 }
               }
-              return results;
+              return () => results.map(measure => measure());
             }
             """);
+        // The actual renderer instances start their own image requests; preloading other Image objects is insufficient.
+        await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        var samples = await comparison.EvaluateAsync<JsonElement>("measure => measure()");
         foreach (var sample in samples.EnumerateArray())
         {
             var changes = sample.GetProperty("changed").GetInt32();

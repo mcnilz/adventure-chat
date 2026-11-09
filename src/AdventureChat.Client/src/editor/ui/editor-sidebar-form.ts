@@ -1,4 +1,4 @@
-import type { RoomYamlDto } from '../core/editor-types.js';
+import type { RoomPropertiesEdit, RoomView } from '../core/editor-types.js';
 
 export interface SidebarFormElements {
   inputId: HTMLInputElement;
@@ -30,7 +30,7 @@ export class EditorSidebarForm {
     this.bindEvents();
   }
 
-  public updateFromRoom(room: RoomYamlDto, isDirty: boolean): void {
+  public updateFromRoom(room: RoomView, isDirty: boolean): void {
     const { elements: el } = this;
     el.inputId.value = room.id;
     el.inputName.value = room.name;
@@ -50,34 +50,21 @@ export class EditorSidebarForm {
     el.unsavedBadge.style.display = isDirty ? 'inline-block' : 'none';
   }
 
-  public applyToRoom(room: RoomYamlDto): void {
-    const { elements: el } = this;
-    if (el.inputWidth.checkValidity() && el.inputHeight.checkValidity()) {
-      room.size = { width: Number(el.inputWidth.value), height: Number(el.inputHeight.value) };
-    }
-    room.id = el.inputId.value.trim() || 'unnamed-room';
-    room.name = el.inputName.value.trim() || 'Unbenannter Raum';
-    room.background = el.inputBg.value.trim() || 'assets/images/lounge.png';
-    if (el.inputPerspective.value === 'top-down') room.perspective = 'top-down';
-    else delete room.perspective;
-    const height = Number(el.inputActorHeight.value);
-    const speed = Number(el.inputWalkSpeed.value);
-    if (height !== 64) room.actorHeight = height; else delete room.actorHeight;
-    if (speed !== 130) room.walkSpeed = speed; else delete room.walkSpeed;
-    if (el.inputViewportWidth.value.trim()) room.viewport = { width: Number(el.inputViewportWidth.value), height: room.size.height, scrollMode: 'horizontal' };
-    else delete room.viewport;
-    if (el.inputDepthEnabled.checked) {
-      room.depthScale = {
+  public readEdit(): RoomPropertiesEdit {
+    const el = this.elements;
+    return {
+      id: el.inputId.value, name: el.inputName.value, background: el.inputBg.value,
+      size: el.inputWidth.checkValidity() && el.inputHeight.checkValidity()
+        ? { width: Number(el.inputWidth.value), height: Number(el.inputHeight.value) } : null,
+      perspective: el.inputPerspective.value === 'top-down' ? 'top-down' : 'adventure',
+      actorHeight: Number(el.inputActorHeight.value), walkSpeed: Number(el.inputWalkSpeed.value),
+      viewportWidth: el.inputViewportWidth.value.trim() ? Number(el.inputViewportWidth.value) : null,
+      depthScale: el.inputDepthEnabled.checked ? {
         back: { y: el.inputDepthBackY.valueAsNumber, factor: el.inputDepthBackFactor.valueAsNumber },
         front: { y: el.inputDepthFrontY.valueAsNumber, factor: el.inputDepthFrontFactor.valueAsNumber }
-      };
-    } else delete room.depthScale;
-    const notesVal = el.inputNotes.value.trim();
-    if (notesVal) {
-      room.notes = notesVal;
-    } else {
-      delete room.notes;
-    }
+      } : null,
+      notes: el.inputNotes.value
+    };
   }
 
   public validateDimensions(): boolean {

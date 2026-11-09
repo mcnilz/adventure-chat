@@ -5,7 +5,7 @@ import { EditorDrawUtils } from './editor-draw-utils.js';
 import type {
   HoveredEdge,
   RoomPointDto,
-  RoomYamlDto,
+  RoomView,
   SelectedEntity
 } from '../core/editor-types.js';
 
@@ -39,8 +39,8 @@ export class EditorRenderer {
   }
 
   public render(
-    room: RoomYamlDto,
-    selection: SelectedEntity,
+    room: RoomView,
+    selection: Readonly<SelectedEntity>,
     mousePos: RoomPointDto | null,
     dragPos: RoomPointDto | null,
     hoveredVertex: { polyType: 'walkable' | 'obstacle'; polyIndex: number; vertexIndex: number } | null,

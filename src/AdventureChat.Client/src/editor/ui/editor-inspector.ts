@@ -1,5 +1,5 @@
 import type { EditorExitDialog } from './editor-exit-dialog.js';
-import type { RoomYamlDto, SelectedEntity } from '../core/editor-types.js';
+import type { EntityEdit, RoomView, SelectedEntity } from '../core/editor-types.js';
 
 export interface InspectorElements {
   inspectorEmpty: HTMLElement;
@@ -43,8 +43,16 @@ export class EditorInspector {
     this.bindEvents();
   }
 
-  public update(room: RoomYamlDto, selection: SelectedEntity): void {
+  public update(room: RoomView, selection: Readonly<SelectedEntity>): void {
     const { elements: el } = this;
+    for (const input of [el.inspectorVertexX, el.inspectorSpawnX, el.inspectorExitX]) {
+      input.max = String(room.size.width);
+      input.title = `X-Koordinate (0 bis ${room.size.width})`;
+    }
+    for (const input of [el.inspectorVertexY, el.inspectorSpawnY, el.inspectorExitY]) {
+      input.max = String(room.size.height);
+      input.title = `Y-Koordinate (0 bis ${room.size.height})`;
+    }
 
     // Reset visibility
     el.inspectorEmpty.style.display = 'none';
@@ -130,68 +138,19 @@ export class EditorInspector {
     }
   }
 
-  public applyVertexChanges(room: RoomYamlDto, selection: SelectedEntity): boolean {
-    if (
-      selection.type === 'vertex' &&
-      selection.polyType &&
-      selection.polyIndex !== undefined &&
-      selection.vertexIndex !== undefined
-    ) {
-      const list = selection.polyType === 'walkable' ? room.walkable : room.obstacles;
-      const poly = list ? list[selection.polyIndex] : null;
-      const pt = poly ? poly.points[selection.vertexIndex] : null;
-      if (pt) {
-        const nx = parseInt(this.elements.inspectorVertexX.value, 10);
-        const ny = parseInt(this.elements.inspectorVertexY.value, 10);
-        if (!isNaN(nx)) pt.x = Math.max(0, Math.min(room.size.width, nx));
-        if (!isNaN(ny)) pt.y = Math.max(0, Math.min(room.size.height, ny));
-        return true;
-      }
-    }
-    return false;
-  }
-
-  public applySpawnChanges(room: RoomYamlDto, selection: SelectedEntity): boolean {
-    if (selection.type === 'spawn' && selection.spawnId) {
-      const spawn = room.spawns.find(s => s.id === selection.spawnId);
-      if (spawn) {
-        const nid = this.elements.inspectorSpawnId.value.trim();
-        if (nid) {
-          spawn.id = nid;
-          selection.spawnId = nid;
-        }
-        const nx = parseInt(this.elements.inspectorSpawnX.value, 10);
-        const ny = parseInt(this.elements.inspectorSpawnY.value, 10);
-        if (!isNaN(nx)) spawn.position.x = Math.max(0, Math.min(room.size.width, nx));
-        if (!isNaN(ny)) spawn.position.y = Math.max(0, Math.min(room.size.height, ny));
-        return true;
-      }
-    }
-    return false;
-  }
-
-  public applyExitChanges(room: RoomYamlDto, selection: SelectedEntity): boolean {
-    if (selection.type === 'exit' && selection.exitId && room.exits) {
-      const exit = room.exits.find(e => e.id === selection.exitId);
-      if (exit) {
-        const nid = this.elements.inspectorExitId.value.trim();
-        if (nid) {
-          exit.id = nid;
-          selection.exitId = nid;
-        }
-        exit.target.room = this.elements.inspectorExitRoom.value.trim();
-        exit.target.spawn = this.elements.inspectorExitTargetSpawn.value.trim() || 'entry';
-        exit.label = this.elements.inspectorExitLabel.value.trim() || null;
-        const nx = parseInt(this.elements.inspectorExitX.value, 10);
-        const ny = parseInt(this.elements.inspectorExitY.value, 10);
-        const nr = parseInt(this.elements.inspectorExitRadius.value, 10);
-        if (!isNaN(nx)) exit.position.x = Math.max(0, Math.min(room.size.width, nx));
-        if (!isNaN(ny)) exit.position.y = Math.max(0, Math.min(room.size.height, ny));
-        if (!isNaN(nr)) exit.radius = Math.max(5, Math.min(200, nr));
-        return true;
-      }
-    }
-    return false;
+  public readEdit(type: SelectedEntity['type']): EntityEdit | null {
+    const el = this.elements;
+    const integer = (input: HTMLInputElement) => parseInt(input.value, 10);
+    if (type === 'vertex') return { type, x: integer(el.inspectorVertexX), y: integer(el.inspectorVertexY) };
+    if (type === 'spawn') return {
+      type, id: el.inspectorSpawnId.value, x: integer(el.inspectorSpawnX), y: integer(el.inspectorSpawnY)
+    };
+    if (type === 'exit') return {
+      type, id: el.inspectorExitId.value, x: integer(el.inspectorExitX), y: integer(el.inspectorExitY),
+      radius: integer(el.inspectorExitRadius), room: el.inspectorExitRoom.value,
+      spawn: el.inspectorExitTargetSpawn.value, label: el.inspectorExitLabel.value
+    };
+    return null;
   }
 
   private bindEvents(): void {

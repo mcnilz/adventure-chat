@@ -153,6 +153,7 @@ export class EditorCanvasInput {
 
     const tool = this.getTool();
     const room = this.state.getRoom();
+    this.dragStartLogicalPos = pos;
 
     if (tool === 'add-walkable') {
       this.state.addWalkablePolygon(pos.x, pos.y);
@@ -264,7 +265,8 @@ export class EditorCanvasInput {
       if (this.dragOffset.dx !== 0 || this.dragOffset.dy !== 0) {
         this.state.movePolygon(sel.polyType, sel.polyIndex, this.dragOffset.dx, this.dragOffset.dy);
       }
-    } else if (this.dragPos) {
+    } else if (this.dragPos && this.dragStartLogicalPos &&
+      (this.dragPos.x !== this.dragStartLogicalPos.x || this.dragPos.y !== this.dragStartLogicalPos.y)) {
       if (sel.type === 'object' && this.dragStartLogicalPos) {
         if (sel.objectId) this.state.moveObject(sel.objectId, this.dragPos.x-this.dragStartLogicalPos.x, this.dragPos.y-this.dragStartLogicalPos.y);
       } else if (sel.type === 'vertex' && sel.polyType && sel.polyIndex !== undefined && sel.vertexIndex !== undefined) {

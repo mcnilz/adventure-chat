@@ -1,7 +1,8 @@
 import type {
   BackgroundsOverviewDto,
   RoomSummaryDto,
-  RoomYamlDto
+  RoomYamlDto,
+  RoomView
 } from './editor-types.js';
 
 export interface ValidationResponse {
@@ -42,7 +43,7 @@ export class EditorApi {
     const status = await response.json() as { token: string };
     return status.token;
   }
-  public static async previewPath(room: RoomYamlDto, start: { x: number; y: number }, target: { x: number; y: number }): Promise<{ success: boolean; waypoints: { x: number; y: number }[] | null }> {
+  public static async previewPath(room: RoomView, start: { x: number; y: number }, target: { x: number; y: number }): Promise<{ success: boolean; waypoints: { x: number; y: number }[] | null }> {
     const response = await this.request('/api/editor/preview-path', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Author-Token': await this.authorToken() },
@@ -68,7 +69,7 @@ export class EditorApi {
     return (await res.json()) as RoomYamlDto;
   }
 
-  public static async validateRoom(room: RoomYamlDto): Promise<ValidationResponse> {
+  public static async validateRoom(room: RoomView): Promise<ValidationResponse> {
     const res = await this.request('/api/editor/validate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Author-Token': await this.authorToken() },
@@ -91,7 +92,7 @@ export class EditorApi {
     return (await res.json()) as ValidationResponse;
   }
 
-  public static async validateWorldPayload(rooms: RoomYamlDto[]): Promise<ValidationResponse> {
+  public static async validateWorldPayload(rooms: readonly RoomView[]): Promise<ValidationResponse> {
     const res = await this.request('/api/editor/validate-world', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Author-Token': await this.authorToken() },
@@ -105,7 +106,7 @@ export class EditorApi {
     return (await res.json()) as ValidationResponse;
   }
 
-  public static async saveRoom(room: RoomYamlDto): Promise<SaveRoomResponse> {
+  public static async saveRoom(room: RoomView): Promise<SaveRoomResponse> {
     const res = await this.request(`/api/editor/rooms/${encodeURIComponent(room.id)}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Author-Token': await this.authorToken() },

@@ -1,5 +1,5 @@
 import { EditorApi } from '../core/editor-api.js';
-import type { RoomExitDto, RoomPointDto, RoomSummaryDto, RoomYamlDto } from '../core/editor-types.js';
+import type { RoomExitDto, RoomPointDto, RoomSummaryDto, RoomView } from '../core/editor-types.js';
 
 export interface ExitDialogElements {
   modalExitDialog: HTMLDialogElement;
@@ -14,7 +14,7 @@ export interface ExitDialogElements {
 }
 
 export class EditorExitDialog {
-  private readonly roomCache = new Map<string, RoomYamlDto>();
+  private readonly roomCache = new Map<string, RoomView>();
   private roomSummaries: RoomSummaryDto[] = [];
   private pendingPos: RoomPointDto | null = null;
   private onConfirmCallback: ((exitDto: RoomExitDto) => void) | null = null;
@@ -34,8 +34,8 @@ export class EditorExitDialog {
     }
   }
 
-  public updateCachedRoom(room: RoomYamlDto): void {
-    this.roomCache.set(room.id, JSON.parse(JSON.stringify(room)) as RoomYamlDto);
+  public updateCachedRoom(room: RoomView): void {
+    this.roomCache.set(room.id, JSON.parse(JSON.stringify(room)) as RoomView);
     const existingSummary = this.roomSummaries.find(r => r.id === room.id);
     if (existingSummary) {
       existingSummary.name = room.name;

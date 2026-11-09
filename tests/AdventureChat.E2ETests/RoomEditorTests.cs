@@ -337,6 +337,7 @@ public class RoomEditorTests
 
         var stateBg = await page.EvaluateAsync<string>("() => window.__ROOM_EDITOR__.getState().getRoom().background");
         Assert.That(stateBg, Is.EqualTo("assets/images/library.png"));
+        await Assertions.Expect(page.Locator("#unsaved-badge")).ToBeVisibleAsync();
 
         await context.DisposeAsync();
     }

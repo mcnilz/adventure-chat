@@ -1,6 +1,6 @@
 import { loadCharacterCatalog } from '../../network/character-catalog.js';
 import { EditorApi } from '../core/editor-api.js';
-import type { RoomYamlDto } from '../core/editor-types.js';
+import type { RoomView } from '../core/editor-types.js';
 import { RoomRenderer } from '../../rendering/renderer.js';
 import { assignPathToCharacter, updateCharacterMovement } from '../../simulation/movement.js';
 import type { Character, RoomDefinition } from '../../types.js';
@@ -66,7 +66,7 @@ export class EditorPreview {
     this.previewCharacter = null;
   }
 
-  public async handleCanvasClick(logicalX: number, logicalY: number, room: RoomYamlDto): Promise<void> {
+  public async handleCanvasClick(logicalX: number, logicalY: number, room: RoomView): Promise<void> {
     if (!this.previewCharacter || !this.isRunning) return;
     const revision = ++this.requestRevision;
     // Freeze at the request start so the returned route has the same footpoint.

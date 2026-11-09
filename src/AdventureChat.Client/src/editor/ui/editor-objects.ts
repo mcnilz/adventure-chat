@@ -21,11 +21,7 @@ export class EditorObjects {
     });
     const add = document.createElement('button'); add.className = 'btn-secondary'; add.id = 'object-add'; add.textContent = 'Objekt anlegen';
     add.onclick = () => {
-      const room = state.getRoom();
-      if ((room.objects?.length ?? 0) >= 128) { error('Maximal 128 Objekte pro Raum.'); return; }
-      let id = 'object-1'; let n = 1;
-      while (room.objects?.some(o => o.id === id)) id = 'object-' + ++n;
-      state.addObject({id, image: '', position: {x: 0,y: 0}, size: {width: Math.min(64,room.size.width),height: Math.min(64,room.size.height)}, depthY: 64});
+      if (!state.addObject()) { error('Maximal 128 Objekte pro Raum.'); return; }
       changed();
     };
     this.root.append(heading, hint, this.list, add, this.form);
@@ -84,15 +80,16 @@ export class EditorObjects {
   private apply(): void {
     const object=this.selected(); if(!object) return;
     const value=(key:string)=>this.fields.get(key)!.value;
-    const room=this.state.getRoom();
-    const id=value('id'), image=value('image');
-    const x=Number(value('x')), y=Number(value('y')), width=Number(value('width')), height=Number(value('height')), depthY=Number(value('depthY'));
-    if(!/^[a-zA-Z0-9_-]{1,64}$/.test(id) || room.objects?.some(o=>o!==object && o.id===id) ||
-      ![x,y,width,height,depthY].every(Number.isInteger) || x<0 || y<0 || width<1 || height<1 ||
-      x+width>room.size.width || y+height>room.size.height || depthY<0 || depthY>room.size.height) {
-      this.error('Eindeutige ID und ganze Raumkoordinaten erforderlich; Größe muss in den Raum passen.'); return;
+    const edited = {
+      id: value('id'), image: value('image'),
+      position: { x: Number(value('x')), y: Number(value('y')) },
+      size: { width: Number(value('width')), height: Number(value('height')) },
+      depthY: Number(value('depthY'))
+    };
+    if (!this.state.updateObject(object.id, edited)) {
+      this.error('Eindeutige ID und ganze Raumkoordinaten erforderlich; Größe muss in den Raum passen.');
+      return;
     }
-    this.state.updateObject(object.id,{id,image,position:{x,y},size:{width,height},depthY});
     this.changed();
   }
 }
