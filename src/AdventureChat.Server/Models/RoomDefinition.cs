@@ -20,6 +20,15 @@ public sealed record RoomExit(
 public sealed record RoomObject(string Id, string Image, Point2D Position, RoomObjectSize Size, double DepthY);
 public sealed record RoomObjectSize(int Width, int Height);
 
+public sealed record DepthReference(double Y, double Factor)
+{
+    public DepthReference() : this(double.NaN, double.NaN) { }
+}
+public sealed record RoomDepthScale(DepthReference Back, DepthReference Front)
+{
+    public RoomDepthScale() : this(null!, null!) { }
+}
+
 public sealed record RoomViewport(int Width, int Height, string ScrollMode);
 
 public sealed record RoomDefinition(
@@ -37,7 +46,8 @@ public sealed record RoomDefinition(
     double ActorHeight = 64,
     double WalkSpeed = 130,
     RoomViewport? Viewport = null,
-    IReadOnlyList<RoomObject>? Objects = null
+    IReadOnlyList<RoomObject>? Objects = null,
+    RoomDepthScale? DepthScale = null
 )
 {
     public IReadOnlyList<RoomSpawn> Spawns { get; init; } = Spawns ?? new List<RoomSpawn> { new("entry", SpawnPoint) };

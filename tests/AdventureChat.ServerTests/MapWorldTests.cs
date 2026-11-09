@@ -15,7 +15,7 @@ public class MapWorldTests
     [Test]
     public void Map_MovementAndRoomChanges_PreserveAuthorSettings()
     {
-        var root = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../../worlds/map"));
+        var root = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../../tests/Fixtures/map-v1"));
         var world = WorldPackage.Load(root);
         var paths = new ContentPathProvider(root, WorldPackage.FindSchema("room.schema.json", world.FormatVersion), root, root);
         var rooms = new RoomService(paths, new RoomYamlSerializer(), new RoomValidator(paths.GetSchemaFilePath()), world);

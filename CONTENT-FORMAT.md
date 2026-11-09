@@ -111,3 +111,21 @@ Maximal 128 Objekte; IDs sind eindeutig und groß-/kleinschreibungssensitiv, 1�
 Objekte und Figuren werden gemeinsam nach Raum-Y gezeichnet. Figuren mit Fußpunkt unter depthY erscheinen vor dem Objekt, ebenso bei Gleichstand. Objekte gleicher Tiefe werden nach ordinaler ID aufsteigend gezeichnet. PNG-Alpha bleibt erhalten, Namen und Sprechblasen folgen darüber. Kamera und Bildschirmskalierung verändern diese Ordnung nicht. Grafische Objekte erzeugen keine Kollisionsflächen.
 
 Editor: Bereich „Raumobjekte“, Auswahlliste für überlappende Motive, Objekt anlegen, PNG-Pfad oder vorhandenes PNG zuordnen/hochladen, Werte bearbeiten, per Maus verschieben und löschen. Umriss und Tiefenlinie erscheinen in der Bearbeitung. Die Vorschau verwendet denselben Objektzeichner wie das Spiel. Ein bestehendes Weltmanifest wird nicht automatisch hochgestuft. Kleine synthetische Testwelt: tests/Fixtures/foreground; Referenzweltgestaltung folgt in Ticket 16.
+
+## Tiefenskalierung seit Weltformat 1.5.0
+
+Explizit unterstützt: 1.0.0 bis 1.5.0 in den veröffentlichten Minor-Versionen; alle anderen Versionen werden abgewiesen. Neues Offline-Bündel: schemas/world/1.5.0. Optionale Erweiterung mit Faktor 1 als Default; ältere Schemas und Fixtures bleiben unverändert.
+
+```yaml
+depthScale:
+  back: { y: 140, factor: 0.5 }
+  front: { y: 320, factor: 1 }
+```
+
+Beide Y-Werte sind endliche Raumkoordinaten zwischen 0 und Raumhöhe, back.y < front.y. Beide Faktoren sind endlich und liegen einschließlich zwischen 0.25 und 2. Zwischen den Linien wird linear nach dem ungerundeten Y-Fußpunkt interpoliert; außerhalb gilt der jeweilige Randfaktor. Endhöhe = actorHeight × Faktor, ohne erneute Begrenzung auf 16–128. Der Fußpunkt bleibt unten mittig. Namen und Sprechblasen folgen der skalierten Höhe, ihre Schrift bleibt unverändert. Kameraoffset, CSS-Größe und X-Position beeinflussen den Verlauf nicht.
+
+Der Editor bietet die vier Zahlen und einen Aktivschalter; die gemeinsame Vorschau zeigt den Verlauf beim Laufen. Ungültige Daten werden beim Validieren/Speichern zurückgewiesen. Ohne Feld bleibt die bisherige feste Größe erhalten. Geschwindigkeit, Navigation, Ausgänge, Objekt-Tiefenlinien und Kollision bleiben unverändert. Ein vorhandenes Manifest wird beim Speichern nicht automatisch hochgestuft.
+
+
+### Optionale Draufsicht-Sheets (1.5.0)
+Am 09.11.2026 ausdrücklich bestätigt: Ein Figurenkatalogeintrag darf zusätzlich topDownImage nennen. Es gelten dieselben PNG-/Pfadgrenzen und dasselbe Quellraster wie image (vier Spalten, Reihen rechts/hinten/vorne, links gespiegelt). In top-down-Räumen wird dieses Sheet verwendet; fehlt es, bleibt die bisherige Katalogfigur erhalten. In Adventure-Räumen gilt immer image. Auswahl und Figuren-ID bleiben über Übergänge erhalten. Dies ist ebenfalls eine optionale Minor-Erweiterung; frühere Formate erlauben das Feld nicht.

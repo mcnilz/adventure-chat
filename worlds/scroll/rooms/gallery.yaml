@@ -29,6 +29,13 @@
         "x": 1200,
         "y": 300
       }
+    },
+    {
+      "id": "from-depth-demos",
+      "position": {
+        "x": 600,
+        "y": 300
+      }
     }
   ],
   "walkable": [
@@ -135,6 +142,19 @@
       "target": {
         "room": "map",
         "spawn": "right"
+      }
+    },
+    {
+      "id": "to-depth-demos",
+      "position": {
+        "x": 600,
+        "y": 325
+      },
+      "radius": 25,
+      "label": "Demo: Karte und Tiefe",
+      "target": {
+        "room": "tour-map",
+        "spawn": "entry"
       }
     }
   ]

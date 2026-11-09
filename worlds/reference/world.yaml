@@ -1,11 +1,11 @@
-formatVersion: 1.4.0
+formatVersion: 1.5.0
 id: reference
 name: Referenzwelt
-contentVersion: 2.0.2
+contentVersion: 2.1.0
 startRoom: lounge
 startSpawn: entry
 roomFormat: legacy-1
 defaultCharacterId: mara
 characters:
-  - { id: mara, name: Mara, image: assets/images/mara.png, frameWidth: 128, frameHeight: 128 }
-  - { id: bruno, name: Bruno, image: assets/images/bruno.png, frameWidth: 128, frameHeight: 128 }
+  - { id: mara, name: Mara, image: assets/images/mara.png, topDownImage: assets/images/mara-top-down.png, frameWidth: 128, frameHeight: 128 }
+  - { id: bruno, name: Bruno, image: assets/images/bruno.png, topDownImage: assets/images/bruno-top-down.png, frameWidth: 128, frameHeight: 128 }

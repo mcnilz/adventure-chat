@@ -1,0 +1,110 @@
+# yaml-language-server: $schema=../../../schemas/world/1.5.0/room.schema.json
+{
+  "version": 1,
+  "id": "tour-combined",
+  "name": "Panorama-Hügelweg",
+  "background": "assets/images/demo-combined.png",
+  "size": {
+    "width": 1280,
+    "height": 360
+  },
+  "actorHeight": 64,
+  "spawns": [
+    {
+      "id": "entry",
+      "position": {
+        "x": 100,
+        "y": 325
+      }
+    },
+    {
+      "id": "right",
+      "position": {
+        "x": 1180,
+        "y": 325
+      }
+    }
+  ],
+  "walkable": [
+    {
+      "id": "path",
+      "points": [
+        {
+          "x": 40,
+          "y": 340
+        },
+        {
+          "x": 285,
+          "y": 130
+        },
+        {
+          "x": 355,
+          "y": 130
+        },
+        {
+          "x": 600,
+          "y": 310
+        },
+        {
+          "x": 680,
+          "y": 310
+        },
+        {
+          "x": 925,
+          "y": 130
+        },
+        {
+          "x": 995,
+          "y": 130
+        },
+        {
+          "x": 1240,
+          "y": 340
+        }
+      ]
+    }
+  ],
+  "exits": [
+    {
+      "id": "back",
+      "position": {
+        "x": 100,
+        "y": 325
+      },
+      "radius": 25,
+      "label": "Zurück",
+      "target": {
+        "room": "tour-depth",
+        "spawn": "right"
+      }
+    },
+    {
+      "id": "next",
+      "position": {
+        "x": 1180,
+        "y": 325
+      },
+      "radius": 25,
+      "label": "Weiter",
+      "target": {
+        "room": "tour-map",
+        "spawn": "entry"
+      }
+    }
+  ],
+  "viewport": {
+    "width": 640,
+    "height": 360,
+    "scrollMode": "horizontal"
+  },
+  "depthScale": {
+    "back": {
+      "y": 140,
+      "factor": 0.5
+    },
+    "front": {
+      "y": 320,
+      "factor": 1
+    }
+  }
+}

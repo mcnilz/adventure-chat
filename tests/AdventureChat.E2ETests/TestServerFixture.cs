@@ -38,7 +38,7 @@ public sealed class TestServerFixture : IAsyncDisposable
             var worldRoot = Path.Combine(TempRoot, "world");
             if (!Directory.Exists(worldRoot))
             {
-                CopyDirectory(_foregroundWorld ? Path.Combine(solutionDir, "tests/Fixtures/foreground") : _characterWorld ? Path.Combine(solutionDir, "tests/Fixtures/characters-a") : (_scrollWorld || _mapWorld ? Path.Combine(solutionDir, "worlds", _scrollWorld ? "scroll" : "map") : Path.Combine(solutionDir, "tests/Fixtures/reference-v1")), worldRoot);
+                CopyDirectory(_foregroundWorld ? Path.Combine(solutionDir, "tests/Fixtures/foreground") : _characterWorld ? Path.Combine(solutionDir, "tests/Fixtures/characters-a") : (_scrollWorld || _mapWorld ? Path.Combine(solutionDir, "tests", "Fixtures", _scrollWorld ? "scroll-v1" : "map-v1") : Path.Combine(solutionDir, "tests/Fixtures/reference-v1")), worldRoot);
                 var manifest = Path.Combine(worldRoot, "world.yaml");
                 if (!_mapWorld && !_scrollWorld && !_characterWorld && !_foregroundWorld) File.WriteAllText(manifest, File.ReadAllText(manifest).Replace("startRoom: lounge", "startRoom: garden").Replace("startSpawn: entry", "startSpawn: from-lounge"));
             }

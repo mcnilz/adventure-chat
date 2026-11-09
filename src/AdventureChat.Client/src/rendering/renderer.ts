@@ -1,3 +1,4 @@
+import { actorHeightAt } from './depth-scale.js';
 import { ObjectRenderer, compareObjectDepth } from './object-renderer.js';
 import { HorizontalCamera, resizeCanvas } from './camera.js';
 import { CLICK_MARKER_DURATION } from '../constants.js';
@@ -132,7 +133,7 @@ export class RoomRenderer {
 
     // 6. Draw Speech Bubbles
     for (const char of allCharacters) {
-      this.speechBubbleRenderer.drawSpeechBubble(ctx, char, this.camera.offset + canvas.width, now, room.actorHeight ?? 64, this.camera.offset);
+      this.speechBubbleRenderer.drawSpeechBubble(ctx, char, this.camera.offset + canvas.width, now, actorHeightAt(room, char.position.y), this.camera.offset, !!room.depthScale);
     }
 
     // 7. Hovered Exit Highlight (only in debug mode to keep screen clean)

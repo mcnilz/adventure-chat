@@ -35,6 +35,11 @@ export interface EditorElements {
   inputHeight: HTMLInputElement;
   inputPerspective: HTMLSelectElement;
   inputActorHeight: HTMLInputElement;
+  inputDepthEnabled: HTMLInputElement;
+  inputDepthBackY: HTMLInputElement;
+  inputDepthBackFactor: HTMLInputElement;
+  inputDepthFrontY: HTMLInputElement;
+  inputDepthFrontFactor: HTMLInputElement;
   inputWalkSpeed: HTMLInputElement;
   inputViewportWidth: HTMLInputElement;
   inputNotes: HTMLTextAreaElement;

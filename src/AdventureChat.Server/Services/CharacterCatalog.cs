@@ -2,9 +2,11 @@ using System.Text.Json.Nodes;
 
 namespace AdventureChat.Server.Services;
 
-public sealed record CharacterDefinition(string Id, string Name, string Image, int FrameWidth, int FrameHeight)
+public sealed record CharacterDefinition(string Id, string Name, string Image, int FrameWidth, int FrameHeight, string? TopDownImage = null)
 {
-    public string ImageUrl(string worldId) => $"/world-assets/{Uri.EscapeDataString(worldId)}/images/{string.Join('/', Image[14..].Split('/').Select(Uri.EscapeDataString))}";
+    public string? TopDownImageUrl(string worldId) => TopDownImage is null ? null : AssetUrl(worldId, TopDownImage);
+    private static string AssetUrl(string worldId, string image) => $"/world-assets/{Uri.EscapeDataString(worldId)}/images/{string.Join('/', image[14..].Split('/').Select(Uri.EscapeDataString))}";
+    public string ImageUrl(string worldId) => AssetUrl(worldId, Image);
 }
 
 internal static class CharacterCatalog
@@ -17,12 +19,14 @@ internal static class CharacterCatalog
         foreach (var entry in entries)
         {
             var character = new CharacterDefinition(entry!["id"]!.GetValue<string>(), entry["name"]!.GetValue<string>(),
-                entry["image"]!.GetValue<string>(), entry["frameWidth"]!.GetValue<int>(), entry["frameHeight"]!.GetValue<int>());
+                entry["image"]!.GetValue<string>(), entry["frameWidth"]!.GetValue<int>(), entry["frameHeight"]!.GetValue<int>(), entry["topDownImage"]?.GetValue<string>());
             if (result.Any(c => c.Id == character.Id)) throw new InvalidOperationException($"Duplicate character ID '{character.Id}'.");
             try
             {
                 var file = WorldPackage.SafePath(root, character.Image, true);
                 PngValidator.Validate(file, character.FrameWidth * 4, character.FrameHeight * 3);
+                if (character.TopDownImage is { } topDown)
+                    PngValidator.Validate(WorldPackage.SafePath(root, topDown, true), character.FrameWidth * 4, character.FrameHeight * 3);
             }
             catch (Exception ex) when (ex is IOException or InvalidOperationException)
             { throw new InvalidOperationException($"Character '{character.Id}', image '{character.Image}': {ex.Message}", ex); }

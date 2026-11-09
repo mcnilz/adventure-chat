@@ -26,7 +26,7 @@ internal static class WorldContentEndpoints
             return world is null ? Results.NotFound() : Results.Ok(new
             {
                 world.DefaultCharacterId,
-                characters = world.Characters.Select(c => new { c.Id, c.Name, imageUrl = c.ImageUrl(world.Id), c.FrameWidth, c.FrameHeight })
+                characters = world.Characters.Select(c => new { c.Id, c.Name, imageUrl = c.ImageUrl(world.Id), topDownImageUrl = c.TopDownImageUrl(world.Id), c.FrameWidth, c.FrameHeight })
             });
         });
         app.MapGet("/api/worlds/{id}/start", (string id) =>
@@ -68,7 +68,7 @@ internal static class WorldContentEndpoints
                 label = e.Label,
                 target = new { room = e.TargetRoomId, spawn = e.TargetSpawnId }
             }),
-            room.Objects, room.Perspective, room.ActorHeight, room.WalkSpeed, room.Viewport,
+            room.DepthScale, room.Objects, room.Perspective, room.ActorHeight, room.WalkSpeed, room.Viewport,
             notes = room.Notes
         });
     }

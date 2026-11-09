@@ -43,6 +43,7 @@ export interface RoomObjectDto {
 }
 
 export interface RoomYamlDto {
+  depthScale?: import('../../types.js').DepthScale | null;
   objects?: RoomObjectDto[] | null;
   viewport?: import('../../types.js').RoomViewport | null;
   perspective?: 'adventure' | 'top-down';

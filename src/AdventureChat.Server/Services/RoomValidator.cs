@@ -29,6 +29,7 @@ public sealed partial class RoomValidator : IRoomValidator
     private readonly bool _supportsDisplay;
     private readonly bool _supportsViewport;
     private readonly bool _supportsObjects;
+    private readonly bool _supportsDepthScale;
     private readonly IPathfindingService _pathfinder;
 
     public RoomValidator(string? schemaPath = null, IPathfindingService? pathfinder = null)
@@ -38,6 +39,7 @@ public sealed partial class RoomValidator : IRoomValidator
         {
             var schemaText = File.ReadAllText(schemaPath);
             _jsonSchema = JsonSchema.FromText(schemaText);
+            _supportsDepthScale = JsonNode.Parse(schemaText)?["properties"]?["depthScale"] is not null;
             _supportsObjects = JsonNode.Parse(schemaText)?["properties"]?["objects"] is not null;
             _supportsViewport = JsonNode.Parse(schemaText)?["properties"]?["viewport"] is not null;
             _supportsDisplay = JsonNode.Parse(schemaText)?["properties"]?["perspective"] is not null;
@@ -119,6 +121,7 @@ public sealed partial class RoomValidator : IRoomValidator
         }
 
         RoomObjectValidation.Validate(dto, _supportsObjects, errors);
+        DepthScaleValidation.Validate(dto, _supportsDepthScale, errors);
 
         // 2. ID
         if (string.IsNullOrWhiteSpace(dto.Id))

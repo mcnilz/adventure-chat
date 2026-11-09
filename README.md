@@ -159,3 +159,21 @@ Breite und Höhe sind positive ganze Raumpixel; Höhe muss der Raumhöhe entspre
 Im Editor legt „Ausschnittsbreite“ das optionale Feld fest; leer entfernt es. „Ausschnitt verschieben“ bewegt ausschließlich die lokale Bearbeitungsansicht. In der Laufvorschau folgt die Kamera der Figur. Alle Geometriedaten und Eingabeziele bleiben Raumkoordinaten. Für bestehende Pakete Manifest bewusst auf 1.2.0 setzen und Server neu starten; alte Pakete lehnen das neue Feld ab.
 
 Für einen neuen breiten Raum ein passendes PNG importieren und die bearbeitbaren Gesamtmaße auf dessen Pixelabmessungen setzen. Begehbare Flächen, Spawns und Türen mit dem verschiebbaren Ausschnitt platzieren; die Ausschnittsbreite bestimmt nur die Sicht, nicht die Raumgröße.
+
+## Scrollen und Tiefe ausprobieren (Ticket 13)
+
+Alle drei mitgelieferten Welten reference, map und scroll enthalten dieselbe erreichbare Demo-Runde:
+- reference: Lounge → rechte Tür zum Garten → Ausgang „Demo: Karte und Tiefe“ bei (540,330).
+- map: Karte → Garten → Demo-Ausgang bei (520,330).
+- scroll: Galerie → Demo-Ausgang bei (600,325).
+
+1. **Kartenweg (tour-map):** 1280 × 360, Ausschnitt 640 × 360, feste Figurengröße. Von (100,325) nach (1180,325) und zurück laufen. Bei verschobenem Ausschnitt klicken; am rechten Schild geht es zum Hügelpfad, am linken zurück zur Ausgangswelt.
+2. **Hügelpfad (tour-depth):** 640 × 360 ohne Scrollen. Von unten nach (320,140) und zurück laufen: oben halbe Größe, unten volle Größe. Weg und Bäume verengen/verkleinern sich nach hinten. Rechtes Schild führt zum Panorama-Hügelweg.
+3. **Panorama-Hügelweg (tour-combined):** 1280 × 360 mit Scrollen und Tiefe. (320,140) → (600,325) → (960,140) → (1180,325) laufen. Vorne/hinten und links/rechts vergleichen; zweiter Browser kann am anderen Ende bleiben. Rechts zurück zum Kartenweg, links zum Hügelpfad.
+
+Im Editor dieselben Räume wählen, Tiefenwerte ändern, speichern/neuladen und Vorschau starten. Figurenfußpunkt, Namen, Chatblasen und ruhigen Größenverlauf beobachten. Menschliche Sichtabnahme bleibt separat.
+
+Die neuen Demo-Hintergründe sind originale geometrische Pixelzeichnungen aus scripts/generate-depth-art.js, ohne externe Bildquellen. Erneut erzeugen: `node scripts/generate-depth-art.js`. Kein zusätzlicher npm-Baustein; keine neue Lizenz für das Gesamtprojekt behauptet. Gelieferte Referenzgrafiken und ihre Herkunft bleiben unverändert.
+
+
+Mara und Bruno erhalten in der Karten-Demo eigenständige schematische Draufsicht-Sheets, erzeugt durch dasselbe lokale Bildwerkzeug. Die gelieferten Adventure-Sheets bleiben unverändert.

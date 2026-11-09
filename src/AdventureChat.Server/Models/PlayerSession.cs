@@ -79,7 +79,8 @@ public record RoomDefinitionDto(
     double ActorHeight = 64,
     double WalkSpeed = 130,
     RoomViewport? Viewport = null,
-    IReadOnlyList<RoomObject>? Objects = null
+    IReadOnlyList<RoomObject>? Objects = null,
+    RoomDepthScale? DepthScale = null
 );
 
 public record RoomSnapshotDto(
@@ -184,7 +185,7 @@ public static class RoomDtoExtensions
                 e.Bounds != null ? new RectDto(e.Bounds.X, e.Bounds.Y, e.Bounds.Width, e.Bounds.Height) : null,
                 e.Label
             )).ToList(),
-            room.Perspective, room.ActorHeight, room.WalkSpeed, room.Viewport, room.Objects
+            room.Perspective, room.ActorHeight, room.WalkSpeed, room.Viewport, room.Objects, room.DepthScale
         );
     }
 }

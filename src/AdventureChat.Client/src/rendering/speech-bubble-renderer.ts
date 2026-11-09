@@ -7,7 +7,8 @@ export class SpeechBubbleRenderer {
     viewportRight: number,
     now: number,
     actorHeight = 64,
-    viewportLeft = 0
+    viewportLeft = 0,
+    keepVisibleVertically = false
   ): void {
     const bubble = character.speechBubble;
     if (!bubble) return;
@@ -68,7 +69,7 @@ export class SpeechBubbleRenderer {
     if (bubbleX + bubbleWidth > viewportRight - 8) {
       bubbleX = viewportRight - 8 - bubbleWidth;
     }
-    const bubbleY = baseAnchorY - bubbleHeight;
+    const bubbleY = keepVisibleVertically ? Math.max(24, baseAnchorY - bubbleHeight) : baseAnchorY - bubbleHeight;
 
     // Fade out in last 400ms
     const remaining = bubble.duration - elapsed;

@@ -1,0 +1,85 @@
+# yaml-language-server: $schema=../../../schemas/world/1.5.0/room.schema.json
+{
+  "version": 1,
+  "id": "tour-map",
+  "name": "Kartenweg",
+  "background": "assets/images/demo-map.png",
+  "size": {
+    "width": 1280,
+    "height": 360
+  },
+  "actorHeight": 32,
+  "spawns": [
+    {
+      "id": "entry",
+      "position": {
+        "x": 100,
+        "y": 325
+      }
+    },
+    {
+      "id": "right",
+      "position": {
+        "x": 1180,
+        "y": 325
+      }
+    }
+  ],
+  "walkable": [
+    {
+      "id": "path",
+      "points": [
+        {
+          "x": 20,
+          "y": 60
+        },
+        {
+          "x": 1260,
+          "y": 60
+        },
+        {
+          "x": 1260,
+          "y": 340
+        },
+        {
+          "x": 20,
+          "y": 340
+        }
+      ]
+    }
+  ],
+  "exits": [
+    {
+      "id": "back",
+      "position": {
+        "x": 100,
+        "y": 325
+      },
+      "radius": 25,
+      "label": "Zurück",
+      "target": {
+        "room": "gallery",
+        "spawn": "from-depth-demos"
+      }
+    },
+    {
+      "id": "next",
+      "position": {
+        "x": 1180,
+        "y": 325
+      },
+      "radius": 25,
+      "label": "Hügelpfad",
+      "target": {
+        "room": "tour-depth",
+        "spawn": "entry"
+      }
+    }
+  ],
+  "viewport": {
+    "width": 640,
+    "height": 360,
+    "scrollMode": "horizontal"
+  },
+  "perspective": "top-down"
+}

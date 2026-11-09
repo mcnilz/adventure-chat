@@ -83,6 +83,7 @@ export class EditorGeometry {
       backgroundUrl: r.background,
       perspective: r.perspective ?? "adventure",
       actorHeight: r.actorHeight ?? 64,
+      depthScale: r.depthScale ?? null,
       walkSpeed: r.walkSpeed ?? 130,
       viewport: r.viewport ?? null,
       objects: r.objects ?? [],

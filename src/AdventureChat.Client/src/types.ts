@@ -22,6 +22,7 @@ export interface CharacterAppearance {
   readonly id: string;
   readonly name: string;
   readonly imageUrl: string;
+  readonly topDownImageUrl?: string | null;
   readonly frameWidth: number;
   readonly frameHeight: number;
 }
@@ -82,7 +83,13 @@ export interface RoomObject {
  readonly depthY: number;
 }
 
+export interface DepthScale {
+  readonly back: { readonly y: number; readonly factor: number };
+  readonly front: { readonly y: number; readonly factor: number };
+}
+
 export interface RoomDefinition {
+  depthScale?: DepthScale | null;
   objects?: ReadonlyArray<RoomObject> | null;
   viewport?: RoomViewport | null;
   perspective?: 'adventure' | 'top-down';

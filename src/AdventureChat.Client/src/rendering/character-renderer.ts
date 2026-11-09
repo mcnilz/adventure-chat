@@ -1,3 +1,4 @@
+import { actorHeightAt } from './depth-scale.js';
 import { drawTopDownFigure } from './top-down-figure.js';
 import type { Character, RoomDefinition } from '../types.js';
 
@@ -20,8 +21,9 @@ export class CharacterRenderer {
     const appearance = character.appearance;
     let sprite = this.characterSprite;
     if (appearance) {
-      let image = this.images.get(appearance.imageUrl);
-      if (!image) { image = new Image(); image.src = appearance.imageUrl; this.images.set(appearance.imageUrl, image); }
+      const imageUrl = room?.perspective === 'top-down' ? appearance.topDownImageUrl ?? appearance.imageUrl : appearance.imageUrl;
+      let image = this.images.get(imageUrl);
+      if (!image) { image = new Image(); image.src = imageUrl; this.images.set(imageUrl, image); }
       sprite = image;
     }
     const loaded = appearance ? sprite.complete && sprite.naturalWidth > 0 : this.spriteLoaded;
@@ -53,7 +55,7 @@ export class CharacterRenderer {
 
     ctx.save();
 
-    const height = room?.actorHeight ?? 64;
+    const height = actorHeightAt(room, position.y);
     ctx.translate(footX, footY);
     ctx.scale(height / frameHeight, height / frameHeight);
     ctx.translate(-footX, -footY);
@@ -102,7 +104,7 @@ export class CharacterRenderer {
   public drawName(ctx: CanvasRenderingContext2D, character: Character, isLocal: boolean, room?: RoomDefinition): void {
     const { name, position } = character;
     const footX = Math.round(position.x), footY = Math.round(position.y);
-    const height = room?.actorHeight ?? 64;
+    const height = actorHeightAt(room, position.y);
     // Draw Name Tag
     ctx.save();
     ctx.font = '10px sans-serif';
@@ -112,7 +114,7 @@ export class CharacterRenderer {
     const textWidth = ctx.measureText(name).width;
     const badgeWidth = Math.max(textWidth + 10, 36);
     const badgeHeight = 14;
-    const textY = footY - height - 4;
+    const textY = room?.depthScale ? Math.max(badgeHeight - 2, footY - height - 4) : footY - height - 4;
 
     ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
     ctx.fillRect(footX - badgeWidth / 2, textY - badgeHeight + 2, badgeWidth, badgeHeight);

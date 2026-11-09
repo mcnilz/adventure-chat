@@ -6,3 +6,6 @@
 
 ## foreground (Format 1.4.0)
 Synthetische Testwelt für Ticket 15, auf characters-a aufgebaut. table.png ist ein selbst erzeugtes 12×12-RGBA-Testmuster (rot, zwei transparente Spalten), keine Fremdressource. Es wird absichtlich auf 120×120 Raumpixel skaliert; depthY=280. Dient Pixelprüfungen, Navigation ohne automatische Kollision und Editor-Roundtrip. Ältere Fixtures werden dafür nicht geändert.
+
+## Eingefrorene Karten-/Scrollwelten vor Ticket 13
+map-v1 (Format 1.1.0) und scroll-v1 (1.2.0) entsprechen bytegetreu dem Stand 7733562 unter worlds/map bzw. worlds/scroll. Alle zwölf Dateien wurden unabhängig gegen Git-Blobs bzw. Git-LFS-SHA256 verglichen. Bestehende Karten-/Scroll-Browserregressionen verwenden diese unveränderten Fixtures; neue Tiefentests prüfen die weiterentwickelten mitgelieferten Welten separat.

@@ -41,3 +41,5 @@
 
 | Raumobjekt | Grafisches PNG-Element mit stabiler ID, Position, Zielgröße und Tiefenlinie; unabhängig von Kollision |
 | Tiefenlinie | Horizontale Raum-Y-Linie eines Objekts; Figuren dahinter werden von sichtbaren PNG-Pixeln verdeckt, bei gleicher Tiefe steht die Figur davor |
+
+| Tiefenverlauf | Optionale hintere/vordere horizontale Bezugslinie mit je einem Faktor; linear interpoliert und außerhalb begrenzt |

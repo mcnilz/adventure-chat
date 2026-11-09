@@ -102,3 +102,10 @@ Maximal 128 Objekte; IDs sind eindeutig und groß-/kleinschreibungssensitiv, 1�
 Objekte und Figuren werden gemeinsam nach Raum-Y gezeichnet. Figuren mit Fußpunkt unter depthY erscheinen vor dem Objekt, ebenso bei Gleichstand. Objekte gleicher Tiefe werden nach ordinaler ID aufsteigend gezeichnet. PNG-Alpha bleibt erhalten, Namen und Sprechblasen folgen darüber. Kamera und Bildschirmskalierung verändern diese Ordnung nicht. Grafische Objekte erzeugen keine Kollisionsflächen.
 
 Editor: Bereich „Raumobjekte“, Auswahlliste für überlappende Motive, Objekt anlegen, PNG-Pfad oder vorhandenes PNG zuordnen/hochladen, Werte bearbeiten, per Maus verschieben und löschen. Umriss und Tiefenlinie erscheinen in der Bearbeitung. Die Vorschau verwendet denselben Objektzeichner wie das Spiel. Ein bestehendes Weltmanifest wird nicht automatisch hochgestuft. Kleine synthetische Testwelt: tests/Fixtures/foreground; Referenzweltgestaltung folgt in Ticket 16.
+
+## Tiefenverlauf seit Weltformat 1.5.0
+Server akzeptiert ausdrücklich 1.0.0, 1.1.0, 1.2.0, 1.3.0, 1.4.0 und 1.5.0. Letzteres ergänzt optionale depthScale-Daten mit Faktor 1 als kompatiblem Default. Minor-Erweiterung, keine Änderung der Bedeutung älterer Formate. Details und Grenzen stehen in CONTENT-FORMAT.md. Alle früheren Schema-Bündel und tests/Fixtures bleiben unverändert. Mitgelieferte Demo-Welten sind weiterentwickelte Inhalte: reference 2.1.0, map und scroll 1.1.0 (zusätzliche Räume und Verbindungen). Sie sind keine eingefrorenen Kompatibilitätsfixtures.
+
+
+### Optionale Draufsicht-Sheets (1.5.0)
+Am 09.11.2026 ausdrücklich bestätigt: Ein Figurenkatalogeintrag darf zusätzlich topDownImage nennen. Es gelten dieselben PNG-/Pfadgrenzen und dasselbe Quellraster wie image (vier Spalten, Reihen rechts/hinten/vorne, links gespiegelt). In top-down-Räumen wird dieses Sheet verwendet; fehlt es, bleibt die bisherige Katalogfigur erhalten. In Adventure-Räumen gilt immer image. Auswahl und Figuren-ID bleiben über Übergänge erhalten. Dies ist ebenfalls eine optionale Minor-Erweiterung; frühere Formate erlauben das Feld nicht.

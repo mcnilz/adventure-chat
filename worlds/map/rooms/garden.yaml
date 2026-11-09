@@ -6,6 +6,7 @@ size:
   width: 640
   height: 360
 spawns:
+  - { id: from-depth-demos, position: { x: 520, y: 330 } }
   - id: from-map
     position: { x: 100, y: 300 }
   - id: entry
@@ -39,6 +40,11 @@ obstacles:
       - x: 260
         y: 310
 exits:
+  - id: to-depth-demos
+    position: { x: 520, y: 330 }
+    radius: 25
+    label: 'Demo: Karte und Tiefe'
+    target: { room: tour-map, spawn: entry }
   - id: to-map
     position: { x: 100, y: 300 }
     radius: 35
