@@ -70,3 +70,13 @@ Belege: [hintere Tiefe mit Kamera](../evidence/13/depth-combined-back.png), [vor
 6. Dieselbe Runde in Kartenwelt (Karte → Garten, Demo bei 520,330) und Scrollwelt (Galerie, Demo bei 600,325) prüfen. Kurzanleitung auch in README.
 
 Status ready-for-human; ausdrückliche Abnahme bleibt offen. Lokaler Implementierungscommit: „Implement perspective depth scaling and connected demo tours (ticket 13)“.
+
+## Nachtrag: Standardstart · 09.11.2026
+
+Benutzerauftrag: „ich will das ohne angabe von paramtern die referenz welt gestartet wird“. Ohne World:Root/World:Roots und ohne explizites Legacy-Content:Root lädt die Anwendung nun automatisch die aktuelle Referenzwelt. Im Repository wird die Quellwelt verwendet (auch für Autorenänderungen); eine eigenständig gebaute Anwendung enthält die erforderlichen Manifest-, Raum- und Bilddateien und verwendet diese Kopie. Explizite Konfigurationen bleiben vorrangig. Keine neue Abhängigkeit, kein Formatbezug, keine Änderung veröffentlichter Schemas oder ihrer Interpretation.
+
+Öffentlicher HTTP-Starttest zuerst rot (leere Weltliste), danach grün. Gebaute Debug-Publikation zusätzlich außerhalb des Repositorys in temporärem Verzeichnis ohne Argumente gestartet: Weltliste und aktuelle Lounge über HTTP erfolgreich geprüft. Lokale Verbindungen waren bei eingeschränkter Ausführung blockiert; Prüfung mit lokalen Ausführungsrechten erfolgreich. Temporäre Liefer-/Testdateien anschließend entfernt. Bestehender Legacy-API-Test nennt seine Inhaltsquelle nun ausdrücklich.
+
+Typcheck/Clientbuild und abschließende Vollsuite erfolgreich: 257 Tests (183 Server, 74 Browser; keine Warnungen). Separate Standards-/Spec-Nachprüfung gegen 15964f4: keine offenen Befunde nach README-Korrektur. Diffprüfung sauber. Status weiterhin ready-for-human; keine vorweggenommene Abnahme. Lokaler Nachtragscommit: „Start bundled reference world by default“.
+
+Abnahme: Im Verzeichnis src/AdventureChat.Server einfach `dotnet run` ausführen; Referenzwelt mit Mara/Bruno und Lounge muss ohne Weltargument angeboten werden. Zum Editor weiterhin ausdrücklich `--authoring` verwenden.

@@ -8,6 +8,9 @@
 
   <ItemGroup>
     <Content Include="..\..\schemas\world\**\*" Link="schemas\world\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="..\..\worlds\reference\world.yaml" Link="worlds\reference\world.yaml" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="..\..\worlds\reference\rooms\*.yaml" Link="worlds\reference\rooms\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="..\..\worlds\reference\assets\images\*.png" Link="worlds\reference\assets\images\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

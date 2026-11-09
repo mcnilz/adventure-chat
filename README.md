@@ -54,6 +54,7 @@ Im regulären Spielmodus sind die Editor- und Autoren-APIs deaktiviert. Spieler 
 dotnet run --project src\AdventureChat.Server\AdventureChat.Server.csproj
 ```
 Browser öffnen: `http://localhost:5000` (oder angezeigte Portadresse).
+Ohne Weltparameter startet automatisch die aktuelle Referenzwelt mit Lounge, Garten, Mara/Bruno und Demo-Runde. Das gilt auch beim Start der gebauten Anwendung. Im Projekt verwendet der Autorenmodus `worlds/reference`; außerhalb des Projekts die mitgelieferte Weltkopie. Explizite `World:Root`-/`World:Roots`-Angaben haben Vorrang. Ein ausdrücklich gesetztes `Content:Root` verwendet weiterhin den bisherigen Legacy-Inhaltsmodus.
 Mit URL-Parametern direkt einsteigen: `http://localhost:5000?name=Guybrush&room=lounge`
 
 #### B. Autorenmodus (Integrierter Raum- & Welteditor)
@@ -87,7 +88,7 @@ dotnet run --project src\AdventureChat.Server -- --World:Root C:\AdventureWorld 
 
 `world.yaml` bestimmt Welt-ID, Namen, Format- und Inhaltsversion sowie Start-Raum und Start-Spawn. `rooms/*.yaml` enthält das ausdrücklich zugeordnete Legacy-Raumformat `version: 1`; Bilder liegen unter `assets/images`. Der Server prüft alle Dateien beim Start und bricht bei Fehlern ab. Im Spiel erfolgt der Eintritt stets am festgelegten Startpunkt, auch nach Neustart oder Reconnect. Der Editor ist nur im lokalen Autorenmodus verfügbar und speichert im Weltordner. Laufender Spielzustand bleibt flüchtig.
 
-Alternativ lassen sich mehrere Pfade als `--World:Roots:0 <Pfad> --World:Roots:1 <Pfad>` konfigurieren. Alle werden geprüft, doppelte Welt-IDs abgewiesen. `World:Root` steht, falls zusätzlich angegeben, an erster Stelle. Ohne Weltkonfiguration bleibt der bisherige lokale Betrieb mit URL-Raumwahl erhalten.
+Alternativ lassen sich mehrere Pfade als `--World:Roots:0 <Pfad> --World:Roots:1 <Pfad>` konfigurieren. Alle werden geprüft, doppelte Welt-IDs abgewiesen. `World:Root` steht, falls zusätzlich angegeben, an erster Stelle. Ohne Weltkonfiguration startet die Referenzwelt; mit ausdrücklich gesetztem `Content:Root` bleibt der bisherige lokale Betrieb mit URL-Raumwahl erhalten.
 
 ### Neue Taverne: Mara, Bruno und Tischverdeckung
 

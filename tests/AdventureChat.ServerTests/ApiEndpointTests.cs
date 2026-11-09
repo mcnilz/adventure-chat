@@ -29,7 +29,7 @@ public class ApiEndpointTests
         {
             ContentRootPath = serverDir,
             WebRootPath = Path.Combine(serverDir, "wwwroot"),
-            Args = ["--urls", _baseUrl]
+            Args = ["--urls", _baseUrl, "--Content:Root", Path.Combine(solutionDir, "content")]
         });
 
         _host = app;

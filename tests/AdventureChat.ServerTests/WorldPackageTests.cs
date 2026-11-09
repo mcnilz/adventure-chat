@@ -7,6 +7,19 @@ namespace AdventureChat.ServerTests;
 public class WorldPackageTests
 {
     [Test]
+    public async Task DefaultStartup_OffersCurrentReferenceWorldWithoutWorldArguments()
+    {
+        await using var app = AdventureChat.Server.AppFactory.CreateApp(["--urls", "http://127.0.0.1:0"]);
+        await app.StartAsync();
+        using var client = new HttpClient { BaseAddress = new Uri(app.Urls.Single()) };
+        var worlds = await client.GetStringAsync("/api/worlds");
+        Assert.That(worlds, Does.Contain("reference"));
+        var room = await client.GetStringAsync("/api/worlds/reference/rooms/lounge");
+        Assert.That(room, Does.Contain("lounge-runtime.png"));
+        await app.StopAsync();
+    }
+
+    [Test]
     public void Load_UnsupportedFormat_RejectsBeforeReadingRooms()
     {
         var root = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));

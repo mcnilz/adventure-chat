@@ -28,6 +28,8 @@ public static class AppFactory
         var roots = builder.Configuration.GetSection("World:Roots").GetChildren().Select(c => c.Value).ToList();
         var worldRoot = builder.Configuration["World:Root"];
         if (worldRoot is not null) roots.Insert(0, worldRoot);
+        if (roots.Count == 0 && builder.Configuration["Content:Root"] is null)
+            roots.Add(DefaultWorld.ResolveReferenceRoot());
         if (roots.Any(string.IsNullOrWhiteSpace)) throw new InvalidOperationException("Configured world paths must not be empty.");
         var worlds = roots.Select(root => WorldPackage.Load(root!)).ToList();
         if (worlds.Select(w => w.Id).Distinct(StringComparer.OrdinalIgnoreCase).Count() != worlds.Count)
