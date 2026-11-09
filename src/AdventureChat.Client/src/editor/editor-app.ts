@@ -46,7 +46,7 @@ export class EditorApp {
     this.state = new EditorState();
     canvas.addEventListener("object-loaded", () => this.render());
     this.camera = new EditorCamera(canvas, () => this.render());
-    this.editorRenderer = new EditorRenderer(this.canvas);
+    this.editorRenderer = new EditorRenderer(this.canvas, () => this.render());
     this.preview = new EditorPreview(this.canvas);
 
     this.exitDialog = new EditorExitDialog(

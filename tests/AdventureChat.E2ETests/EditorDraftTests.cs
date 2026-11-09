@@ -207,6 +207,50 @@ public class EditorDraftTests
         await Assertions.Expect(page.Locator("#inspector-empty")).ToBeVisibleAsync();
     }
 
+    [Test]
+    public async Task RoomSwitch_DrawsDelayedBackground_WithoutCanvasInteraction()
+    {
+        await using var context = await _browser.NewContextAsync();
+        var page = await OpenLounge(context);
+        await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        var image = await context.APIRequest.GetAsync($"{_server.BaseUrl}/assets/images/garden.png");
+        Assert.That(image.Ok, Is.True);
+        var expected = await page.EvaluateAsync<int[]>("""
+            async png => {
+                const image = new Image(); image.src = 'data:image/png;base64,' + png; await image.decode();
+                const canvas = document.createElement('canvas'); canvas.width = 640; canvas.height = 360;
+                const ctx = canvas.getContext('2d'); ctx.drawImage(image, 0, 0, 640, 360);
+                return [...ctx.getImageData(13,17,1,1).data];
+            }
+            """, Convert.ToBase64String(await image.BodyAsync()));
+        var fallback = new[] { 26, 32, 44, 255 };
+        Assert.That(expected, Is.Not.EqualTo(fallback), "The sample must distinguish the room image from the loading background.");
+        var requested = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        await page.RouteAsync("**/assets/images/garden.png", async route =>
+        {
+            var response = await route.FetchAsync();
+            requested.TrySetResult();
+            await release.Task;
+            await route.FulfillAsync(new() { Response = response });
+        });
+        try
+        {
+            await page.Mouse.MoveAsync(5, 5);
+            await page.SelectOptionAsync("#room-select", "garden");
+            await Assertions.Expect(page.Locator("#input-id")).ToHaveValueAsync("garden");
+            await requested.Task.WaitAsync(TimeSpan.FromSeconds(10));
+            var canvas = page.Locator("#editor-canvas");
+            Assert.That(await canvas.EvaluateAsync<int[]>("c => [...c.getContext('2d').getImageData(13,17,1,1).data]"), Is.EqualTo(fallback));
+            release.TrySetResult();
+            await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            Assert.That(await canvas.EvaluateAsync<int[]>("c => [...c.getContext('2d').getImageData(13,17,1,1).data]"), Is.EqualTo(expected));
+            await Assertions.Expect(page.Locator("#unsaved-badge")).ToBeHiddenAsync();
+            await page.ScreenshotAsync(new() { Path = Path.Combine(TestContext.CurrentContext.WorkDirectory, "editor-room-background.png") });
+        }
+        finally { release.TrySetResult(); }
+    }
+
     private async Task<IPage> OpenLounge(IBrowserContext context)
     {
         var page = await context.NewPageAsync();

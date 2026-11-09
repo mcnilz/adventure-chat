@@ -16,7 +16,7 @@ export class EditorRenderer {
   private backgroundLoaded = false;
   private currentBackgroundUrl = '';
 
-  public constructor(private readonly canvas: HTMLCanvasElement) {
+  public constructor(private readonly canvas: HTMLCanvasElement, onBackgroundLoaded: () => void) {
     const context = this.canvas.getContext('2d');
     if (!context) {
       throw new Error('Canvas 2D context not available');
@@ -27,6 +27,7 @@ export class EditorRenderer {
     this.backgroundImage = new Image();
     this.backgroundImage.onload = () => {
       this.backgroundLoaded = true;
+      onBackgroundLoaded();
     };
   }
 
