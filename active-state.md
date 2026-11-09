@@ -1,5 +1,5 @@
 # Aktueller Stand
-Revision 41 · 05.11.2026.
+Revision 42 · 09.11.2026.
 
 ## Vorhanden
 - [x] Gespräch in Spezifikation, Architektur, Autorenformat und Tickets überführt.
@@ -32,10 +32,10 @@ Revision 41 · 05.11.2026.
 - [ ] Git-Repository und endgültiger Projektname festgelegt.
 
 ## Aktives Ticket
-- **Ticket 16: ready-for-human.** Native128-Lieferung am 05.11.2026 eingebunden: gelieferte Mara-/Bruno-Sheets bytegleich, Raster 128 x 128 bei Raumhoehe 128, sichtbarer Koerper 125 Pixel; keine Vergroesserung mehr im Renderer. Inhalt 2.0.2, Format 1.4.0 unveraendert. Typcheck/Clientbuild und Vollsuite 234 Tests (0 Warnungen) bestanden; drei gezielte Browserfaelle und pixelgenauer Vergleich aller 40 Richtungs-/Phasenansichten gruen. Beide separaten Subagent-Reviewachsen gegen 382a83f ohne offene Befunde. Lieferquellen und Originale erhalten; Python-Lieferwerkzeug bleibt lokal/unversioniert und wird nicht benoetigt. Profil-Gegenphasen, Standpose und Bewegungsgefuehl bleiben menschliche Sichtabnahme. Aktuelle Screenshots und Details im Ticket 16; lokaler Commit Integrate native128 reference characters.
+- **Ticket 16: done.** Menschlich am 09.11.2026 ausdrücklich abgenommen („Ticket 16 neues design wurde umgesetzt, ist abgenommen“). Native128-Lieferung am 05.11.2026 eingebunden: gelieferte Mara-/Bruno-Sheets bytegleich, Raster 128 x 128 bei Raumhoehe 128, sichtbarer Koerper 125 Pixel; keine Vergroesserung mehr im Renderer. Inhalt 2.0.2, Format 1.4.0 unveraendert. Typcheck/Clientbuild und Vollsuite 234 Tests (0 Warnungen) bestanden; drei gezielte Browserfaelle und pixelgenauer Vergleich aller 40 Richtungs-/Phasenansichten gruen. Beide separaten Subagent-Reviewachsen gegen 382a83f ohne offene Befunde. Lieferquellen und Originale erhalten; Python-Lieferwerkzeug bleibt lokal/unversioniert und wird nicht benoetigt. Die bisher offene menschliche Sichtabnahme ist damit abgeschlossen. Aktuelle Screenshots und Details im Ticket 16; lokaler Commit Integrate native128 reference characters.
 - **Ticket 15: done.** Menschlich am 04.11.2026 nach Start der Testwelt foreground abgenommen („funktioniert“). Implementierungscommit e485525. Am 04.11.2026 mit „ok“ für Umfang, Datenvertrag und Testgrenzen bestätigt und umgesetzt: Vordergrundobjekte mit PNG-Alpha/Tiefenlinie, gemeinsamer Spiel-/Editorrenderer, Objektverwaltung/Upload/Alt-Klick. Format 1.4.0 additive Minor-Erweiterung; alte Schemas/Fixtures und Benutzerbilder unverändert. Typcheck/Build, Vollsuite 230 Tests (0 Warnungen), 14 gezielte Inhaltsfälle und drei Objekt-Browsertests einschließlich Reviewnachträgen erfolgreich. Beide Reviewachsen nach Korrekturen ohne offene Funktions-/Standardsbefunde. Abnahme und Details im Ticket 15.
-- **Ticket 14: `done`.** Menschlich am 04.11.2026 abgenommen („funktioniert“). Name/Figur vor Eintritt, Katalog 1.3.0, gemeinsamer Renderer und Editor umgesetzt. Typcheck/Build, 213 Tests (0 Warnungen), beide Reviewachsen ohne offene Befunde. Implementierungscommit `8761c42`. Details im Ticket 14. Ticket 15 ist done; Ticket 16 ist ready-for-human.
-- **Reihenfolge:** Ticket 16 ist ready-for-human; nach dessen Abnahme Ticket 13 (draft) vorschlagen. Ticket 13 ist kein Blocker für 16.
+- **Ticket 14: `done`.** Menschlich am 04.11.2026 abgenommen („funktioniert“). Name/Figur vor Eintritt, Katalog 1.3.0, gemeinsamer Renderer und Editor umgesetzt. Typcheck/Build, 213 Tests (0 Warnungen), beide Reviewachsen ohne offene Befunde. Implementierungscommit `8761c42`. Details im Ticket 14. Ticket 15 ist done; Ticket 16 ist done.
+- **Reihenfolge:** Ticket 16 ist done; als Nächstes Ticket 13 (draft) mit konkretem Datenvertrag und Testgrenzen zur Bestätigung vorschlagen. Ticket 13 ist kein Blocker für 16.
 - **Benutzerdateien:** gelieferte Lounge-/Garten- und Figurenoriginale unverändert erhalten; Design-Guide-Integrationshinweise aktualisiert. Spielkopien und Tischmasken gesondert in Ticket 16 erzeugt. Alte Referenzwelt aus b3d0b83 unter `tests/Fixtures/reference-v1` bytegetreu erhalten. Benutzer-Arbeitskopie `.scratch/foreground-demo` unangetastet und nicht mitcommittiert.
 - **Ticket 12: `done`.** Benutzer hat am 04.11.2026 ausdrücklich klargestellt: „ticket 12 (scrolling) hatte ich schon abgenommen.“ Abnahme einschließlich dokumentiertem Randsprechblasen-Nachtrag nachgetragen. Implementierungscommits `6dd96c7` und `a046edb`. Horizontale Kamera, Format 1.2.0, Editor und Scrollwelt implementiert; abschließende Nachtrags-Vollsuite 192 Tests, 0 Warnungen; Typcheck/Build, beide Reviewachsen und Diffprüfung bestanden. Details im Ticket 12.
 
@@ -43,7 +43,7 @@ Revision 41 · 05.11.2026.
 - Ticket 10 ist `done`, ausdrücklich am 04.11.2026 abgenommen („abegnommen“), Implementierungscommit `28e3b7f`. Tickets 01–09 bleiben `done`; dokumentierte Reviewpunkte von Ticket 09 bleiben offen.
 
 ## Nächste Aktion
-Menschliche Sichtabnahme von Ticket 16 anhand der konkreten Schritte im Ticket. Erst ausdrückliche Abnahme macht es done; Feedback setzt es zurück auf in-progress. Danach Ticket 13 vorschlagen und vor Umsetzung bestätigen lassen. Benutzer-Arbeitskopie .scratch/foreground-demo erhalten.
+Ticket 16 ist ausdrücklich abgenommen. Ticket 13 mit konkretem Datenvertrag und Testgrenzen vorschlagen und vor Umsetzung bestätigen lassen. Benutzer-Arbeitskopie .scratch/foreground-demo erhalten.
 
 ## Offene Annahmen
 Privater Testbetrieb, ca. zehn Personen, Desktop-Mausbedienung; keine kollidierenden Figuren; Reconnect als frischer Eintritt.

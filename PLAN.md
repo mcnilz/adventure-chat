@@ -1,5 +1,5 @@
 # Umsetzungsplan
-Status: Tickets 01–15 außer 13 sind menschlich abgenommen und done. Ticket 16 ist seit 05.11.2026 implementiert und ready-for-human; Ticket 13 bleibt draft und folgt nach Abnahme von 16. Details und Belege im jeweiligen Ticket und active-state.md.
+Status: Tickets 01–16 außer 13 sind menschlich abgenommen und done. Ticket 16 wurde am 09.11.2026 ausdrücklich abgenommen. Ticket 13 ist damit nicht mehr blockiert und bleibt bis zur Bestätigung von Paketumfang und Testgrenzen draft. Details und Belege im jeweiligen Ticket und active-state.md.
 
 | Ticket | Vorführbares Ergebnis | Blocked by |
 | --- | --- | --- |

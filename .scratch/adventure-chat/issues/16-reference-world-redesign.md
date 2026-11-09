@@ -4,7 +4,11 @@
 
 **Blocked by:** 14, 15; Ticket 12 ist done. Ticket 13 folgt erst nach diesem Ticket und ist kein Blocker.
 
-**Status:** ready-for-human
+**Status:** done
+
+## Menschliche Abnahme · 09.11.2026
+
+Benutzer: „Ticket 16 neues design wurde umgesetzt, ist abgenommen“. Damit ist die abschließende Native128-Fassung einschließlich der bislang offenen Sichtabnahme abgenommen. Die folgenden ready-for-human-Angaben dokumentieren den historischen Prüfstand vor dieser Abnahme.
 
 Am 04.11.2026 nur als Ticketanlage beauftragt. Am 05.11.2026 hat der Benutzer Paketumfang, Detailentscheidungen und Testgrenzen mit „ja“ bestätigt. Implementiert; menschliche Sichtabnahme bleibt offen.
 
