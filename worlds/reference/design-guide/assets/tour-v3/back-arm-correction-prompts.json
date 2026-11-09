@@ -1,0 +1,24 @@
+{
+  "tool": "image_gen__imagegen",
+  "reason": "Gegenläufiger Armschwung im ersten Rückkontakt, restliche Posen erhalten",
+  "jobs": [
+    {
+      "character": "mara",
+      "id": "mara-back-phase0-v3",
+      "refs": [
+        "C:/Users/MartinSchnabel/AppData/Roaming/Open Design/namespaces/release-stable-win/data/projects/taverne-ticket-19-lokale-entw-rfe-0d87/production/sources/mara-back-v2-generated.png",
+        "C:/Users/MartinSchnabel/AppData/Roaming/Open Design/namespaces/release-stable-win/data/projects/taverne-ticket-19-lokale-entw-rfe-0d87/assets/sources/mara-generated.png"
+      ],
+      "prompt": "Targeted edit of IMAGE1, the current four-pose back-facing walking row of Mara (dark bob, burgundy jacket, teal trousers). IMAGE2 is approved canonical identity only. Preserve camera, head size, colors, all legs, and the last THREE figures. Edit ONLY THE ARMS OF THE FIRST / LEFTMOST FIGURE to fix contralateral arm swing. Its LEFT boot is currently lower/trailing toward image BOTTOM LEFT and stays exactly there. Therefore its anatomical LEFT ARM (screen LEFT) must swing FORWARD/AWAY, with left elbow/hand HIGHER next to upper torso and partly hidden. Its RIGHT ARM (screen RIGHT) must swing BACK/TOWARD VIEWER, right hand LOWER and clearly visible near right hip/upper thigh. In the current first figure left hand hangs low and right hand is high; SWAP THOSE TWO ARM POSITIONS only. No front face or chest in any figure; true back of head and jacket/waistcoat, same approved elevated oblique RPG camera. Keep first figure crown, torso, left trailing boot, other leg, body scale and complete silhouette fixed. Last three poses remain unchanged. Output same ONE horizontal row of FOUR isolated complete bodies with transparent gaps and margins, 3:1 wide canvas, common heights and baseline. Crisp pixel-art clusters with solid opaque interiors and genuine transparent alpha background. No shadow, blur, matte, ground, text, labels, numbers, grid, extras or clipped parts. This is an arm correction of an existing walking-away contact pose, no new design."
+    },
+    {
+      "character": "bruno",
+      "id": "bruno-back-phase0-v3",
+      "refs": [
+        "C:/Users/MartinSchnabel/AppData/Roaming/Open Design/namespaces/release-stable-win/data/projects/taverne-ticket-19-lokale-entw-rfe-0d87/production/sources/bruno-back-v2-generated.png",
+        "C:/Users/MartinSchnabel/AppData/Roaming/Open Design/namespaces/release-stable-win/data/projects/taverne-ticket-19-lokale-entw-rfe-0d87/assets/sources/bruno-generated.png"
+      ],
+      "prompt": "Targeted edit of IMAGE1, the current four-pose back-facing walking row of Bruno (gray hair, ochre waistcoat, light sleeves, charcoal trousers). IMAGE2 is approved canonical identity only. Preserve camera, head size, colors, all legs, and the last THREE figures. Edit ONLY THE ARMS OF THE FIRST / LEFTMOST FIGURE to fix contralateral arm swing. Its LEFT boot is currently lower/trailing toward image BOTTOM LEFT and stays exactly there. Therefore its anatomical LEFT ARM (screen LEFT) must swing FORWARD/AWAY, with left elbow/hand HIGHER next to upper torso and partly hidden. Its RIGHT ARM (screen RIGHT) must swing BACK/TOWARD VIEWER, right hand LOWER and clearly visible near right hip/upper thigh. In the current first figure left hand hangs low and right hand is high; SWAP THOSE TWO ARM POSITIONS only. No front face or chest in any figure; true back of head and jacket/waistcoat, same approved elevated oblique RPG camera. Keep first figure crown, torso, left trailing boot, other leg, body scale and complete silhouette fixed. Last three poses remain unchanged. Output same ONE horizontal row of FOUR isolated complete bodies with transparent gaps and margins, 3:1 wide canvas, common heights and baseline. Crisp pixel-art clusters with solid opaque interiors and genuine transparent alpha background. No shadow, blur, matte, ground, text, labels, numbers, grid, extras or clipped parts. This is an arm correction of an existing walking-away contact pose, no new design."
+    }
+  ]
+}

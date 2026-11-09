@@ -1,0 +1,438 @@
+[
+  {
+    "path": "schemas/room.schema.json",
+    "sha256": "1967F9E5D2DDF5F3F2EE0B0A26C240A35969B250036B385836974AE5B8C99898"
+  },
+  {
+    "path": "schemas/world/1.0.0/room.schema.json",
+    "sha256": "F781D028F4BC8DB01A47B42A6180BCB45BB4B229BD8429E05B603136244A6D8E"
+  },
+  {
+    "path": "schemas/world/1.0.0/world.schema.json",
+    "sha256": "EE546F3E592CE735EF7A8C5EB242462F3A8AEB34625A40A7E5ECE4300828E37B"
+  },
+  {
+    "path": "schemas/world/1.1.0/room.schema.json",
+    "sha256": "E7A3D22F7D36AD7227F5FCE897C5AEA0507C9B354F3BFD11DDBDD4C5BC298D53"
+  },
+  {
+    "path": "schemas/world/1.1.0/world.schema.json",
+    "sha256": "B70C4864E1828720D34B579382C85FD5466C56E1894ECEDC08A0DDD6215F4526"
+  },
+  {
+    "path": "schemas/world/1.2.0/room.schema.json",
+    "sha256": "C27ECAC2C459131033A3DAEE531A32E2469CDAD5AFC8A977BA0F967AC9DDC5BD"
+  },
+  {
+    "path": "schemas/world/1.2.0/world.schema.json",
+    "sha256": "9E2DCF6629BA5C44A091B55648D98277467302DAD44E0F9FAF2845518AFD03D9"
+  },
+  {
+    "path": "schemas/world/1.3.0/room.schema.json",
+    "sha256": "290BDCDC279B94874871B1223258197B5CA50C0FB59ED0304D4F6A8BAC78111A"
+  },
+  {
+    "path": "schemas/world/1.3.0/world.schema.json",
+    "sha256": "D537FF53E72FA026717AA0E030A70CA28C4070ED442089690641E252B9E30995"
+  },
+  {
+    "path": "schemas/world/1.4.0/room.schema.json",
+    "sha256": "785ECB87500050BFC9F3D88832C328EEAD72EECA044D750F4AC52C5F35C61583"
+  },
+  {
+    "path": "schemas/world/1.4.0/world.schema.json",
+    "sha256": "33EBA0247C13AA601C5BF123F777D827DAE9C4A0F98CF8B98E0B710C21F0D666"
+  },
+  {
+    "path": "schemas/world/1.5.0/room.schema.json",
+    "sha256": "8EE7293C3BF4BE5E8F886001290238B34C39ECF67EA368A4D1728F487C7D253D"
+  },
+  {
+    "path": "schemas/world/1.5.0/world.schema.json",
+    "sha256": "9D65D3278A916CDA0EED6348342784B327C151D2335E705676FFC42806BB12B9"
+  },
+  {
+    "path": "tests/Fixtures/README.md",
+    "sha256": "844DA8D7957AA8504D7D1B54589632B473D83C323036F7478D00D48C3DF260E5"
+  },
+  {
+    "path": "tests/Fixtures/characters-a/assets/images/background.png",
+    "sha256": "B40F243301CBFBDFE6391F94756101747B47FE0CADB5D3C85D9CFE10E945D8C9"
+  },
+  {
+    "path": "tests/Fixtures/characters-a/assets/images/small.png",
+    "sha256": "4D366AB6B4D0480673BC3AE3D10906517570C82F7E33A3AAFDC436EC95F61413"
+  },
+  {
+    "path": "tests/Fixtures/characters-a/assets/images/tall.png",
+    "sha256": "D343A639B4D8D312B1939C9DEF91943A144DEC9D90AAEF380E3C1370F4798243"
+  },
+  {
+    "path": "tests/Fixtures/characters-a/rooms/hall.yaml",
+    "sha256": "C9A415BD7C50BFEB7145B37F435321AA90C3EABAD632C78A7442CB60F39E9280"
+  },
+  {
+    "path": "tests/Fixtures/characters-a/rooms/next.yaml",
+    "sha256": "D91F7A964B33F001097C5E842E4711C4B0590FA57ABC0CFF260A7073FA92898F"
+  },
+  {
+    "path": "tests/Fixtures/characters-a/world.yaml",
+    "sha256": "C3215135A4A24CF181F39F752FFEE422C568074161A39080146B39464415902D"
+  },
+  {
+    "path": "tests/Fixtures/characters-b/assets/images/background.png",
+    "sha256": "B40F243301CBFBDFE6391F94756101747B47FE0CADB5D3C85D9CFE10E945D8C9"
+  },
+  {
+    "path": "tests/Fixtures/characters-b/assets/images/small.png",
+    "sha256": "B4FDC170B2F53443922FF80B48B6C52E59E22469B387EBBF542E89A3CB0BE122"
+  },
+  {
+    "path": "tests/Fixtures/characters-b/assets/images/tall.png",
+    "sha256": "ED2557CB8457D384BC5DC6D8D0ECB750670C6F0583020436531E551785943D50"
+  },
+  {
+    "path": "tests/Fixtures/characters-b/rooms/hall.yaml",
+    "sha256": "C9A415BD7C50BFEB7145B37F435321AA90C3EABAD632C78A7442CB60F39E9280"
+  },
+  {
+    "path": "tests/Fixtures/characters-b/rooms/next.yaml",
+    "sha256": "D91F7A964B33F001097C5E842E4711C4B0590FA57ABC0CFF260A7073FA92898F"
+  },
+  {
+    "path": "tests/Fixtures/characters-b/world.yaml",
+    "sha256": "67052FFA954D8EDCF717F95EC409E58E2E0718BA2139C87BDAA6BE9B5DBEAB50"
+  },
+  {
+    "path": "tests/Fixtures/foreground/assets/images/background.png",
+    "sha256": "B40F243301CBFBDFE6391F94756101747B47FE0CADB5D3C85D9CFE10E945D8C9"
+  },
+  {
+    "path": "tests/Fixtures/foreground/assets/images/small.png",
+    "sha256": "4D366AB6B4D0480673BC3AE3D10906517570C82F7E33A3AAFDC436EC95F61413"
+  },
+  {
+    "path": "tests/Fixtures/foreground/assets/images/table.png",
+    "sha256": "F6AF1AB1EF48B0CC0C5C5D099B0F1389982DD850A70522467EC5E80DC4030D73"
+  },
+  {
+    "path": "tests/Fixtures/foreground/assets/images/tall.png",
+    "sha256": "D343A639B4D8D312B1939C9DEF91943A144DEC9D90AAEF380E3C1370F4798243"
+  },
+  {
+    "path": "tests/Fixtures/foreground/rooms/hall.yaml",
+    "sha256": "BEC609BBD10FE3CD249325389AEBBFD96E017297CAAE0C50775E50C884748D25"
+  },
+  {
+    "path": "tests/Fixtures/foreground/rooms/next.yaml",
+    "sha256": "D91F7A964B33F001097C5E842E4711C4B0590FA57ABC0CFF260A7073FA92898F"
+  },
+  {
+    "path": "tests/Fixtures/foreground/world.yaml",
+    "sha256": "1341957A1CCF3A978EB652DA0083653C1EB66F7CDFCAACC2C2F12168E65BB6EA"
+  },
+  {
+    "path": "tests/Fixtures/map-v1/assets/images/garden.png",
+    "sha256": "2D4871960C7D101336A19D9327D917BD7C5D51E3A41B7B108DE3ACD899AABB4E"
+  },
+  {
+    "path": "tests/Fixtures/map-v1/assets/images/lounge.png",
+    "sha256": "57B2947E306FBE44E8BE04E3F2686D6266E2D7C6AAC51CBBCAA6858B0E4F94FA"
+  },
+  {
+    "path": "tests/Fixtures/map-v1/assets/images/map.png",
+    "sha256": "A95BCD3B9530371F55F44A55C11CEE695891CEA7609DBAE6726CA898392BF758"
+  },
+  {
+    "path": "tests/Fixtures/map-v1/rooms/garden.yaml",
+    "sha256": "DAE51400CC004B307A1A9F4397A0808EF91F90C14CAE74536047C4B4C32A0756"
+  },
+  {
+    "path": "tests/Fixtures/map-v1/rooms/lounge.yaml",
+    "sha256": "E2158855C4FFA3D75B1E9C6B2043ECEC0CE52AAD7D7DB7A34DEEE0DDEC2C4F32"
+  },
+  {
+    "path": "tests/Fixtures/map-v1/rooms/map.yaml",
+    "sha256": "19851A936E1433C58BB114EBC02CB686719358BA92642DCAE60A984C746E7390"
+  },
+  {
+    "path": "tests/Fixtures/map-v1/world.yaml",
+    "sha256": "4DAB4E14FC2140E258901452C3FDF1D4B8474F65E1AE0E8EA4589BA701D4F06C"
+  },
+  {
+    "path": "tests/Fixtures/reference-v1/assets/images/garden.png",
+    "sha256": "2D4871960C7D101336A19D9327D917BD7C5D51E3A41B7B108DE3ACD899AABB4E"
+  },
+  {
+    "path": "tests/Fixtures/reference-v1/assets/images/lounge.png",
+    "sha256": "57B2947E306FBE44E8BE04E3F2686D6266E2D7C6AAC51CBBCAA6858B0E4F94FA"
+  },
+  {
+    "path": "tests/Fixtures/reference-v1/rooms/garden.yaml",
+    "sha256": "860E2C0734FB8AC3E302035016E9F8260F63906ED61FB058A5621B4E533B741F"
+  },
+  {
+    "path": "tests/Fixtures/reference-v1/rooms/lounge.yaml",
+    "sha256": "44B9707005863B6FA6353C6F7FBF673DBDFF05FE557656F9EDD661ED4BD5E2F9"
+  },
+  {
+    "path": "tests/Fixtures/reference-v1/world.yaml",
+    "sha256": "839208FCAC0E2F18B2D404E669DDDDE7DA54DC3B310E9535231AE1C7E79077E6"
+  },
+  {
+    "path": "tests/Fixtures/scroll-v1/assets/images/gallery.png",
+    "sha256": "CF3B253EDBC76DB6517CD9C43135D2914AAF856ACEC8C5CCA04C1D39ECE9CDAE"
+  },
+  {
+    "path": "tests/Fixtures/scroll-v1/assets/images/map.png",
+    "sha256": "2C1D1A4445F4E3DC1C69E13083E7BE4717D50AEF191C4491F978C08C8D75DF59"
+  },
+  {
+    "path": "tests/Fixtures/scroll-v1/rooms/gallery.yaml",
+    "sha256": "B7B207F2BC89B74D53F6E9F0DEE278AE7877494B5378A53F1FDC28F0636D4BDA"
+  },
+  {
+    "path": "tests/Fixtures/scroll-v1/rooms/map.yaml",
+    "sha256": "A78937D1084FE127791AA73C1A9952FC098576427A80AD26645573552234277D"
+  },
+  {
+    "path": "tests/Fixtures/scroll-v1/world.yaml",
+    "sha256": "8DFCCC546F3A1E968E9F429E9F688C1AF098E065CFABEADC65334DD1C42652B6"
+  },
+  {
+    "path": "worlds/map/assets/images/demo-combined.png",
+    "sha256": "F0D82CE0C7C506848680F3D05B4B2CB0DE62DC58F5570205474E45D7A777657B"
+  },
+  {
+    "path": "worlds/map/assets/images/demo-depth.png",
+    "sha256": "488285F2F64B800323BF411957436ACD157B70CC80F2880D9E76FC8FEFD70D2D"
+  },
+  {
+    "path": "worlds/map/assets/images/demo-map.png",
+    "sha256": "728DCC84F98417B719F00904D5641B400C714F49930707FF4CF58B6D4DC712FF"
+  },
+  {
+    "path": "worlds/map/assets/images/garden.png",
+    "sha256": "2D4871960C7D101336A19D9327D917BD7C5D51E3A41B7B108DE3ACD899AABB4E"
+  },
+  {
+    "path": "worlds/map/assets/images/lounge.png",
+    "sha256": "57B2947E306FBE44E8BE04E3F2686D6266E2D7C6AAC51CBBCAA6858B0E4F94FA"
+  },
+  {
+    "path": "worlds/map/assets/images/map.png",
+    "sha256": "A95BCD3B9530371F55F44A55C11CEE695891CEA7609DBAE6726CA898392BF758"
+  },
+  {
+    "path": "worlds/map/rooms/garden.yaml",
+    "sha256": "1DD414696D97DEDD39D64A1C6DBE6831A764D9E9617340116A778316A6F51675"
+  },
+  {
+    "path": "worlds/map/rooms/lounge.yaml",
+    "sha256": "356633505D8429F71106F73A447118BF0D7E6ECEE0E1BF7956F55F68CA380315"
+  },
+  {
+    "path": "worlds/map/rooms/map.yaml",
+    "sha256": "276A9D707654FCE1345939E00C4844AB10613D288C66F0C78D13370518634523"
+  },
+  {
+    "path": "worlds/map/rooms/tour-combined.yaml",
+    "sha256": "C0C69C1DB99FF62F7901826655644FCE618C1B9BF2CF3DDC4F30E09DFA132F3D"
+  },
+  {
+    "path": "worlds/map/rooms/tour-depth.yaml",
+    "sha256": "E027DEBD4BF29372386FEF7742432E4ED92643F74AFA6B45C49EF2389517BE2B"
+  },
+  {
+    "path": "worlds/map/rooms/tour-map.yaml",
+    "sha256": "55819CB279EC13ECD3A0EAD7B1169CC96ED1A1DA7C96A03F2445FD296957B167"
+  },
+  {
+    "path": "worlds/map/world.yaml",
+    "sha256": "DDE60BD85A64F96F17027198C291A2ABEFA9A224FC1EBC9092834087363B55AD"
+  },
+  {
+    "path": "worlds/reference/assets/images/bruno.png",
+    "sha256": "67608EB632DC783BCD14739EF2842FB709A6878A38B7E31ABD83F832FF28B0F2"
+  },
+  {
+    "path": "worlds/reference/assets/images/garden-runtime.png",
+    "sha256": "624DDCFA6799C3DD9C8994C93737CB21C6844B07F2E00A6D99932FE5AB184928"
+  },
+  {
+    "path": "worlds/reference/assets/images/garden-table.png",
+    "sha256": "BA5467B18CABFBEB51F1AAE4FF1F8A4E61A2AB9109D60DDECCA78CBBF96529EC"
+  },
+  {
+    "path": "worlds/reference/assets/images/garden.png",
+    "sha256": "E3EC895BC7E65396D471F51748355D7F0F6A99F5F72EDE7C0032EE33180D180D"
+  },
+  {
+    "path": "worlds/reference/assets/images/lounge-runtime.png",
+    "sha256": "B2CA70977F8703855D0A743556DC9571CD9CE7026622D397CA163B8CF082791B"
+  },
+  {
+    "path": "worlds/reference/assets/images/lounge-table.png",
+    "sha256": "C4BB313EF60C5CF637850A0DBC9122F665436E94522CFE1400F67084287CF77A"
+  },
+  {
+    "path": "worlds/reference/assets/images/lounge.png",
+    "sha256": "62FADCEFA652EF7788F6376CA73D1D501D95A2D16D63C26781BDCB26C8B8CAC3"
+  },
+  {
+    "path": "worlds/reference/assets/images/mara.png",
+    "sha256": "63B79093FF01B3A4EDEEEA356F97CC56B4D5D4B7C4B60397A6C0315C708DB54C"
+  },
+  {
+    "path": "worlds/reference/design-guide/assets/characters/bruno-legacy.png",
+    "sha256": "DD6A55BB96E5E08AC2BF126D130C76BD2BFD2DA43062631A043A1DDE12AB0EF1"
+  },
+  {
+    "path": "worlds/reference/design-guide/assets/characters/bruno.png",
+    "sha256": "089155F7C9C9C2C9686D0474A665B6DE322AB8B4101283CCFC46246C8E50393F"
+  },
+  {
+    "path": "worlds/reference/design-guide/assets/characters/mara-legacy.png",
+    "sha256": "42DB8C9CD473332F168F5A2A92FF1678E9485B09C1C53C0F70D7DC89F1EBC63C"
+  },
+  {
+    "path": "worlds/reference/design-guide/assets/characters/mara.png",
+    "sha256": "5B7DE8E4FBBA703DE2FC31E01C002487ACBB5E7AD9A083C9AF3E235425C7FA06"
+  },
+  {
+    "path": "worlds/reference/design-guide/assets/characters/native128/HERKUNFT-UND-PRUEFUNG.md",
+    "sha256": "CAA633EC662993A6F5EF8025B430E53735C9EB01D380BF0436AD41AF0853FD4C"
+  },
+  {
+    "path": "worlds/reference/design-guide/assets/characters/native128/bruno-vier-richtungen.gif",
+    "sha256": "C581E43A2A04FBA2A563A61A15BD82DE0BA9F65E3D0BEE44BC838D0AF24C09EB"
+  },
+  {
+    "path": "worlds/reference/design-guide/assets/characters/native128/bruno.png",
+    "sha256": "67608EB632DC783BCD14739EF2842FB709A6878A38B7E31ABD83F832FF28B0F2"
+  },
+  {
+    "path": "worlds/reference/design-guide/assets/characters/native128/kontaktbogen.png",
+    "sha256": "C141B3AF1FFAC1E3594011CB34E4A165BDD03480A5E267DE18F3166957D8A306"
+  },
+  {
+    "path": "worlds/reference/design-guide/assets/characters/native128/mara-vier-richtungen.gif",
+    "sha256": "87336878822F5693964E5B58629CFDEF9A6D3A885BBC634A8E5AA549A39C2E20"
+  },
+  {
+    "path": "worlds/reference/design-guide/assets/characters/native128/mara.png",
+    "sha256": "63B79093FF01B3A4EDEEEA356F97CC56B4D5D4B7C4B60397A6C0315C708DB54C"
+  },
+  {
+    "path": "worlds/reference/design-guide/assets/characters/native128/previews/garden-bruno-hinter-tisch.png",
+    "sha256": "6BF3AB4D2FA82E04B20B5BA985B6F33FCC70AC1E404FBBDD0A5F1447BB278219"
+  },
+  {
+    "path": "worlds/reference/design-guide/assets/characters/native128/previews/garden-bruno-vor-tisch.png",
+    "sha256": "A3652E4A487018D9B83C6A5516FBDBA20A7BBC67E9C5DEDBFEF175270437ED6B"
+  },
+  {
+    "path": "worlds/reference/design-guide/assets/characters/native128/previews/garden-mara-hinter-tisch.png",
+    "sha256": "CF0278686330CABD0DEE9EF45028669E1058D2A2A169085B617759CE0659A0BB"
+  },
+  {
+    "path": "worlds/reference/design-guide/assets/characters/native128/previews/garden-mara-vor-tisch.png",
+    "sha256": "8A23C288F1226D6FA7C653F9499228484DCDE3048776856BF4F5F6D1E97DD050"
+  },
+  {
+    "path": "worlds/reference/design-guide/assets/characters/native128/previews/lounge-bruno-hinter-tisch.png",
+    "sha256": "D0D8FD3D494ABB5105478154D699D6B9DCA0D438AEE8C4F056B31C4D568D2EFA"
+  },
+  {
+    "path": "worlds/reference/design-guide/assets/characters/native128/previews/lounge-bruno-vor-tisch.png",
+    "sha256": "6FBCEB6AE6BE0826E65FA98EBE22E1DBF2B6624D6402FA231370C63699E3EC45"
+  },
+  {
+    "path": "worlds/reference/design-guide/assets/characters/native128/previews/lounge-mara-hinter-tisch.png",
+    "sha256": "9E93294FCAE9AE1DB68B2C6A17F7AE4FC62749C0138DB5FF672C4ED4987BA676"
+  },
+  {
+    "path": "worlds/reference/design-guide/assets/characters/native128/previews/lounge-mara-vor-tisch.png",
+    "sha256": "8FD166BEA5E044743BD9D74DA4731029185D5F630CC9CAF8BB25176A1E78D038"
+  },
+  {
+    "path": "worlds/reference/design-guide/assets/characters/native128/sources/bruno-generated.png",
+    "sha256": "DE20635776D585728E9675ABC5C04FCA0BE2379D5B72EA447ED16089DB3BD8B3"
+  },
+  {
+    "path": "worlds/reference/design-guide/assets/characters/native128/sources/first-pass/bruno-generated.png",
+    "sha256": "77B5F060C12EDA7D5395BAF4BA82E2A4655B0ADFEF9C129C3EA2B70053605962"
+  },
+  {
+    "path": "worlds/reference/design-guide/assets/characters/native128/sources/first-pass/mara-generated.png",
+    "sha256": "EBA03D710D1297D549BE77E6ACC3B5C056BF181EED0B7BB341BCDEAC72E021B4"
+  },
+  {
+    "path": "worlds/reference/design-guide/assets/characters/native128/sources/mara-generated.png",
+    "sha256": "4C52BB83DA3CAA02B95B3E105316B5396A724FA32D0BD06B0E1434F8FAA43CE1"
+  },
+  {
+    "path": "worlds/reference/design-guide/assets/characters/native128/technical-checks.json",
+    "sha256": "AEACB67AF2DF3EE63C79721D1669600831737338C732680372A448CEA4074432"
+  },
+  {
+    "path": "worlds/reference/design-guide/assets/rooms/garden.png",
+    "sha256": "E3EC895BC7E65396D471F51748355D7F0F6A99F5F72EDE7C0032EE33180D180D"
+  },
+  {
+    "path": "worlds/reference/design-guide/assets/rooms/lounge.png",
+    "sha256": "62FADCEFA652EF7788F6376CA73D1D501D95A2D16D63C26781BDCB26C8B8CAC3"
+  },
+  {
+    "path": "worlds/reference/rooms/garden.yaml",
+    "sha256": "76B182E6A4B2F38742E6A483C47CC24419DADB16DDA23423DB89DACDCBD15EAE"
+  },
+  {
+    "path": "worlds/reference/rooms/lounge.yaml",
+    "sha256": "8EFD0BBA0A4DC56D749A40E4ED1E72DF52FBD80877194D53D5BFAB9D1610B639"
+  },
+  {
+    "path": "worlds/scroll/assets/images/demo-combined.png",
+    "sha256": "F0D82CE0C7C506848680F3D05B4B2CB0DE62DC58F5570205474E45D7A777657B"
+  },
+  {
+    "path": "worlds/scroll/assets/images/demo-depth.png",
+    "sha256": "488285F2F64B800323BF411957436ACD157B70CC80F2880D9E76FC8FEFD70D2D"
+  },
+  {
+    "path": "worlds/scroll/assets/images/demo-map.png",
+    "sha256": "728DCC84F98417B719F00904D5641B400C714F49930707FF4CF58B6D4DC712FF"
+  },
+  {
+    "path": "worlds/scroll/assets/images/gallery.png",
+    "sha256": "CF3B253EDBC76DB6517CD9C43135D2914AAF856ACEC8C5CCA04C1D39ECE9CDAE"
+  },
+  {
+    "path": "worlds/scroll/assets/images/map.png",
+    "sha256": "2C1D1A4445F4E3DC1C69E13083E7BE4717D50AEF191C4491F978C08C8D75DF59"
+  },
+  {
+    "path": "worlds/scroll/rooms/gallery.yaml",
+    "sha256": "3D725B7203D648DD20A556A0F0C1D4CD6A426D2447E8084E24693FD76D761184"
+  },
+  {
+    "path": "worlds/scroll/rooms/map.yaml",
+    "sha256": "329C225FABEB771F193E1B29D3ACEDBB430B7BB19B28EBEC4E24BE78E554E3B3"
+  },
+  {
+    "path": "worlds/scroll/rooms/tour-combined.yaml",
+    "sha256": "C0C69C1DB99FF62F7901826655644FCE618C1B9BF2CF3DDC4F30E09DFA132F3D"
+  },
+  {
+    "path": "worlds/scroll/rooms/tour-depth.yaml",
+    "sha256": "E027DEBD4BF29372386FEF7742432E4ED92643F74AFA6B45C49EF2389517BE2B"
+  },
+  {
+    "path": "worlds/scroll/rooms/tour-map.yaml",
+    "sha256": "394C58AE76D023C8F8E4FD7B56B6DC5BEE93BCF6F1F2C17DAE7DA6E7FFCDF582"
+  },
+  {
+    "path": "worlds/scroll/world.yaml",
+    "sha256": "840B713312FAA254A2843811ABB3ADBC431E79625E759BFE97FCD11B15E5D18E"
+  }
+]

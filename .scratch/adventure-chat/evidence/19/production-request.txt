@@ -1,0 +1,43 @@
+FORTSETZUNG des bereits freigegebenen Endgrafik-Auftrags. Beide vorherigen Startversuche wurden terminal durch DAEMON_RESTARTED beendet, ohne Bildlieferung und ohne Benutzerabbruch. Beim jetzigen Start ist ausschließlich die rekursive MCP-Verbindung des internen Workers vorübergehend deaktiviert; der aufrufende Chat stellt seine normale Konfiguration direkt nach der Initialisierung wieder her. Nicht versuchen, die übergeordnete Design-Anbindung selbst zu starten oder Einstellungen zu ändern. Den bestätigten Auftrag direkt ausführen, ohne erneute Planfreigabe.
+
+PRODUZIERE JETZT DIE ENDGRAFIKEN VON TICKET 19 im aktuellen lokalen Designprojekt. Der Benutzer hat die gelieferte Entwurfsmappe mit "passt" ausdrücklich freigegeben. Die Motive und der gezeigte leicht schräge Draufsichtstil sind damit bestätigt. Keine neue Plan-/Brief-Rückfrage. Führe die Ausarbeitung bis zu echten fertigen Dateien und einer lokalen Bewegungsvorschau aus.
+
+AUSFÜHRUNG: ausschließlich Local Codex mit vorhandener ChatGPT-Anmeldung im installierten lokalen Designprojekt. Kein OpenDesign Cloud, kein BYOK, keine externen APIs oder CLI-Generierungs-Fallbacks, keine Veröffentlichung/Uploads/Deployments. Die Bildgenerierung darf nur denselben eingebauten image_gen__imagegen-Weg benutzen, der im letzten lokalen Lauf erfolgreich fünf PNGs geliefert hat. Kein neues Konto, kein Anmeldefluss, keine Installation, keine Subagenten oder andere delegierte Runtimes. Das ist die Fortsetzung derselben Gestaltung, keine Änderung des Lieferwegs. Halte die Arbeit lokal, behaupte keinen vollständigen Offlinebetrieb des Bildmodells.
+
+SCHREIBGRENZE: Nur innerhalb des aktuellen Designprojekts arbeiten. D:\adventure-chat ausschließlich lesen, nicht ändern oder committen. Der aufrufende Agent übernimmt Spieleinbindung, Laufpolygone, Tests und Ticketpflege danach. Bestehende Entwurfsquellen, assets/concepts/, assets/sources/, assets/references/ und index.html erhalten. Neue fertige Lieferung und Vorschau unter production/, Einstieg production/index.html. Keine laufenden Anwendungsserver beenden oder ändern.
+
+KONTEXT LESEN: D:\adventure-chat\active-state.md, GLOSSARY.md, AGENTS.md, .scratch/adventure-chat/issues/19-reference-world-art-polish.md sowie den vorhandenen lokalen DESIGN-CONTRACT.md, HANDOFF.md, CAPABILITY-NOTES.md, generation-prompts.json, assets/art-provenance.json. Betrachte die tatsächlichen freigegebenen Bilder:
+- assets/concepts/kartenweg.png (1280x360)
+- assets/concepts/huegelpfad.png (640x360)
+- assets/concepts/panorama.png (1280x360)
+- assets/sources/mara-generated.png
+- assets/sources/bruno-generated.png
+- assets/references/mara.png und bruno.png (Adventure-Identitätsreferenzen)
+- assets/references/lounge-runtime.png und garden-runtime.png (Material-/Lichtstil).
+
+GELIEFERTE UND BESTÄTIGTE MOTIVE ERHALTEN: Die drei vorhandenen Raum-Zielfassungen sind als Motive freigegeben; kopiere sie bytegleich nach production/backgrounds/ als kartenweg.png, huegelpfad.png und panorama.png. KEINE unnötige Hintergrund-Neugenerierung oder Neugestaltung. Vorhandene unveränderte Quellen weiterhin dokumentieren. Die Laufgeometrie wird anschließend passend zu den sichtbaren Wegen angepasst, bisherige unpassende Overlays dürfen nicht als endgültige Navigation ausgegeben werden.
+
+HAUPTAUFGABE: Je ein vollständiges echtes Mara-/Bruno-Draufsicht-Lauf-Sheet:
+- production/characters/mara-top-down.png und bruno-top-down.png
+- transparentes PNG exakt 512x384, 4 Spalten x 3 Reihen mit 128x128 pro Zelle.
+- Reihe 0: rechts, Reihe 1: hinten/aufwärts, Reihe 2: vorne/abwärts. Links spiegelt später der bestehende Renderer; kein eigener linker Sheetbereich.
+- Spalte 0 ist zugleich Stand und erste Laufphase; alle 4 Spalten sind ein vollständiger vierphasiger Gang. Kontakt, Durchgang, Gegenkontakt, zweiter Durchgang. Keine kopierten identischen Bilder als vermeintliche Animation.
+- Die genehmigten Einzelkonzepte sind kanonische Identitäts-/Stilreferenzen, keine Rohbilder zum bloßen Drehen, Strecken oder durch Code simulierten Bewegen. Neue Richtungen und Posen tatsächlich mit dem eingebauten Bildwerkzeug erzeugen.
+- Mara: dunkler Bob, weinrote Jacke, helle Bluse, petrolfarbene Hose, schlanke Haltung. Bruno: graues Haar/Schnurrbart, Ockerweste, helles Hemd, etwas gebeugter, breiter als Mara. Derselbe erhöhte Blickwinkel wie in den freigegebenen Konzepten; kein rein seitliches Adventure-Sheet und keine extrem neue senkrechte Kamera.
+- Rückansichten zeigen Hinterkopf und Rücken, keine irrtümlichen Frontgesichter. Rechtsprofile zeigen echte nach rechts gehende Anatomie; Armschwung gegenläufig zu Beinen.
+- Zielrahmen in der Karte ist nur 32px hoch. Die tatsächliche Figur soll im 128er-Frame 120 Pixel sichtbare Höhe haben (oben 8px Reserve), sodass 30 sichtbare Pixel im Spiel bleiben. Kein großer transparenter Rand wie in den ersten Konzepten.
+- Fester Rahmenanker (64,128), sichtbare Fußkontakt-Unterkante y=127 in jeder Zelle; konstante Körperhöhe/Volumen und seitliche Zentrierung. Kein wandernder Fußpunkt und keine schwach sichtbaren Randpixel, die den Hauptkörper beim Zuschneiden verkleinern.
+- Sauberes binäres Alpha 0/255 für die fertigen Sheets. Keine dunklen/hellen Matte-Halos, Bodenschatten, Effekte, Rasterlinien, Labels, Nummern, UI oder Teile benachbarter Figuren im endgültigen Sheet.
+- Originale aller neuen Generierungen separat unter production/sources/ erhalten. Die deterministische Rasteraufbereitung darf Zuschneiden/Alpha-Reinigung/proportionale nächste-Nachbar-Abtastung/Zellmontage durchführen; sie darf keine fehlenden Posen zeichnen, spiegeln oder synthetisieren (ausgenommen die bereits im Spiel zugesicherte Linksansicht in der Vorschau).
+- Empfehlung: je Figur drei referenzgestützte Zeilen mit vier vollständigen Posen erzeugen und sauber zusammensetzen. Jeder Generierungsauftrag erhält die genehmigte kanonische Figur als Referenz; zusätzliche bestehende Adventure-Referenzen bewahren die Identität. Generierungsfehler gezielt korrigieren, keine ganzen Hintergründe neu erzeugen.
+- Vor Erzeugung die tatsächlich installierte Bildgenerierungsanleitung beachten. Keine unbeauftragten API-Key-/Anbieter-Fallbacks bei Fehlern. Keine neuen Bibliotheken installieren; vorhandene lokale Systemwerkzeuge für Rastermontage nutzen.
+
+QUALITÄT/PRÜFUNG:
+1. Exakte Abmessungen, 12 belegte Zellen pro Figur, alle Zellen isoliert ohne Nachbarreste, binäres Alpha, 120px tatsächliche Körperhöhe und Fußunterkante127 unabhängig messen. Kleine isolierte Generierungsartefakte nicht als Körpermaske mitführen.
+2. Alle 24 Posen visuell auf Identität, Blickrichtung und erkennbare Gegenphasen prüfen; nicht behaupten, dass Metriken Anatomie oder Bewegung abnehmen.
+3. Kontaktbogen mit Rahmen-/Fußankermarkierung als eigene QA-Datei (nie Markierungen in die Spiel-Sheets brennen).
+4. Lokale HTML-Bewegungsvorschau unter production/index.html: beide Figuren bei 32px und vergrößert mit genau diesen Zielpixeln, vier Richtungen, Stand, Schrittphasen einzeln und zyklisch (ca.160ms je Phase), heller/dunkler Untergrund. Direktvergleich mit bestehenden Adventure-Identitäten und freigegebenen Konzepten. Hintergrundbilder und tatsächliche Dateilinks aufnehmen.
+5. production/DELIVERY.md und production/technical-checks.json mit Quellen, tatsächlichem Generierungsweg, unveränderten Hintergrundkopien und Hashes, Maßen, Alpha, Zellmessungen und echten Prüfgrenzen. Keine erfundenen Modell-/Urheber-/Lizenzangaben. Vorhandene Entwurfsdokumente nicht als aktuelle Produktionsabnahme umschreiben.
+6. Liefere einen brauchbaren lokalen Vorschau-/Studio-Link, tatsächliche Dateien und klare Restbefunde. Nicht nach einem bloßen Plan stoppen. Falls der erlaubte Generator wirklich nicht funktioniert, belege die Grenze und gib kein erfundenes fertiges Lauf-Sheet aus.
+
+This run is already the selected Local Codex execution inside OpenDesign. Work directly in the current OpenDesign project. Do not invoke @open-design, the open-design MCP server, collect_brief, OpenDesign Cloud login, or another OpenDesign Plugin workflow. Do not route this request through OpenDesign again.

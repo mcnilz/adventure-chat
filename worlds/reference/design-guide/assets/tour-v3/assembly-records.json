@@ -1,0 +1,996 @@
+[
+  {
+    "id": "mara",
+    "file": "characters/mara-top-down.png",
+    "width": 512,
+    "height": 384,
+    "frameWidth": 128,
+    "frameHeight": 128,
+    "anchor": [
+      64,
+      128
+    ],
+    "visibleHeight": 120,
+    "alpha": "binary 0/255",
+    "processing": "Threshold128, removal of small isolated components, proportional nearest-neighbor sampling, cell assembly only. No pose synthesis, drawing, rotation or mirroring.",
+    "cells": [
+      {
+        "row": 0,
+        "direction": "right",
+        "col": 0,
+        "source": "sources/mara-right-generated.png",
+        "sourceQuarter": 0,
+        "sourceExtraction": {
+          "x": 0,
+          "y": 0,
+          "width": 543,
+          "height": 724
+        },
+        "alphaThreshold": 128,
+        "componentsBefore": [
+          {
+            "pixels": 90389,
+            "bounds": [
+              111,
+              93,
+              319,
+              559
+            ]
+          }
+        ],
+        "keptComponents": 1,
+        "droppedPixels": 0,
+        "crop": {
+          "x": 111,
+          "y": 93,
+          "width": 319,
+          "height": 559
+        },
+        "scale": 0.2146690518783542,
+        "drawWidth": 68,
+        "drawHeight": 120,
+        "placementX": 30,
+        "placementY": 8,
+        "nearestSamplingPhase": 0.5,
+        "rgbaSha256": "c0559a8c767e7aff8f1866919208bee255eb94590312449fe4ea4047a8f6c810"
+      },
+      {
+        "row": 0,
+        "direction": "right",
+        "col": 1,
+        "source": "sources/mara-right-generated.png",
+        "sourceQuarter": 1,
+        "sourceExtraction": {
+          "x": 543,
+          "y": 0,
+          "width": 543,
+          "height": 724
+        },
+        "alphaThreshold": 128,
+        "componentsBefore": [
+          {
+            "pixels": 83405,
+            "bounds": [
+              701,
+              93,
+              234,
+              565
+            ]
+          }
+        ],
+        "keptComponents": 1,
+        "droppedPixels": 0,
+        "crop": {
+          "x": 701,
+          "y": 93,
+          "width": 234,
+          "height": 565
+        },
+        "scale": 0.21238938053097345,
+        "drawWidth": 50,
+        "drawHeight": 120,
+        "placementX": 39,
+        "placementY": 8,
+        "nearestSamplingPhase": 0.5,
+        "rgbaSha256": "d9f09e3f4a9b0bea74ccb239a8d3ccf292dedefb9c0b264637d64e72fffe1059"
+      },
+      {
+        "row": 0,
+        "direction": "right",
+        "col": 2,
+        "source": "sources/mara-right-generated.png",
+        "sourceQuarter": 2,
+        "sourceExtraction": {
+          "x": 1086,
+          "y": 0,
+          "width": 543,
+          "height": 724
+        },
+        "alphaThreshold": 128,
+        "componentsBefore": [
+          {
+            "pixels": 89139,
+            "bounds": [
+              1198,
+              93,
+              325,
+              562
+            ]
+          }
+        ],
+        "keptComponents": 1,
+        "droppedPixels": 0,
+        "crop": {
+          "x": 1198,
+          "y": 93,
+          "width": 325,
+          "height": 562
+        },
+        "scale": 0.21352313167259787,
+        "drawWidth": 69,
+        "drawHeight": 120,
+        "placementX": 30,
+        "placementY": 8,
+        "nearestSamplingPhase": 0.5,
+        "rgbaSha256": "030ebfcd6ab4dfa057f5f2fad471c5958032372f0f68be5e93a90f63facca2ba"
+      },
+      {
+        "row": 0,
+        "direction": "right",
+        "col": 3,
+        "source": "sources/mara-right-generated.png",
+        "sourceQuarter": 3,
+        "sourceExtraction": {
+          "x": 1629,
+          "y": 0,
+          "width": 543,
+          "height": 724
+        },
+        "alphaThreshold": 128,
+        "componentsBefore": [
+          {
+            "pixels": 84117,
+            "bounds": [
+              1790,
+              93,
+              234,
+              565
+            ]
+          }
+        ],
+        "keptComponents": 1,
+        "droppedPixels": 0,
+        "crop": {
+          "x": 1790,
+          "y": 93,
+          "width": 234,
+          "height": 565
+        },
+        "scale": 0.21238938053097345,
+        "drawWidth": 50,
+        "drawHeight": 120,
+        "placementX": 39,
+        "placementY": 8,
+        "nearestSamplingPhase": 0.5,
+        "rgbaSha256": "109de839e35aa957587e1368d70db1e9bb02c57da382dea24f8a8d6c297bc497"
+      },
+      {
+        "row": 1,
+        "direction": "back",
+        "col": 0,
+        "source": "sources/mara-back-phase0-v3-generated.png",
+        "sourceQuarter": 0,
+        "sourceExtraction": {
+          "x": 0,
+          "y": 0,
+          "width": 543,
+          "height": 724
+        },
+        "alphaThreshold": 128,
+        "componentsBefore": [
+          {
+            "pixels": 69538,
+            "bounds": [
+              169,
+              100,
+              215,
+              555
+            ]
+          }
+        ],
+        "keptComponents": 1,
+        "droppedPixels": 0,
+        "crop": {
+          "x": 169,
+          "y": 100,
+          "width": 215,
+          "height": 555
+        },
+        "scale": 0.21621621621621623,
+        "drawWidth": 46,
+        "drawHeight": 120,
+        "placementX": 41,
+        "placementY": 8,
+        "nearestSamplingPhase": 0.5,
+        "rgbaSha256": "d7e4ebc31ee7a29b3938d000a273f27f0cebd0899786b521f2978b10411bfd93"
+      },
+      {
+        "row": 1,
+        "direction": "back",
+        "col": 1,
+        "source": "sources/mara-back-v2-generated.png",
+        "sourceQuarter": 1,
+        "sourceExtraction": {
+          "x": 543,
+          "y": 0,
+          "width": 543,
+          "height": 724
+        },
+        "alphaThreshold": 128,
+        "componentsBefore": [
+          {
+            "pixels": 68853,
+            "bounds": [
+              707,
+              105,
+              214,
+              550
+            ]
+          }
+        ],
+        "keptComponents": 1,
+        "droppedPixels": 0,
+        "crop": {
+          "x": 707,
+          "y": 105,
+          "width": 214,
+          "height": 550
+        },
+        "scale": 0.21818181818181817,
+        "drawWidth": 47,
+        "drawHeight": 120,
+        "placementX": 41,
+        "placementY": 8,
+        "nearestSamplingPhase": 0.5,
+        "rgbaSha256": "a893a4fc0e1febd8284f2c44cafa7e56d531cb647bcad97a53984b9af6663149"
+      },
+      {
+        "row": 1,
+        "direction": "back",
+        "col": 2,
+        "source": "sources/mara-back-v2-generated.png",
+        "sourceQuarter": 2,
+        "sourceExtraction": {
+          "x": 1086,
+          "y": 0,
+          "width": 543,
+          "height": 724
+        },
+        "alphaThreshold": 128,
+        "componentsBefore": [
+          {
+            "pixels": 68881,
+            "bounds": [
+              1244,
+              105,
+              229,
+              555
+            ]
+          }
+        ],
+        "keptComponents": 1,
+        "droppedPixels": 0,
+        "crop": {
+          "x": 1244,
+          "y": 105,
+          "width": 229,
+          "height": 555
+        },
+        "scale": 0.21621621621621623,
+        "drawWidth": 50,
+        "drawHeight": 120,
+        "placementX": 39,
+        "placementY": 8,
+        "nearestSamplingPhase": 0.5,
+        "rgbaSha256": "f6aea9967c628977cc38906de967148e72197d0971bf950a53d991ee8e4fbf66"
+      },
+      {
+        "row": 1,
+        "direction": "back",
+        "col": 3,
+        "source": "sources/mara-back-v2-generated.png",
+        "sourceQuarter": 3,
+        "sourceExtraction": {
+          "x": 1629,
+          "y": 0,
+          "width": 543,
+          "height": 724
+        },
+        "alphaThreshold": 128,
+        "componentsBefore": [
+          {
+            "pixels": 70106,
+            "bounds": [
+              1799,
+              105,
+              208,
+              550
+            ]
+          }
+        ],
+        "keptComponents": 1,
+        "droppedPixels": 0,
+        "crop": {
+          "x": 1799,
+          "y": 105,
+          "width": 208,
+          "height": 550
+        },
+        "scale": 0.21818181818181817,
+        "drawWidth": 45,
+        "drawHeight": 120,
+        "placementX": 42,
+        "placementY": 8,
+        "nearestSamplingPhase": 0.5,
+        "rgbaSha256": "4a1c2675cd01a881d51105e9b48c69f5206580063cf20289f147d9ed7ab7ba1b"
+      },
+      {
+        "row": 2,
+        "direction": "front",
+        "col": 0,
+        "source": "sources/mara-front-generated.png",
+        "sourceQuarter": 0,
+        "sourceExtraction": {
+          "x": 0,
+          "y": 0,
+          "width": 543,
+          "height": 724
+        },
+        "alphaThreshold": 128,
+        "componentsBefore": [
+          {
+            "pixels": 95519,
+            "bounds": [
+              142,
+              91,
+              274,
+              582
+            ]
+          }
+        ],
+        "keptComponents": 1,
+        "droppedPixels": 0,
+        "crop": {
+          "x": 142,
+          "y": 91,
+          "width": 274,
+          "height": 582
+        },
+        "scale": 0.20618556701030927,
+        "drawWidth": 56,
+        "drawHeight": 120,
+        "placementX": 36,
+        "placementY": 8,
+        "nearestSamplingPhase": 0.5,
+        "rgbaSha256": "9d4d50e5eb4f5fa1c656f0767ce02fc6bd835864ec817f748cbe9cce3df69de5"
+      },
+      {
+        "row": 2,
+        "direction": "front",
+        "col": 1,
+        "source": "sources/mara-front-generated.png",
+        "sourceQuarter": 1,
+        "sourceExtraction": {
+          "x": 543,
+          "y": 0,
+          "width": 543,
+          "height": 724
+        },
+        "alphaThreshold": 128,
+        "componentsBefore": [
+          {
+            "pixels": 94769,
+            "bounds": [
+              685,
+              91,
+              274,
+              571
+            ]
+          }
+        ],
+        "keptComponents": 1,
+        "droppedPixels": 0,
+        "crop": {
+          "x": 685,
+          "y": 91,
+          "width": 274,
+          "height": 571
+        },
+        "scale": 0.21015761821366025,
+        "drawWidth": 58,
+        "drawHeight": 120,
+        "placementX": 35,
+        "placementY": 8,
+        "nearestSamplingPhase": 0.5,
+        "rgbaSha256": "77b4bf3316d97c9c2ffaba103060e840ed53e759a29c855fa53199f745f1ae53"
+      },
+      {
+        "row": 2,
+        "direction": "front",
+        "col": 2,
+        "source": "sources/mara-front-generated.png",
+        "sourceQuarter": 2,
+        "sourceExtraction": {
+          "x": 1086,
+          "y": 0,
+          "width": 543,
+          "height": 724
+        },
+        "alphaThreshold": 128,
+        "componentsBefore": [
+          {
+            "pixels": 95888,
+            "bounds": [
+              1228,
+              91,
+              274,
+              586
+            ]
+          }
+        ],
+        "keptComponents": 1,
+        "droppedPixels": 0,
+        "crop": {
+          "x": 1228,
+          "y": 91,
+          "width": 274,
+          "height": 586
+        },
+        "scale": 0.20477815699658702,
+        "drawWidth": 56,
+        "drawHeight": 120,
+        "placementX": 36,
+        "placementY": 8,
+        "nearestSamplingPhase": 0.5,
+        "rgbaSha256": "74c558b46a26cff9d97259653b26c7800b11199930e30c55bd3e9118d8dda546"
+      },
+      {
+        "row": 2,
+        "direction": "front",
+        "col": 3,
+        "source": "sources/mara-front-generated.png",
+        "sourceQuarter": 3,
+        "sourceExtraction": {
+          "x": 1629,
+          "y": 0,
+          "width": 543,
+          "height": 724
+        },
+        "alphaThreshold": 128,
+        "componentsBefore": [
+          {
+            "pixels": 95337,
+            "bounds": [
+              1770,
+              91,
+              274,
+              567
+            ]
+          }
+        ],
+        "keptComponents": 1,
+        "droppedPixels": 0,
+        "crop": {
+          "x": 1770,
+          "y": 91,
+          "width": 274,
+          "height": 567
+        },
+        "scale": 0.21164021164021163,
+        "drawWidth": 58,
+        "drawHeight": 120,
+        "placementX": 35,
+        "placementY": 8,
+        "nearestSamplingPhase": 0.5,
+        "rgbaSha256": "41fc9b3bd7693200508e058eac5f74d664655840c1f3d39edf563e2f6c13e402"
+      }
+    ]
+  },
+  {
+    "id": "bruno",
+    "file": "characters/bruno-top-down.png",
+    "width": 512,
+    "height": 384,
+    "frameWidth": 128,
+    "frameHeight": 128,
+    "anchor": [
+      64,
+      128
+    ],
+    "visibleHeight": 120,
+    "alpha": "binary 0/255",
+    "processing": "Threshold128, removal of small isolated components, proportional nearest-neighbor sampling, cell assembly only. No pose synthesis, drawing, rotation or mirroring.",
+    "cells": [
+      {
+        "row": 0,
+        "direction": "right",
+        "col": 0,
+        "source": "sources/bruno-right-v2-generated.png",
+        "sourceQuarter": 0,
+        "sourceExtraction": {
+          "x": 0,
+          "y": 0,
+          "width": 543,
+          "height": 724
+        },
+        "alphaThreshold": 128,
+        "componentsBefore": [
+          {
+            "pixels": 100700,
+            "bounds": [
+              122,
+              92,
+              292,
+              560
+            ]
+          }
+        ],
+        "keptComponents": 1,
+        "droppedPixels": 0,
+        "crop": {
+          "x": 122,
+          "y": 92,
+          "width": 292,
+          "height": 560
+        },
+        "scale": 0.21428571428571427,
+        "drawWidth": 63,
+        "drawHeight": 120,
+        "placementX": 33,
+        "placementY": 8,
+        "nearestSamplingPhase": 0.5,
+        "rgbaSha256": "20d0adcd81c7cd95e146c3a406bf0aed5a7df0d851f5c4e6d418f5941eb14837"
+      },
+      {
+        "row": 0,
+        "direction": "right",
+        "col": 1,
+        "source": "sources/bruno-right-v2-generated.png",
+        "sourceQuarter": 1,
+        "sourceExtraction": {
+          "x": 543,
+          "y": 0,
+          "width": 543,
+          "height": 724
+        },
+        "alphaThreshold": 128,
+        "componentsBefore": [
+          {
+            "pixels": 95103,
+            "bounds": [
+              667,
+              92,
+              273,
+              566
+            ]
+          }
+        ],
+        "keptComponents": 1,
+        "droppedPixels": 0,
+        "crop": {
+          "x": 667,
+          "y": 92,
+          "width": 273,
+          "height": 566
+        },
+        "scale": 0.21201413427561838,
+        "drawWidth": 58,
+        "drawHeight": 120,
+        "placementX": 35,
+        "placementY": 8,
+        "nearestSamplingPhase": 0.5,
+        "rgbaSha256": "63f4ae120a6d5edc96a4a37a390a763ca95bf07b285526339d764eb08aef50ae"
+      },
+      {
+        "row": 0,
+        "direction": "right",
+        "col": 2,
+        "source": "sources/bruno-right-v2-generated.png",
+        "sourceQuarter": 2,
+        "sourceExtraction": {
+          "x": 1086,
+          "y": 0,
+          "width": 543,
+          "height": 724
+        },
+        "alphaThreshold": 128,
+        "componentsBefore": [
+          {
+            "pixels": 100013,
+            "bounds": [
+              1187,
+              92,
+              318,
+              557
+            ]
+          }
+        ],
+        "keptComponents": 1,
+        "droppedPixels": 0,
+        "crop": {
+          "x": 1187,
+          "y": 92,
+          "width": 318,
+          "height": 557
+        },
+        "scale": 0.21543985637342908,
+        "drawWidth": 69,
+        "drawHeight": 120,
+        "placementX": 30,
+        "placementY": 8,
+        "nearestSamplingPhase": 0.5,
+        "rgbaSha256": "c4dab0a2c56afb275c657f804403f7ee6b8c1521919084e0e6b1d36262fa037e"
+      },
+      {
+        "row": 0,
+        "direction": "right",
+        "col": 3,
+        "source": "sources/bruno-right-phase3-v4-generated.png",
+        "sourceQuarter": 3,
+        "sourceExtraction": {
+          "x": 1629,
+          "y": 0,
+          "width": 543,
+          "height": 724
+        },
+        "alphaThreshold": 128,
+        "componentsBefore": [
+          {
+            "pixels": 96337,
+            "bounds": [
+              1729,
+              89,
+              298,
+              571
+            ]
+          }
+        ],
+        "keptComponents": 1,
+        "droppedPixels": 0,
+        "crop": {
+          "x": 1729,
+          "y": 89,
+          "width": 298,
+          "height": 571
+        },
+        "scale": 0.21015761821366025,
+        "drawWidth": 63,
+        "drawHeight": 120,
+        "placementX": 33,
+        "placementY": 8,
+        "nearestSamplingPhase": 0.5,
+        "rgbaSha256": "2036bdcd436b1e4476eb5232e9391965586915ad6045c3843ec099729c82853e"
+      },
+      {
+        "row": 1,
+        "direction": "back",
+        "col": 0,
+        "source": "sources/bruno-back-phase0-v3-generated.png",
+        "sourceQuarter": 0,
+        "sourceExtraction": {
+          "x": 0,
+          "y": 0,
+          "width": 543,
+          "height": 724
+        },
+        "alphaThreshold": 128,
+        "componentsBefore": [
+          {
+            "pixels": 95645,
+            "bounds": [
+              132,
+              93,
+              288,
+              556
+            ]
+          }
+        ],
+        "keptComponents": 1,
+        "droppedPixels": 0,
+        "crop": {
+          "x": 132,
+          "y": 93,
+          "width": 288,
+          "height": 556
+        },
+        "scale": 0.2158273381294964,
+        "drawWidth": 62,
+        "drawHeight": 120,
+        "placementX": 33,
+        "placementY": 8,
+        "nearestSamplingPhase": 0.5,
+        "rgbaSha256": "3d467ea513154926f1965cbc759061e83563cf8ccb264143d5c5d1fc63a4b438"
+      },
+      {
+        "row": 1,
+        "direction": "back",
+        "col": 1,
+        "source": "sources/bruno-back-v2-generated.png",
+        "sourceQuarter": 1,
+        "sourceExtraction": {
+          "x": 543,
+          "y": 0,
+          "width": 543,
+          "height": 724
+        },
+        "alphaThreshold": 128,
+        "componentsBefore": [
+          {
+            "pixels": 94320,
+            "bounds": [
+              672,
+              94,
+              287,
+              552
+            ]
+          }
+        ],
+        "keptComponents": 1,
+        "droppedPixels": 0,
+        "crop": {
+          "x": 672,
+          "y": 94,
+          "width": 287,
+          "height": 552
+        },
+        "scale": 0.21739130434782608,
+        "drawWidth": 62,
+        "drawHeight": 120,
+        "placementX": 33,
+        "placementY": 8,
+        "nearestSamplingPhase": 0.5,
+        "rgbaSha256": "9eafca80f3f9aa36302314b87878c4963f37c0e80252120d336b890be8099857"
+      },
+      {
+        "row": 1,
+        "direction": "back",
+        "col": 2,
+        "source": "sources/bruno-back-v2-generated.png",
+        "sourceQuarter": 2,
+        "sourceExtraction": {
+          "x": 1086,
+          "y": 0,
+          "width": 543,
+          "height": 724
+        },
+        "alphaThreshold": 128,
+        "componentsBefore": [
+          {
+            "pixels": 93039,
+            "bounds": [
+              1208,
+              94,
+              292,
+              552
+            ]
+          }
+        ],
+        "keptComponents": 1,
+        "droppedPixels": 0,
+        "crop": {
+          "x": 1208,
+          "y": 94,
+          "width": 292,
+          "height": 552
+        },
+        "scale": 0.21739130434782608,
+        "drawWidth": 63,
+        "drawHeight": 120,
+        "placementX": 33,
+        "placementY": 8,
+        "nearestSamplingPhase": 0.5,
+        "rgbaSha256": "c21bc6f2ed0de0b0a8f00ba6a2923cdf09b93544bc063c7f806957be303fade2"
+      },
+      {
+        "row": 1,
+        "direction": "back",
+        "col": 3,
+        "source": "sources/bruno-back-v2-generated.png",
+        "sourceQuarter": 3,
+        "sourceExtraction": {
+          "x": 1629,
+          "y": 0,
+          "width": 543,
+          "height": 724
+        },
+        "alphaThreshold": 128,
+        "componentsBefore": [
+          {
+            "pixels": 93667,
+            "bounds": [
+              1764,
+              94,
+              283,
+              552
+            ]
+          }
+        ],
+        "keptComponents": 1,
+        "droppedPixels": 0,
+        "crop": {
+          "x": 1764,
+          "y": 94,
+          "width": 283,
+          "height": 552
+        },
+        "scale": 0.21739130434782608,
+        "drawWidth": 62,
+        "drawHeight": 120,
+        "placementX": 33,
+        "placementY": 8,
+        "nearestSamplingPhase": 0.5,
+        "rgbaSha256": "44489f912f64c78b434a58a231fb236559e7aff41c5fb9494c9d9367c28dafdb"
+      },
+      {
+        "row": 2,
+        "direction": "front",
+        "col": 0,
+        "source": "sources/bruno-front-generated.png",
+        "sourceQuarter": 0,
+        "sourceExtraction": {
+          "x": 0,
+          "y": 0,
+          "width": 543,
+          "height": 724
+        },
+        "alphaThreshold": 128,
+        "componentsBefore": [
+          {
+            "pixels": 121060,
+            "bounds": [
+              119,
+              76,
+              346,
+              585
+            ]
+          }
+        ],
+        "keptComponents": 1,
+        "droppedPixels": 0,
+        "crop": {
+          "x": 119,
+          "y": 76,
+          "width": 346,
+          "height": 585
+        },
+        "scale": 0.20512820512820512,
+        "drawWidth": 71,
+        "drawHeight": 120,
+        "placementX": 29,
+        "placementY": 8,
+        "nearestSamplingPhase": 0.5,
+        "rgbaSha256": "d2de57f33cef22a05c62c9f92d90d3caee6c80882f5e3bc022e6b74ca6eabbac"
+      },
+      {
+        "row": 2,
+        "direction": "front",
+        "col": 1,
+        "source": "sources/bruno-front-generated.png",
+        "sourceQuarter": 1,
+        "sourceExtraction": {
+          "x": 543,
+          "y": 0,
+          "width": 543,
+          "height": 724
+        },
+        "alphaThreshold": 128,
+        "componentsBefore": [
+          {
+            "pixels": 116488,
+            "bounds": [
+              657,
+              76,
+              348,
+              576
+            ]
+          }
+        ],
+        "keptComponents": 1,
+        "droppedPixels": 0,
+        "crop": {
+          "x": 657,
+          "y": 76,
+          "width": 348,
+          "height": 576
+        },
+        "scale": 0.20833333333333334,
+        "drawWidth": 73,
+        "drawHeight": 120,
+        "placementX": 28,
+        "placementY": 8,
+        "nearestSamplingPhase": 0.5,
+        "rgbaSha256": "f69b65c8779f2f49c35f0e7005d56ce76c480c0d4d54ca36b6c179e7ecd92313"
+      },
+      {
+        "row": 2,
+        "direction": "front",
+        "col": 2,
+        "source": "sources/bruno-front-generated.png",
+        "sourceQuarter": 2,
+        "sourceExtraction": {
+          "x": 1086,
+          "y": 0,
+          "width": 543,
+          "height": 724
+        },
+        "alphaThreshold": 128,
+        "componentsBefore": [
+          {
+            "pixels": 121064,
+            "bounds": [
+              1194,
+              75,
+              354,
+              585
+            ]
+          }
+        ],
+        "keptComponents": 1,
+        "droppedPixels": 0,
+        "crop": {
+          "x": 1194,
+          "y": 75,
+          "width": 354,
+          "height": 585
+        },
+        "scale": 0.20512820512820512,
+        "drawWidth": 73,
+        "drawHeight": 120,
+        "placementX": 28,
+        "placementY": 8,
+        "nearestSamplingPhase": 0.5,
+        "rgbaSha256": "571d7b8ac13dba1ed4806785a245f8f4591facd6742eaf70f0514d6d184dd8c5"
+      },
+      {
+        "row": 2,
+        "direction": "front",
+        "col": 3,
+        "source": "sources/bruno-front-generated.png",
+        "sourceQuarter": 3,
+        "sourceExtraction": {
+          "x": 1629,
+          "y": 0,
+          "width": 543,
+          "height": 724
+        },
+        "alphaThreshold": 128,
+        "componentsBefore": [
+          {
+            "pixels": 121638,
+            "bounds": [
+              1743,
+              75,
+              353,
+              577
+            ]
+          }
+        ],
+        "keptComponents": 1,
+        "droppedPixels": 0,
+        "crop": {
+          "x": 1743,
+          "y": 75,
+          "width": 353,
+          "height": 577
+        },
+        "scale": 0.20797227036395147,
+        "drawWidth": 73,
+        "drawHeight": 120,
+        "placementX": 28,
+        "placementY": 8,
+        "nearestSamplingPhase": 0.5,
+        "rgbaSha256": "29a35750d80c7e7914463e2a4a8af0b70820505049c0fb22f90253e4ffe197d7"
+      }
+    ]
+  }
+]

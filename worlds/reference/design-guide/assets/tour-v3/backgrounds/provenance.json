@@ -1,0 +1,38 @@
+[
+  {
+    "id": "kartenweg",
+    "source": "../assets/concepts/kartenweg.png",
+    "file": "backgrounds/kartenweg.png",
+    "width": 1280,
+    "height": 360,
+    "sourceSha256": "ac4679267223e6375b4c0c283798842f4f05f0d1dcd7da4bbc1582cf66550cd5",
+    "sha256": "ac4679267223e6375b4c0c283798842f4f05f0d1dcd7da4bbc1582cf66550cd5",
+    "byteIdentical": true,
+    "processing": "Keine. Bytegleiche Übernahme des vom Benutzer mit „passt“ freigegebenen Zielbilds. Keine neue Generierung.",
+    "originalGenerationSource": "../assets/sources/kartenweg-generated.png"
+  },
+  {
+    "id": "huegelpfad",
+    "source": "../assets/concepts/huegelpfad.png",
+    "file": "backgrounds/huegelpfad.png",
+    "width": 640,
+    "height": 360,
+    "sourceSha256": "d2d6009ead4ca2b33b6bdff8d43ee10aba5f44c3c6f9cfe98e9622bd9d82c6d3",
+    "sha256": "d2d6009ead4ca2b33b6bdff8d43ee10aba5f44c3c6f9cfe98e9622bd9d82c6d3",
+    "byteIdentical": true,
+    "processing": "Keine. Bytegleiche Übernahme des vom Benutzer mit „passt“ freigegebenen Zielbilds. Keine neue Generierung.",
+    "originalGenerationSource": "../assets/sources/huegelpfad-generated.png"
+  },
+  {
+    "id": "panorama",
+    "source": "../assets/concepts/panorama.png",
+    "file": "backgrounds/panorama.png",
+    "width": 1280,
+    "height": 360,
+    "sourceSha256": "52928154b4b3a8386c4da5675368105b806bf17e1faabe418499edb6b8898e41",
+    "sha256": "52928154b4b3a8386c4da5675368105b806bf17e1faabe418499edb6b8898e41",
+    "byteIdentical": true,
+    "processing": "Keine. Bytegleiche Übernahme des vom Benutzer mit „passt“ freigegebenen Zielbilds. Keine neue Generierung.",
+    "originalGenerationSource": "../assets/sources/panorama-generated.png"
+  }
+]

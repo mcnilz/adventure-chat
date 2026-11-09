@@ -1,0 +1,80 @@
+[
+  {
+    "file": "sources/bruno-back-generated.png",
+    "width": 2172,
+    "height": 724,
+    "sha256": "4a3e56710914f511d7423db7234ceed405848549ecf0687f12c868f8dd3101ea"
+  },
+  {
+    "file": "sources/bruno-back-phase0-v3-generated.png",
+    "width": 2172,
+    "height": 724,
+    "sha256": "152d6ccc3c7073c3354e1f46ddfcca6c0aa88a3619c4c81f8e05fa73dd514b3c"
+  },
+  {
+    "file": "sources/bruno-back-v2-generated.png",
+    "width": 2172,
+    "height": 724,
+    "sha256": "960d25e124be36798f407ae92963e2887ccbff747121cd5dc9b5d1e3d5d15c94"
+  },
+  {
+    "file": "sources/bruno-front-generated.png",
+    "width": 2172,
+    "height": 724,
+    "sha256": "7370f8368d22185807d441dafe625e7fdb7345855239950a9890c1bc12a32571"
+  },
+  {
+    "file": "sources/bruno-right-generated.png",
+    "width": 2172,
+    "height": 724,
+    "sha256": "20ee202319ff6e4c73e835e555935fb1e6be273d70f43c4909690623b220b7d1"
+  },
+  {
+    "file": "sources/bruno-right-phase3-v3-generated.png",
+    "width": 1199,
+    "height": 1312,
+    "sha256": "4a11cfcec8342dc3befb133721346505a766781386ca164403edaa6383524387"
+  },
+  {
+    "file": "sources/bruno-right-phase3-v4-generated.png",
+    "width": 2172,
+    "height": 724,
+    "sha256": "ee0683b72b07a4c60478077559c30083a1b7f55b454581ed945bd5b04344133d"
+  },
+  {
+    "file": "sources/bruno-right-v2-generated.png",
+    "width": 2172,
+    "height": 724,
+    "sha256": "796d999806cec3b78e45b9a0ae405361e79bc8fb99a4fb89dd9a5860f194d862"
+  },
+  {
+    "file": "sources/mara-back-generated.png",
+    "width": 2172,
+    "height": 724,
+    "sha256": "23b2accd80ebccaa787cab676c1e5158a8902556ee5606a33a60105de229870c"
+  },
+  {
+    "file": "sources/mara-back-phase0-v3-generated.png",
+    "width": 2172,
+    "height": 724,
+    "sha256": "73b4b0dbc9c2825e6e64ae49a6b70337093e53b7107f06f33122083745a2d627"
+  },
+  {
+    "file": "sources/mara-back-v2-generated.png",
+    "width": 2172,
+    "height": 724,
+    "sha256": "958d5a6da7cd30dc4524fae984ebf170c0cf116a9abeab76e804347f3a53db0a"
+  },
+  {
+    "file": "sources/mara-front-generated.png",
+    "width": 2172,
+    "height": 724,
+    "sha256": "9aca8f82df0c99af9de389fc82619c7a5ea9de7ffddda10b6e69904e14cfe905"
+  },
+  {
+    "file": "sources/mara-right-generated.png",
+    "width": 2172,
+    "height": 724,
+    "sha256": "e3b40c5f12b8ab4a69edacd7fb08e38b45b2be49061208e5c66eb8e4b482c7c7"
+  }
+]

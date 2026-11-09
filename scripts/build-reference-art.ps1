@@ -1,4 +1,4 @@
-# Rebuild runtime art from preserved user-supplied originals. No external dependencies.
+# Rebuild runtime art from preserved originals and approved deliveries. No external dependencies.
 Add-Type -AssemblyName System.Drawing
 $root = Join-Path $PSScriptRoot '../worlds/reference'
 $target = Join-Path $root 'assets/images'
@@ -43,4 +43,14 @@ Table 'garden' @(
 foreach($name in @('mara','bruno')) {
  # Delivered native frames already match actorHeight 128. Preserve their pixels exactly.
  Copy-Item -LiteralPath (Join-Path $root "design-guide/assets/characters/native128/$name.png") -Destination (Join-Path $target "$name.png") -Force
+}
+# Ticket 19: preserve the delivered pixels; generation is not part of an application build.
+$tour = Join-Path $root 'design-guide/assets/tour-v3'
+foreach($item in @(
+ @('kartenweg','demo-map'), @('huegelpfad','demo-depth'), @('panorama','demo-combined')
+)) {
+ Copy-Item -LiteralPath (Join-Path $tour "backgrounds/$($item[0]).png") -Destination (Join-Path $target "$($item[1]).png") -Force
+}
+foreach($name in @('mara','bruno')) {
+ Copy-Item -LiteralPath (Join-Path $tour "characters/$name-top-down.png") -Destination (Join-Path $target "$name-top-down.png") -Force
 }

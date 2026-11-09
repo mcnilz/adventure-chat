@@ -164,7 +164,7 @@ Für einen neuen breiten Raum ein passendes PNG importieren und die bearbeitbare
 
 ## Scrollen und Tiefe ausprobieren (Ticket 13)
 
-Alle drei mitgelieferten Welten reference, map und scroll enthalten dieselbe erreichbare Demo-Runde:
+Alle drei mitgelieferten Welten reference, map und scroll enthalten eine erreichbare Demo-Runde:
 - reference: Lounge → rechte Tür zum Garten → Ausgang „Demo: Karte und Tiefe“ bei (540,330).
 - map: Karte → Garten → Demo-Ausgang bei (520,330).
 - scroll: Galerie → Demo-Ausgang bei (600,325).
@@ -175,7 +175,19 @@ Alle drei mitgelieferten Welten reference, map und scroll enthalten dieselbe err
 
 Im Editor dieselben Räume wählen, Tiefenwerte ändern, speichern/neuladen und Vorschau starten. Figurenfußpunkt, Namen, Chatblasen und ruhigen Größenverlauf beobachten. Menschliche Sichtabnahme bleibt separat.
 
-Die neuen Demo-Hintergründe sind originale geometrische Pixelzeichnungen aus scripts/generate-depth-art.js, ohne externe Bildquellen. Erneut erzeugen: `node scripts/generate-depth-art.js`. Kein zusätzlicher npm-Baustein; keine neue Lizenz für das Gesamtprojekt behauptet. Gelieferte Referenzgrafiken und ihre Herkunft bleiben unverändert.
+Die obigen Wegkoordinaten gelten für die unveränderten schematischen Welten map/scroll. Deren Demo-Hintergründe sind originale geometrische Pixelzeichnungen aus scripts/generate-depth-art.js, ohne externe Bildquellen. Erneut erzeugen: `node scripts/generate-depth-art.js`. Das Werkzeug schreibt ausschließlich in map/scroll und erzeugt keine Referenzgrafiken mehr. Kein zusätzlicher npm-Baustein.
 
 
-Mara und Bruno erhalten in der Karten-Demo eigenständige schematische Draufsicht-Sheets, erzeugt durch dasselbe lokale Bildwerkzeug. Die gelieferten Adventure-Sheets bleiben unverändert.
+### Überarbeitete Referenzrunde · Ticket 19
+
+Die Referenzwelt enthält die freigegebenen nächtlichen Stein-/Waldwege und passende Mara-/Bruno-Draufsicht-Sheets. Lounge, Garten und Adventure-Figuren bleiben unverändert. Die neue Navigation folgt den sichtbaren Wegen:
+
+| Raum | Erreichbare Prüfroute | Ausgang rechts |
+| --- | --- | --- |
+| Kartenweg | (140,310) → (330,220) → (650,90) → (940,175) | (1220,180) zum Hügelpfad |
+| Hügelpfad | (100,300) → (320,140) → (320,240) | (570,285) zum Panorama |
+| Panorama | (170,290) → (225,140) → (600,325) → (990,140) | (1130,300) zurück zum Kartenweg |
+
+Mit zwei Fenstern Mara und Bruno vergleichen, anhalten, in vier Richtungen laufen, bei verschiedenen Ausschnitten chatten und nach dem Scrollen ein sichtbares Wegziel anklicken. D schaltet die Geometrie ein. Im Editor dieselben Wege in einer separaten Weltkopie prüfen, speichern/neuladen und Vorschau starten. Die Karte verwendet 32px-Rahmen mit 30 sichtbaren Körperpixeln; die Hügel behalten Adventure-Figuren und den bestehenden Tiefenverlauf.
+
+Format 1.5.0 bleibt erhalten. Inhalt 3.0.0 kennzeichnet die neuen Laufbereiche und verschobenen Anschlusspositionen; ältere Platzierungen werden in dieser neuen Inhaltsausgabe nicht zugesichert. Originalquellen, fertige PNGs und Lieferbelege liegen unter `worlds/reference/design-guide/assets/tour-v3`. Wiederherstellen ohne Bilderzeugung: `pwsh scripts/build-reference-art.ps1`. Herkunft und Prüfgrenzen: [ART-PROVENANCE.md](worlds/reference/ART-PROVENANCE.md). Die endgültige gestalterische Sichtabnahme erfolgt am Spiel.

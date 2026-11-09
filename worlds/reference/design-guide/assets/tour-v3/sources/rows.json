@@ -1,0 +1,163 @@
+[
+  {
+    "id": "mara-right",
+    "character": "mara",
+    "row": 0,
+    "direction": "right",
+    "file": "sources/mara-right-generated.png",
+    "tool": "image_gen__imagegen",
+    "model": "Nicht offengelegt",
+    "originalToolFile": "C:\\Users\\MartinSchnabel\\.codex\\generated_images\\01a1c112-72ab-75c0-9fc4-9b80124a3bf0\\exec-c52cf83b-deb7-4896-b6b5-f1a69976c71d.png",
+    "width": 2172,
+    "height": 724,
+    "sourceSha256": "e3b40c5f12b8ab4a69edacd7fb08e38b45b2be49061208e5c66eb8e4b482c7c7",
+    "sha256": "e3b40c5f12b8ab4a69edacd7fb08e38b45b2be49061208e5c66eb8e4b482c7c7",
+    "byteIdentical": true,
+    "canonicalReference": "C:/Users/MartinSchnabel/AppData/Roaming/Open Design/namespaces/release-stable-win/data/projects/taverne-ticket-19-lokale-entw-rfe-0d87/assets/sources/mara-generated.png",
+    "identityReference": "C:/Users/MartinSchnabel/AppData/Roaming/Open Design/namespaces/release-stable-win/data/projects/taverne-ticket-19-lokale-entw-rfe-0d87/assets/references/mara.png",
+    "license": "Keine erfundene Lizenz- oder Urheberangabe"
+  },
+  {
+    "id": "mara-back-v2",
+    "character": "mara",
+    "row": 1,
+    "direction": "back",
+    "file": "sources/mara-back-v2-generated.png",
+    "tool": "image_gen__imagegen",
+    "model": "Nicht offengelegt",
+    "originalToolFile": "C:\\Users\\MartinSchnabel\\.codex\\generated_images\\01a1c112-72ab-75c0-9fc4-9b80124a3bf0\\exec-38b4e016-4597-4eb6-8bdf-52cb49457d83.png",
+    "width": 2172,
+    "height": 724,
+    "sourceSha256": "958d5a6da7cd30dc4524fae984ebf170c0cf116a9abeab76e804347f3a53db0a",
+    "sha256": "958d5a6da7cd30dc4524fae984ebf170c0cf116a9abeab76e804347f3a53db0a",
+    "byteIdentical": true,
+    "canonicalReference": "C:/Users/MartinSchnabel/AppData/Roaming/Open Design/namespaces/release-stable-win/data/projects/taverne-ticket-19-lokale-entw-rfe-0d87/assets/sources/mara-generated.png",
+    "identityReference": "C:/Users/MartinSchnabel/AppData/Roaming/Open Design/namespaces/release-stable-win/data/projects/taverne-ticket-19-lokale-entw-rfe-0d87/assets/references/mara.png",
+    "supersedes": "sources/mara-back-generated.png",
+    "reason": "Visuelle Gegenphasen-/Armschwungkorrektur; ursprüngliche Generierung vollständig erhalten",
+    "license": "Keine erfundene Lizenz- oder Urheberangabe",
+    "overrides": {
+      "0": {
+        "file": "sources/mara-back-phase0-v3-generated.png",
+        "sourceCol": 0,
+        "sourceSha256": "73b4b0dbc9c2825e6e64ae49a6b70337093e53b7107f06f33122083745a2d627",
+        "sourceByteIdentical": true,
+        "tool": "image_gen__imagegen",
+        "model": "Nicht offengelegt",
+        "originalToolFile": "C:\\Users\\MartinSchnabel\\.codex\\generated_images\\01a1c112-72ab-75c0-9fc4-9b80124a3bf0\\exec-7eff5d89-01e0-414c-b242-bd16600b17df.png",
+        "reason": "Nur erster Rückkontakt: gegenläufiger Armschwung, übrige drei Posen aus erhaltener v2-Reihe"
+      }
+    }
+  },
+  {
+    "id": "mara-front",
+    "character": "mara",
+    "row": 2,
+    "direction": "front",
+    "file": "sources/mara-front-generated.png",
+    "tool": "image_gen__imagegen",
+    "model": "Nicht offengelegt",
+    "originalToolFile": "C:\\Users\\MartinSchnabel\\.codex\\generated_images\\01a1c112-72ab-75c0-9fc4-9b80124a3bf0\\exec-d4f67e4f-d6d8-4854-8da3-355d0a787d17.png",
+    "width": 2172,
+    "height": 724,
+    "sourceSha256": "9aca8f82df0c99af9de389fc82619c7a5ea9de7ffddda10b6e69904e14cfe905",
+    "sha256": "9aca8f82df0c99af9de389fc82619c7a5ea9de7ffddda10b6e69904e14cfe905",
+    "byteIdentical": true,
+    "canonicalReference": "C:/Users/MartinSchnabel/AppData/Roaming/Open Design/namespaces/release-stable-win/data/projects/taverne-ticket-19-lokale-entw-rfe-0d87/assets/sources/mara-generated.png",
+    "identityReference": "C:/Users/MartinSchnabel/AppData/Roaming/Open Design/namespaces/release-stable-win/data/projects/taverne-ticket-19-lokale-entw-rfe-0d87/assets/references/mara.png",
+    "license": "Keine erfundene Lizenz- oder Urheberangabe"
+  },
+  {
+    "id": "bruno-right-v2",
+    "character": "bruno",
+    "row": 0,
+    "direction": "right",
+    "file": "sources/bruno-right-v2-generated.png",
+    "tool": "image_gen__imagegen",
+    "model": "Nicht offengelegt",
+    "originalToolFile": "C:\\Users\\MartinSchnabel\\.codex\\generated_images\\01a1c112-72ab-75c0-9fc4-9b80124a3bf0\\exec-e3fe274a-abd4-4803-9ce3-cad1a57e84cf.png",
+    "width": 2172,
+    "height": 724,
+    "sourceSha256": "796d999806cec3b78e45b9a0ae405361e79bc8fb99a4fb89dd9a5860f194d862",
+    "sha256": "796d999806cec3b78e45b9a0ae405361e79bc8fb99a4fb89dd9a5860f194d862",
+    "byteIdentical": true,
+    "canonicalReference": "C:/Users/MartinSchnabel/AppData/Roaming/Open Design/namespaces/release-stable-win/data/projects/taverne-ticket-19-lokale-entw-rfe-0d87/assets/sources/bruno-generated.png",
+    "identityReference": "C:/Users/MartinSchnabel/AppData/Roaming/Open Design/namespaces/release-stable-win/data/projects/taverne-ticket-19-lokale-entw-rfe-0d87/assets/references/bruno.png",
+    "supersedes": "sources/bruno-right-generated.png",
+    "reason": "Visuelle Gegenphasen-/Armschwungkorrektur; ursprüngliche Generierung vollständig erhalten",
+    "license": "Keine erfundene Lizenz- oder Urheberangabe",
+    "overrides": {
+      "3": {
+        "file": "sources/bruno-right-phase3-v4-generated.png",
+        "sourceCol": 3,
+        "sourceSha256": "ee0683b72b07a4c60478077559c30083a1b7f55b454581ed945bd5b04344133d",
+        "sourceByteIdentical": true,
+        "tool": "image_gen__imagegen",
+        "model": "Nicht offengelegt",
+        "originalToolFile": "C:\\Users\\MartinSchnabel\\.codex\\generated_images\\01a1c112-72ab-75c0-9fc4-9b80124a3bf0\\exec-f99b4714-960e-4577-bbd1-18ac8a500976.png",
+        "reason": "Gezielte vierte Armphase mit gleichem Kopf-/Kameramaß wie die erhaltene rechte Reihe; nur vierte Pose verwendet"
+      }
+    },
+    "supersededOverrides": [
+      {
+        "file": "sources/bruno-right-phase3-v3-generated.png",
+        "sourceSha256": "4a11cfcec8342dc3befb133721346505a766781386ca164403edaa6383524387",
+        "sourceByteIdentical": true,
+        "tool": "image_gen__imagegen",
+        "model": "Nicht offengelegt",
+        "originalToolFile": "C:\\Users\\MartinSchnabel\\.codex\\generated_images\\01a1c112-72ab-75c0-9fc4-9b80124a3bf0\\exec-a5592309-ff37-432c-afb5-3597f67f7ef1.png",
+        "reason": "Einzelkorrektur des sichtbaren Armschwungs in zweiter Durchgangsphase; restliche Reihe erhalten"
+      }
+    ]
+  },
+  {
+    "id": "bruno-back-v2",
+    "character": "bruno",
+    "row": 1,
+    "direction": "back",
+    "file": "sources/bruno-back-v2-generated.png",
+    "tool": "image_gen__imagegen",
+    "model": "Nicht offengelegt",
+    "originalToolFile": "C:\\Users\\MartinSchnabel\\.codex\\generated_images\\01a1c112-72ab-75c0-9fc4-9b80124a3bf0\\exec-d9568023-a472-4dc1-bd84-578137837030.png",
+    "width": 2172,
+    "height": 724,
+    "sourceSha256": "960d25e124be36798f407ae92963e2887ccbff747121cd5dc9b5d1e3d5d15c94",
+    "sha256": "960d25e124be36798f407ae92963e2887ccbff747121cd5dc9b5d1e3d5d15c94",
+    "byteIdentical": true,
+    "canonicalReference": "C:/Users/MartinSchnabel/AppData/Roaming/Open Design/namespaces/release-stable-win/data/projects/taverne-ticket-19-lokale-entw-rfe-0d87/assets/sources/bruno-generated.png",
+    "identityReference": "C:/Users/MartinSchnabel/AppData/Roaming/Open Design/namespaces/release-stable-win/data/projects/taverne-ticket-19-lokale-entw-rfe-0d87/assets/references/bruno.png",
+    "supersedes": "sources/bruno-back-generated.png",
+    "reason": "Visuelle Gegenphasen-/Armschwungkorrektur; ursprüngliche Generierung vollständig erhalten",
+    "license": "Keine erfundene Lizenz- oder Urheberangabe",
+    "overrides": {
+      "0": {
+        "file": "sources/bruno-back-phase0-v3-generated.png",
+        "sourceCol": 0,
+        "sourceSha256": "152d6ccc3c7073c3354e1f46ddfcca6c0aa88a3619c4c81f8e05fa73dd514b3c",
+        "sourceByteIdentical": true,
+        "tool": "image_gen__imagegen",
+        "model": "Nicht offengelegt",
+        "originalToolFile": "C:\\Users\\MartinSchnabel\\.codex\\generated_images\\01a1c112-72ab-75c0-9fc4-9b80124a3bf0\\exec-9551ae2e-8f97-4317-bf6f-f6325dbb93fd.png",
+        "reason": "Nur erster Rückkontakt: gegenläufiger Armschwung, übrige drei Posen aus erhaltener v2-Reihe"
+      }
+    }
+  },
+  {
+    "id": "bruno-front",
+    "character": "bruno",
+    "row": 2,
+    "direction": "front",
+    "file": "sources/bruno-front-generated.png",
+    "tool": "image_gen__imagegen",
+    "model": "Nicht offengelegt",
+    "originalToolFile": "C:\\Users\\MartinSchnabel\\.codex\\generated_images\\01a1c112-72ab-75c0-9fc4-9b80124a3bf0\\exec-f1348136-0492-44e3-8b41-586e11f64431.png",
+    "width": 2172,
+    "height": 724,
+    "sourceSha256": "7370f8368d22185807d441dafe625e7fdb7345855239950a9890c1bc12a32571",
+    "sha256": "7370f8368d22185807d441dafe625e7fdb7345855239950a9890c1bc12a32571",
+    "byteIdentical": true,
+    "canonicalReference": "C:/Users/MartinSchnabel/AppData/Roaming/Open Design/namespaces/release-stable-win/data/projects/taverne-ticket-19-lokale-entw-rfe-0d87/assets/sources/bruno-generated.png",
+    "identityReference": "C:/Users/MartinSchnabel/AppData/Roaming/Open Design/namespaces/release-stable-win/data/projects/taverne-ticket-19-lokale-entw-rfe-0d87/assets/references/bruno.png",
+    "license": "Keine erfundene Lizenz- oder Urheberangabe"
+  }
+]

@@ -1,0 +1,14 @@
+{
+  "date": "2026-11-09",
+  "typecheck": "passed",
+  "clientBuild": "passed",
+  "selectedServerTests": { "passed": 21, "warnings": 0 },
+  "selectedJourneyBrowserTests": { "passed": 2, "warnings": 0 },
+  "selectedArtBrowserTests": { "passed": 1, "warnings": 0 },
+  "firstFullSuite": { "passed": 282, "warnings": 0, "projects": 2, "elapsedSeconds": 321.0 },
+  "finalFullSuiteAfterFlowerbedCorrection": { "passed": 282, "warnings": 0, "projects": 2, "elapsedSeconds": 325.4 },
+  "isolatedGenerator": { "referenceSentinelsPreserved": 5, "otherDemoPngsProduced": 6 },
+  "isolatedRestoration": { "runtimePngsByteIdentical": 13 },
+  "protectedFiles": { "sha256Unchanged": 109 },
+  "humanFinalAcceptance": false
+}

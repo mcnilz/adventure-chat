@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "mode": "Local Codex",
+  "projectId": "taverne-ticket-19-lokale-entw-rfe-0d87",
+  "projectDirectory": "C:/Users/MartinSchnabel/AppData/Roaming/Open Design/namespaces/release-stable-win/data/projects/taverne-ticket-19-lokale-entw-rfe-0d87",
+  "runId": "9b8d9e25-22f2-4ba2-8d2c-8357235ad6e9",
+  "pluginWorkflowId": "a2ce962f-baad-4651-bc59-2c249f154b9d",
+  "requestId": "bda41991-5ee6-4e72-94cc-cce582153305",
+  "status": "succeeded",
+  "studioUrl": "http://127.0.0.1:57170/projects/taverne-ticket-19-lokale-entw-rfe-0d87/conversations/27ec8c44-8d94-4787-a762-5ba7399cdf72",
+  "requestedModel": "gpt-6.1-sol",
+  "previewUrl": "http://127.0.0.1:54094/production/",
+  "gameIntegration": true,
+  "designApproved": true,
+  "finalAcceptance": false
+}

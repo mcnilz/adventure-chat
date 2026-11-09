@@ -50,10 +50,10 @@ public class DepthScaleTests
         finally { if (Directory.Exists(root)) Directory.Delete(root, true); }
     }
 
-    [TestCase("reference")]
-    [TestCase("map")]
-    [TestCase("scroll")]
-    public void ShippedWorld_ProvidesReachableScrollDepthAndCombinedExamples(string id)
+    [TestCase("reference", 225)]
+    [TestCase("map", 320)]
+    [TestCase("scroll", 320)]
+    public void ShippedWorld_ProvidesReachableScrollDepthAndCombinedExamples(string id, int panoramaBackX)
     {
         var root = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../../worlds", id));
         var rooms = WorldPackage.Load(root).LoadRooms().Select(r => r.ToRoomDefinition()).ToDictionary(r => r.Id);
@@ -67,8 +67,9 @@ public class DepthScaleTests
             var room = rooms[key];
             Assert.That(room.DepthScale, Is.Not.Null);
             var pathfinder = new PathfindingService();
-            Assert.That(pathfinder.CalculatePath(room.Geometry, room.SpawnPoint, new(320, 140)).Success, Is.True, key);
-            Assert.That(pathfinder.CalculatePath(room.Geometry, new(320, 140), new(room.Width - 100, 325)).Success, Is.True, key);
+            var back = new Point2D(key == "tour-combined" ? panoramaBackX : 320, 140);
+            Assert.That(pathfinder.CalculatePath(room.Geometry, room.SpawnPoint, back).Success, Is.True, key);
+            Assert.That(pathfinder.CalculatePath(room.Geometry, back, room.Exits.Single(e => e.Id == "next").Position).Success, Is.True, key);
         }
         Assert.That(rooms["tour-combined"].Viewport!.Width, Is.LessThan(rooms["tour-combined"].Width));
         var reachable = new HashSet<string>();

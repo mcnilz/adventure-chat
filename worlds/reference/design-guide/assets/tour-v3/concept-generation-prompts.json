@@ -1,0 +1,50 @@
+{
+  "tool": "image_gen__imagegen",
+  "route": "Eingebautes Bildwerkzeug der laufenden Codex-Sitzung, kein API-/CLI-Fallback und kein OpenDesign-Cloud-Lauf",
+  "model": "Vom Werkzeug nicht offengelegt",
+  "license": "Keine neue Lizenz- oder Urheberbehauptung",
+  "restart": "Früherer Lauf laut Benutzer terminal DAEMON_RESTARTED; neue tatsächliche Erzeugungen nach Neustart",
+  "slots": [
+    {
+      "id": "kartenweg",
+      "transparent": false,
+      "refs": [
+        "D:/adventure-chat/worlds/reference/assets/images/garden-runtime.png",
+        "D:/adventure-chat/worlds/reference/assets/images/lounge-runtime.png"
+      ],
+      "prompt": "Generate one substantive Kartenweg game-art style study, exactly 1280x360 pixels. Use these actual tavern/garden images as material-detail, atmosphere and pixel-cluster references, but change the camera to strict genuine overhead top-down with no horizon, sky, or isometric view. Night garden/woodland route behind the tavern. Left: rich old slate paving, weathered timber, warm amber lantern return, connected ground at (100,325). Middle: continuous winding walkable path amid irregular richly clustered tree canopies, moss and restrained lush plants. Right: open meadow edge, stone and unlettered wooden hill-route waymarker; connected ground at (1180,325). Different left/right compositions, continuous center; trees/walls can be obstacles outside the path. Cool slate/teal moonlight, tiny warm light islands, chipped stone, woodgrain, intentional crisp coherent pixels and full material detail comparable to attached actual approved rooms. No vector triangles, generic geometric demo scenery, soft painting, blur, bloom or photo grain. No characters, text, labels, UI, captions, grids, frames, watermark. One continuous full-frame raster concept, not final game production art."
+    },
+    {
+      "id": "mara",
+      "transparent": true,
+      "refs": [
+        "D:/adventure-chat/worlds/reference/assets/images/mara.png"
+      ],
+      "prompt": "Create ONE canonical genuine strict overhead top-down pixel-art character concept of Mara, the SAME woman shown in the attached adventure character sheet. Attached sheet is IDENTITY reference only, not pose or camera. Newly draw her from vertically above; do NOT rotate, squash, copy or compress the adventure sprite. ONE character only, centered on a genuinely transparent alpha canvas, ideally 128x128 pixels. Entire figure visible including both feet, full silhouette. Dark brown compact angular bob hair, burgundy jacket over a small visible light blouse, teal trousers and brown boots, slender shoulders. View the crown of head, tops of shoulders/arms and foreshortened clothing/feet from real overhead, facing toward bottom of image. Do not show a large front-facing portrait face or standing adventure side view. Preserve her identity via distinctive bob shape and large burgundy/light/teal color clusters. Crisp materially developed expressive adventure pixel art matching the attached real original, deliberate coherent pixel clusters and restrained 3-5 tones per material, cool ambient slate/teal light, subtle warm skin. Must remain distinct and readable when reduced into a 32px target frame; prioritize strong silhouette and clothing color masses, not tiny noisy detail. ONE neutral standing concept only, no walk cycle, no sprite sheet, no extra views or duplicates. No backdrop, floor, cast ground shadow, grid, text, captions, frame, UI, watermark, blur, bloom or photo noise. Transparent background, never fake checkerboard/white/black alpha."
+    },
+    {
+      "id": "bruno",
+      "transparent": true,
+      "refs": [
+        "D:/adventure-chat/worlds/reference/assets/images/bruno.png"
+      ],
+      "prompt": "Create ONE canonical genuine strict overhead top-down pixel-art character concept of Bruno, the SAME older man shown in the attached adventure character sheet. Attached sheet is IDENTITY reference only, not camera or pose. Newly draw him from vertically above; do NOT rotate, squash, copy or compress the adventure sprite. ONE character only, centered on genuinely transparent alpha, ideally 128x128 pixels. Entire figure including both feet visible, full silhouette. Distinctive gray hair crown with outward tufts, gray mustache visible only as much as plausible with true overhead camera, ochre waistcoat over light rolled-sleeve shirt, charcoal trousers and brown shoes, subtly broader bent shoulders than Mara. View crown and top surfaces of shoulders, arms and foreshortened clothing/feet; face toward bottom of image. No large front-facing portrait face or standing adventure side view. Preserve identity with gray hair, ochre/light large color clusters, recognizable silhouette. Crisp materially developed expressive adventure pixel art matching the attached real original, deliberate coherent pixel clusters and restrained 3-5 tone steps, cool ambient slate/teal light, subtle warm skin. Readable and distinct when reduced into 32px target frame; strong silhouette and large clothing shapes before tiny detail. ONE neutral standing concept only, no walking cycle, sprite sheet, extra views or duplicates. No backdrop, floor, cast ground shadow, grid, text, captions, frame, UI, watermark, blur, bloom or photographic noise. Transparent background, never fake checkerboard/white/black alpha."
+    },
+    {
+      "id": "huegelpfad",
+      "transparent": false,
+      "refs": [
+        "D:/adventure-chat/worlds/reference/assets/images/garden-runtime.png"
+      ],
+      "prompt": "Create ONE atmospheric motif/composition SKETCH (not final game art) for Huegelpfad, a night woodland stone ascent in the same world as attached rich garden image. Desired canvas 640x360, 16:9. One coherent adventure-depth view, NOT overhead, no scrolling. Eye-level garden reference establishes pixel material/light style only. Cool slate/teal receding forest distance; worn stone steps and earth path rise toward a small lantern goal around (320,140). Lower horizontal winding path visibly joins left (100,325) and right (540,325); an unblocked branch physically reaches upper (320,140), no floating isolated platform. Side rocks, weathered small retaining walls, asymmetric forest groups frame walking ground. Perspective details reduce toward upper goal, contrast recedes; at y140 actor scale will be half of y320, so environmental perspective must fit. Rich suggested stone/wood/leaf clusters, crisp pixel-art sketch texture and layered lighting, amber only small lanterns, no broad orange wash. Composition sketch, not geometric wireframe; do not copy the old triangle-hill demo. No people, characters, text, labels, UI, grid, captions, frames, watermark, blur, bloom or photo grain. The review page will label it SKIZZE outside the image."
+    },
+    {
+      "id": "panorama",
+      "transparent": false,
+      "refs": [
+        "D:/adventure-chat/worlds/reference/assets/images/garden-runtime.png"
+      ],
+      "prompt": "Create ONE continuous wide motif/composition SKETCH (not final game art) of Panorama-Huegelweg in the same world and night lighting/material detail as attached garden. Desired canvas exactly1280x360, 32:9. Adventure depth, horizontal scrolling plus depth; NOT top-down. Left wooded ridge with traversable high path goal (320,140); middle opens to cool dark valley with tiny distant village lights, entirely distinct from left/right; right open weathered stone wall and wooden unlettered waymarker with traversable high goal (960,140). A continuous lower connected trail links (100,325) through (600,325) to (1180,325), with clearly connected ascent/descent branches reaching BOTH higher goals, no isolated peaks or gaps. Foreground stone/earth detailed, receding forest/valley low contrast and cool. At upper y140 actor is half the scale at lower y320; environment must support that depth. Suggest crisp detailed pixel clusters of moss, chipped stone, wood and varied vegetation; no geometric triangle trees. Distinct three compositional zones within ONE panorama, no copied/mirrored halves, no seam or panels. Small amber village/lantern lights in deep slate/teal moonlight. No people, characters, text, labels, UI, captions, grid, frames, watermark, blur, bloom, photographic grain. The review page will label this as SKIZZE outside the art."
+    }
+  ]
+}

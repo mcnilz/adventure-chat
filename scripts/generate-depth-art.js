@@ -67,27 +67,9 @@ function landscape(width, map) {
   return createPng(width, height, (x, y) => pixels.subarray((y * width + x) * 4, (y * width + x) * 4 + 4));
 }
 
-for (const world of ['reference', 'map', 'scroll']) {
+// Reference art is a preserved delivery; restore it with build-reference-art.ps1.
+for (const world of ['map', 'scroll']) {
   for (const [name, width, map] of [['demo-map', 1280, true], ['demo-depth', 640, false], ['demo-combined', 1280, false]]) {
     fs.writeFileSync(new URL('../worlds/' + world + '/assets/images/' + name + '.png', import.meta.url), landscape(width, map));
   }
-}
-
-// Small schematic overhead versions distinguish the two reference identities.
-// Same 128px grid and right/back/front rows as the supplied adventure sheets.
-for (const [id, shirt, hair] of [['mara', [84, 126, 155], [99, 52, 35]], ['bruno', [91, 115, 70], [53, 39, 32]]]) {
-  const png = createPng(512, 384, (x, y) => {
-    const frame = Math.floor(x / 128), row = Math.floor(y / 128);
-    let u = x % 128 - 64, v = y % 128 - 64;
-    if (row === 0) [u, v] = [v, -u]; // right-facing frame
-    if (row === 2) [u, v] = [-u, -v];
-    const step = frame % 2 === 0 ? -3 : 3;
-    if ((u >= -18 && u < -5 && v >= 18 + step && v < 34 + step) ||
-        (u >= 5 && u < 18 && v >= 18 - step && v < 34 - step)) return [30, 40, 51, 255];
-    if (Math.abs(u) < 27 && v >= -7 && v < 24) return [...shirt, 255];
-    if (Math.abs(u) >= 27 && Math.abs(u) < 34 && v >= -12 && v < 15) return [221, 171, 128, 255];
-    if (Math.abs(u) < 18 && v >= -35 && v < -4) return [...(v < -26 ? [232, 184, 143] : hair), 255];
-    return [0, 0, 0, 0];
-  });
-  fs.writeFileSync(new URL('../worlds/reference/assets/images/' + id + '-top-down.png', import.meta.url), png);
 }
