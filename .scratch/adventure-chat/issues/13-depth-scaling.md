@@ -4,7 +4,11 @@
 
 **Blocked by:** 09, 11, 14, 15, 16; Gesamtabnahme der Demo-Welten zusätzlich 12 (done)
 
-**Status:** ready-for-human
+**Status:** done
+
+## Menschliche Abnahme · 09.11.2026
+
+Benutzer: „abgenommen“, nach Bestätigung des Demo-Übergangs und der Sichtprüfung. Ticket 13 einschließlich Standardstart-Nachtrag ist damit ausdrücklich abgenommen. Die folgenden ready-for-human-Angaben beschreiben den historischen Stand vor dieser Abnahme. Implementierungscommit 15964f4; Standardstart-Nachtrag 833d13b.
 
 Priorisierung am 04.11.2026 ausdrücklich geändert: Ticket 13 erst nach Abschluss der drei neuen Tickets 14 → 15 → 16 angehen. Diese Reihenfolge ist ein Benutzerauftrag, keine technische Notwendigkeit. Tiefenskalierung auf die dann vorhandene Figurenwahl, Vordergrundobjekte und überarbeitete Referenzwelt aufsetzen; keine Arbeiten aus 13 als Voraussetzung für 16 vorziehen. Konkrete Formatversion erst anhand des dann veröffentlichten Stands festlegen.
 

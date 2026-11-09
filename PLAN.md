@@ -1,5 +1,5 @@
 # Umsetzungsplan
-Status: Tickets 01–16 außer 13 sind menschlich abgenommen und done. Ticket 16 wurde am 09.11.2026 ausdrücklich abgenommen. Ticket 13 ist am 09.11.2026 mit „ja ok“ für Umfang und Testgrenzen bestätigt, implementiert und ready-for-human (256 Tests grün). Details und Belege im jeweiligen Ticket und active-state.md.
+Status: Tickets 01–16 sind menschlich abgenommen und done. Ticket 13 einschließlich Standardstart-Nachtrag wurde am 09.11.2026 ausdrücklich mit „abgenommen“ bestätigt. Letzte Vollsuite: 257 Tests bestanden. Details und Belege im jeweiligen Ticket und active-state.md.
 
 | Ticket | Vorführbares Ergebnis | Blocked by |
 | --- | --- | --- |
