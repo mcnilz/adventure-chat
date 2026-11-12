@@ -4,11 +4,11 @@
 
 **Blocked by:** [20](20-shared-object-actions.md) muss done sein; 02, 05, 11–13 und 15 sind done.
 
-**Status:** ready-for-human
+**Status:** done
 
 ## Auftrag und Freigabegrenze
 
-Planung am 10.11.2026 bestätigt; Paketumfang, Sicherheitsdefinition, Eintritts-/Stoppregel, Format 1.8.0 und öffentliche Testgrenzen am 12.11.2026 separat mit „ja“ zur Implementierung freigegeben. Umsetzung geprüft, menschliche Endabnahme offen. [SPEC](../../../SPEC.md), [ADR 0002](../../../docs/adr/0002-declarative-object-interactions.md).
+Planung am 10.11.2026 bestätigt; Paketumfang, Sicherheitsdefinition, Eintritts-/Stoppregel, Format 1.8.0 und öffentliche Testgrenzen am 12.11.2026 separat mit „ja“ zur Implementierung freigegeben. Umsetzung geprüft und am 12.11.2026 mit „funktioniert“ menschlich abgenommen. [SPEC](../../../SPEC.md), [ADR 0002](../../../docs/adr/0002-declarative-object-interactions.md).
 
 ## Umfang und bestätigte Sicherheitsregel
 
@@ -45,6 +45,8 @@ Lokale Ankerregel, Fußpunkt ohne zusätzlichen Radius, Ablehnung gesperrter vor
 
 ## Stand / Abnahme
 
+12.11.2026: Benutzer bestätigt die bereitgestellte Umsetzung mit „funktioniert“. Ticket 21 ist menschlich abgenommen und done. Implementierungscommit bfa5189. Ausschließlich Status-/Abnahmedokumentation geändert; kein Produkt- oder Formatwechsel und kein neuer Funktionslauf erforderlich. Ticket 18/19 bleiben ready-for-human, 22/23 draft.
+
 ### Umsetzung und konkretisierter Vertrag (12.11.2026)
 
 - Format 1.8.0 ergänzt ausschließlich optionale `ObjectState.obstacles` und `blockedExits`; absolute Raumkoordinaten ohne implizite Bildtransformation. Neue synthetische Welt `tests/Fixtures/navigation`, keine Überarbeitung der Referenzwelt aus 19/23. Die roten PNG-Muster sind Kopien eigener Testbilder aus foreground.
@@ -57,7 +59,7 @@ Lokale Ankerregel, Fußpunkt ohne zusätzlichen Radius, Ablehnung gesperrter vor
 
 ### Bisherige Prüfbelege
 
-**Abschluss:** Typcheck und Clientbuild erfolgreich; letzte vollständige Suite **328 bestanden (221 Server, 107 Browser), 0 Warnungen, 478.8s**. Keine Produktänderung nach diesem Lauf. Alle 25 neuen Server-/Inhaltsfälle und sechs Browserfälle enthalten. Standards: 0 offene Befunde; Spec: 0 offene Befunde nach Korrekturen und Nachprüfung. Markdown-Ziele und Diffprüfung erfolgreich. Status ready-for-human, ausdrücklich noch keine menschliche Endabnahme. Lokaler Implementierungscommit: `Implement state-dependent navigation and safe passages (ticket 21)`, kein Push.
+**Abschluss:** Typcheck und Clientbuild erfolgreich; letzte vollständige Suite **328 bestanden (221 Server, 107 Browser), 0 Warnungen, 478.8s**. Keine Produktänderung nach diesem Lauf. Alle 25 neuen Server-/Inhaltsfälle und sechs Browserfälle enthalten. Standards: 0 offene Befunde; Spec: 0 offene Befunde nach Korrekturen und Nachprüfung. Markdown-Ziele und Diffprüfung erfolgreich. Status done; menschliche Endabnahme am 12.11.2026 mit „funktioniert“. Lokaler Implementierungscommit: `Implement state-dependent navigation and safe passages (ticket 21)`, kein Push.
 
 - Türbewegung an öffentlicher Sitzungsgrenze zuerst rot (geschlossene Tür ließ Weg zu), nach Navigationsintegration grün. Fußpunkt-/Ankerablehnung zuerst rot, nach atomarer Vorprüfung grün. Format-1.8.0-Inhaltsprüfung zuerst rot (Bündel fehlte), danach grün.
 - Browserintegration zuerst rot: Beim Umschreiben weltbezogener Bildadressen gingen Zustandshindernisse verloren. Übernahme von `obstacles`/`blockedExits` korrigiert, echte Browserabläufe grün.
@@ -74,7 +76,7 @@ Separate geprüfte Programmkopie und Welt: `.scratch/adventure-chat/evidence/21/
 2. Bei offener Tür die zweite Figur in den Durchgang stellen: Schließen durch die erste Figur muss vollständig mit lokaler Fehlermeldung abgelehnt werden. Danach zweite Figur rechts starten lassen und zurück nach links schicken; noch vor dem Durchgang schließen: sicherer Stopp rechts mit lokaler Sprechblase, kein Raumchat. Erneutes Öffnen darf den gestoppten Auftrag nicht selbst fortsetzen.
 3. `http://127.0.0.1:55027/editor.html?worldId=navigation` öffnen und Raumvorschau starten. Geschlossene Tür blockiert den Weg; Objektklick öffnet, danach Weg freigegeben. Vorschau verlassen: Draft und Livewelt bleiben unverändert. Sichtbare Gestaltung, Bediengefühl und Verständlichkeit der Meldungen menschlich prüfen.
 
-Keine neuen Abhängigkeiten. SemVer: additive Minor-Erweiterung mit unveränderten Defaults und eigener ausdrücklicher Unterstützung; ältere Bündel und Fixtures bleiben erhalten. Menschliche Endabnahme ausstehend.
+Keine neuen Abhängigkeiten. SemVer: additive Minor-Erweiterung mit unveränderten Defaults und eigener ausdrücklicher Unterstützung; ältere Bündel und Fixtures bleiben erhalten. Menschliche Endabnahme am 12.11.2026 mit „funktioniert“ erfolgt.
 
 12.11.2026: Benutzer bestätigt Paketvorschlag mit „ja“: Fußpunkt einschließlich Sperrrand, Erhalt mindestens eines zuvor erreichbaren lokalen Sicherheitsankers, blockierten vorgesehenen Eintritt/Übergang ablehnen ohne Ersatzspawn, ungültige laufende Wege zum bisherigen Ziel neu berechnen oder lokal mit Sprechblase stoppen, keine automatische Fortsetzung. Format 1.8.0 und die vorgeschlagenen öffentlichen Testgrenzen bestätigt. Implementierungsbasis `4d110681fde69ff3d60c03b055c63e4c65ea352b`. Ältere Schemas/Fixtures bleiben unverändert. Bestehende unversionierte Belege unter evidence/20 werden nicht verändert.
 

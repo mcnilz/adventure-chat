@@ -20,5 +20,9 @@
     "specFindingsFixed": 2,
     "independentAgents": true
   },
-  "humanAcceptance": "pending"
+  "humanAcceptance": {
+    "status": "accepted",
+    "date": "2026-11-12",
+    "userStatement": "funktioniert"
+  }
 }

@@ -4,11 +4,11 @@ Implementierungsbasis: `4d110681fde69ff3d60c03b055c63e4c65ea352b`.
 
 - `compatibility.json`: Vergleich aller 192 bereits vorhandenen Schema-, Fixture-, Raum- und Weltdateien gegen die Basis. 103 LFS-Bilder SHA256-bytegleich; vorhandene CRLF-Textcheckouts gegenüber Git-LF berücksichtigt, keine Dateien umgeschrieben.
 - `schema-extension.json`: 1.8.0 unterscheidet sich strukturell ausschließlich durch Versionsangaben und die beiden optionalen Zustandsfelder von 1.7.0.
-- `validation.json`: abschließender Typcheck/Build, vollständige Suite mit 328 bestandenen Tests und 0 Warnungen sowie Reviewstand; menschliche Endabnahme weiterhin offen.
+- `validation.json`: abschließender Typcheck/Build, vollständige Suite mit 328 bestandenen Tests und 0 Warnungen sowie Reviewstand; menschliche Endabnahme am 12.11.2026 mit „funktioniert“ erfolgt.
 - `closed.png`, `open.png`, `stopped.png`: tatsächliche Browseraufnahmen der synthetischen Testwelt. Rote PNG-Muster stehen für Tür/Stuhl; keine endgültige Gestaltung.
 - `acceptance-server.json`: lokale separate Abnahmeumgebung, HTTP200 und tatsächlicher Browsereintritt geprüft. Programm- und Weltkopien sowie Logs bleiben lokal und werden nicht versioniert.
 
-Abnahmeschritte und vollständige tatsächliche Prüf-/Reviewhistorie stehen im [Ticket](../../issues/21-state-dependent-navigation.md). Menschliche Endabnahme ist weiterhin offen. Bestehende Umgebungen und Benutzer-Arbeitskopien bleiben erhalten.
+Abnahmeschritte und vollständige tatsächliche Prüf-/Reviewhistorie stehen im [Ticket](../../issues/21-state-dependent-navigation.md). Menschliche Endabnahme am 12.11.2026 mit „funktioniert“ erfolgt. Bestehende Umgebungen und Benutzer-Arbeitskopien bleiben erhalten.
 
 Prüfbefehle ohne externe Dienste oder neue Abhängigkeiten:
 
