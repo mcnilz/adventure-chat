@@ -6,6 +6,174 @@ namespace AdventureChat.E2ETests;
 public class InteractiveObjectTests
 {
     [Test]
+    public async Task InterruptedApproach_ResetsVerbAndSpeaksLocally()
+    {
+        await using var server = new TestServerFixture(foregroundWorld: true);
+        var source = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../../tests/Fixtures/interactions"));
+        var world = Path.Combine(server.TempRoot, "world");
+        foreach (var file in Directory.GetFiles(source, "*", SearchOption.AllDirectories))
+        {
+            var destination = Path.Combine(world, Path.GetRelativePath(source, file));
+            Directory.CreateDirectory(Path.GetDirectoryName(destination)!); File.Copy(file, destination);
+        }
+        await server.StartAsync();
+        await using var proxy = new InterruptibleProxy(server.BaseUrl);
+        using var playwright = await Playwright.CreateAsync();
+        await using var browser = await playwright.Chromium.LaunchAsync(new() { Headless = true });
+        var page = await browser.NewPageAsync(); await page.GotoAsync(proxy.BaseUrl); await page.ClickAsync("#world-enter");
+        await page.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__?.connectionStatus === 'connected'");
+        await page.EvaluateAsync("window.__ADVENTURE_GAME__.setTarget({x:500,y:300})");
+        await page.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.character.state === 'idle' && window.__ADVENTURE_GAME__.character.position.x > 490");
+        await page.GetByRole(AriaRole.Button, new() { Name = "Ziehen", Exact = true }).ClickAsync();
+        var canvas = page.Locator("#game-canvas"); var box = (await canvas.BoundingBoxAsync())!;
+        await canvas.ClickAsync(new() { Position = new() { X = (float)(box.Width * 230 / 640), Y = (float)(box.Height * 230 / 360) } });
+        await page.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.character.state === 'walk'");
+        var oldSession = await page.EvaluateAsync<string>("window.__ADVENTURE_GAME__.sessionId");
+        proxy.Interrupt();
+        await page.WaitForFunctionAsync("() => document.querySelector('#verb-bar [data-verb=walk]').getAttribute('aria-pressed') === 'true' && window.__ADVENTURE_GAME__.character.speechBubble?.text === 'Die Verbindung wurde unterbrochen.'", null, new() { Timeout = 8000 });
+        await page.WaitForFunctionAsync("old => window.__ADVENTURE_GAME__.connectionStatus === 'connected' && window.__ADVENTURE_GAME__.sessionId !== old", oldSession);
+        Assert.That(await page.EvaluateAsync<int>("window.__ADVENTURE_GAME__.room.objects.find(o => o.id === 'chair').position.x"), Is.EqualTo(200));
+    }
+
+    [Test]
+    public async Task LegacyGraphicCoveringRoom_AllowsLocalFailureWithoutLeavingObject()
+    {
+        await using var server = new TestServerFixture(foregroundWorld: true);
+        var source = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../../tests/Fixtures/interactions"));
+        var world = Path.Combine(server.TempRoot, "world");
+        foreach (var file in Directory.GetFiles(source, "*", SearchOption.AllDirectories))
+        {
+            var destination = Path.Combine(world, Path.GetRelativePath(source, file));
+            Directory.CreateDirectory(Path.GetDirectoryName(destination)!); File.Copy(file, destination);
+        }
+        var hall = Path.Combine(world, "rooms", "hall.yaml");
+        File.AppendAllText(hall, "\n  - { id: bild, image: assets/images/table.png, position: { x: 0, y: 0 }, size: { width: 640, height: 360 }, depthY: 360 }\n");
+        await server.StartAsync();
+        using var playwright = await Playwright.CreateAsync();
+        await using var browser = await playwright.Chromium.LaunchAsync(new() { Headless = true });
+        var page = await browser.NewPageAsync(); await page.GotoAsync(server.BaseUrl); await page.ClickAsync("#world-enter");
+        await page.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__?.connectionStatus === 'connected'");
+        await page.GetByRole(AriaRole.Button, new() { Name = "Drücken", Exact = true }).ClickAsync();
+        var canvas = page.Locator("#game-canvas"); var box = (await canvas.BoundingBoxAsync())!;
+        await canvas.ClickAsync(new() { Position = new() { X = (float)(box.Width * 150 / 640), Y = (float)(box.Height * 200 / 360) } });
+        await page.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.character.speechBubble?.text === 'Das geht nicht.'", null, new() { Timeout = 8000 });
+        Assert.That(await page.EvaluateAsync<double>("window.__ADVENTURE_GAME__.character.position.x"), Is.EqualTo(100).Within(2));
+        Assert.That(await page.Locator("#verb-bar [data-verb=walk]").GetAttributeAsync("aria-pressed"), Is.EqualTo("true"));
+    }
+
+    [Test]
+    public async Task MultipleUsePoints_TryAnotherWhenNearestIsUnreachable()
+    {
+        await using var server = new TestServerFixture(foregroundWorld: true);
+        var source = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../../tests/Fixtures/interactions"));
+        var world = Path.Combine(server.TempRoot, "world");
+        foreach (var file in Directory.GetFiles(source, "*", SearchOption.AllDirectories))
+        {
+            var destination = Path.Combine(world, Path.GetRelativePath(source, file));
+            Directory.CreateDirectory(Path.GetDirectoryName(destination)!); File.Copy(file, destination);
+        }
+        var manifest = Path.Combine(world, "world.yaml");
+        File.WriteAllText(manifest, File.ReadAllText(manifest).Replace("1.6.0", "1.7.0").Replace("startSpawn: entry", "startSpawn: east"));
+        var hall = Path.Combine(world, "rooms", "hall.yaml");
+        var yaml = File.ReadAllText(hall)
+            .Replace("spawns: [{ id: entry, position: { x: 100, y: 300 } }]", "spawns: [{ id: entry, position: { x: 100, y: 300 } }, { id: east, position: { x: 400, y: 300 } }]")
+            .Replace("exits:\n", "obstacles:\n  - id: divider\n    points: [{x: 300, y: 100.1}, {x: 340, y: 100.1}, {x: 340, y: 349.9}, {x: 300, y: 349.9}]\nexits:\n")
+            .Replace("    depthY: 280\n    interaction:", "    depthY: 280\n    usePoints: [{x: 280, y: 300}, {x: 560, y: 300}]\n    interaction:");
+        var oldPoint = "      usePoint: { x: 100, y: 300 }\n";
+        yaml = yaml.Remove(yaml.IndexOf(oldPoint, StringComparison.Ordinal), oldPoint.Length);
+        File.WriteAllText(hall, yaml);
+        await server.StartAsync();
+        using var playwright = await Playwright.CreateAsync();
+        await using var browser = await playwright.Chromium.LaunchAsync(new() { Headless = true });
+        var page = await browser.NewPageAsync(); await page.GotoAsync(server.BaseUrl); await page.ClickAsync("#world-enter");
+        await page.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__?.connectionStatus === 'connected'");
+        await page.GetByRole(AriaRole.Button, new() { Name = "Ziehen", Exact = true }).ClickAsync();
+        var canvas = page.Locator("#game-canvas"); var box = (await canvas.BoundingBoxAsync())!;
+        await canvas.ClickAsync(new() { Position = new() { X = (float)(box.Width * 230 / 640), Y = (float)(box.Height * 230 / 360) } });
+        await page.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.room.objects.find(o => o.id === 'chair').position.x === 240");
+        Assert.That(await page.EvaluateAsync<double>("window.__ADVENTURE_GAME__.character.position.x"), Is.EqualTo(560).Within(2));
+    }
+
+    [Test]
+    public async Task MultipleUsePoints_ChooseNearbyPointAndKeepFailurePrivate()
+    {
+        await using var server = new TestServerFixture(foregroundWorld: true, authoring: true);
+        var source = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../../tests/Fixtures/interactions"));
+        var world = Path.Combine(server.TempRoot, "world");
+        foreach (var file in Directory.GetFiles(source, "*", SearchOption.AllDirectories))
+        {
+            var destination = Path.Combine(world, Path.GetRelativePath(source, file));
+            Directory.CreateDirectory(Path.GetDirectoryName(destination)!); File.Copy(file, destination);
+        }
+        var manifest = Path.Combine(world, "world.yaml");
+        File.WriteAllText(manifest, File.ReadAllText(manifest).Replace("1.6.0", "1.7.0"));
+        var hall = Path.Combine(world, "rooms", "hall.yaml");
+        var yaml = File.ReadAllText(hall).Replace("    depthY: 280\n    interaction:", "    depthY: 280\n    usePoints: [{x: 100, y: 300}, {x: 350, y: 300}]\n    interaction:");
+        var oldPoint = "      usePoint: { x: 100, y: 300 }\n";
+        yaml = yaml.Remove(yaml.IndexOf(oldPoint, StringComparison.Ordinal), oldPoint.Length);
+        File.WriteAllText(hall, yaml + "\n  - { id: kiste, image: assets/images/table.png, position: { x: 450, y: 200 }, size: { width: 40, height: 40 }, depthY: 280, usePoints: [{x: 430, y: 300}, {x: 520, y: 300}] }\n  - { id: randobjekt, image: assets/images/table.png, position: { x: 450, y: 320 }, size: { width: 40, height: 30 }, depthY: 340 }\n");
+        await server.StartAsync();
+        using var playwright = await Playwright.CreateAsync();
+        await using var browser = await playwright.Chromium.LaunchAsync(new() { Headless = true });
+        var a = await browser.NewPageAsync(); var b = await browser.NewPageAsync();
+        foreach (var page in new[] { a, b })
+        {
+            await page.GotoAsync(server.BaseUrl); await page.ClickAsync("#world-enter");
+            await page.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__?.connectionStatus === 'connected'");
+        }
+        async Task ClickChair(IPage page, int x)
+        {
+            var canvas = page.Locator("#game-canvas"); var box = (await canvas.BoundingBoxAsync())!;
+            await canvas.ClickAsync(new() { Position = new() { X = (float)(box.Width * x / 640), Y = (float)(box.Height * 230 / 360) } });
+        }
+        await b.EvaluateAsync("window.__ADVENTURE_GAME__.setTarget({x:500,y:300})");
+        await b.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.character.state === 'idle' && window.__ADVENTURE_GAME__.character.position.x > 490");
+        await b.GetByRole(AriaRole.Button, new() { Name = "Ziehen", Exact = true }).ClickAsync();
+        await ClickChair(b, 230);
+        await a.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.room.objects.find(o => o.id === 'chair').position.x === 240");
+        Assert.That(await b.EvaluateAsync<double>("window.__ADVENTURE_GAME__.character.position.x"), Is.EqualTo(350).Within(2));
+        await a.EvaluateAsync("window.__ADVENTURE_GAME__.setTarget({x:500,y:300})");
+        await a.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.character.state === 'idle' && window.__ADVENTURE_GAME__.character.position.x > 490");
+        await a.GetByRole(AriaRole.Button, new() { Name = "Ziehen", Exact = true }).ClickAsync();
+        await ClickChair(a, 270);
+        await a.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.character.speechBubble?.text === 'Das geht nicht.'");
+        Assert.That(await a.EvaluateAsync<double>("window.__ADVENTURE_GAME__.character.position.x"), Is.EqualTo(350).Within(2));
+        Assert.That(await b.EvaluateAsync<bool>("[...window.__ADVENTURE_GAME__.remotePlayers.values()].every(p => !p.speechBubble)"), Is.True);
+        Assert.That(await a.Locator("#verb-bar [data-verb=walk]").GetAttributeAsync("aria-pressed"), Is.EqualTo("true"));
+        await a.GetByRole(AriaRole.Button, new() { Name = "Drücken", Exact = true }).ClickAsync();
+        await ClickChair(a, 460);
+        await a.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.character.state === 'idle' && Math.abs(window.__ADVENTURE_GAME__.character.position.x - 430) < 2");
+        await a.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.character.speechBubble?.text === 'Das geht nicht.' && document.querySelector('#verb-bar [data-verb=walk]').getAttribute('aria-pressed') === 'true'");
+        await a.EvaluateAsync("window.__ADVENTURE_GAME__.setTarget({x:100,y:300})");
+        await a.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.character.state === 'idle' && window.__ADVENTURE_GAME__.character.position.x < 110");
+        await a.GetByRole(AriaRole.Button, new() { Name = "Drücken", Exact = true }).ClickAsync();
+        var edgeCanvas = a.Locator("#game-canvas"); var edgeBox = (await edgeCanvas.BoundingBoxAsync())!;
+        await edgeCanvas.ClickAsync(new() { Position = new() { X = (float)(edgeBox.Width * 460 / 640), Y = (float)(edgeBox.Height * 330 / 360) } });
+        await a.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.character.state === 'idle' && Math.abs(window.__ADVENTURE_GAME__.character.position.x - 442) < 2");
+        await a.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.character.speechBubble?.text === 'Das geht nicht.' && document.querySelector('#verb-bar [data-verb=walk]').getAttribute('aria-pressed') === 'true'");
+        var author = await browser.NewPageAsync(); await author.GotoAsync(server.BaseUrl);
+        var saved = await author.EvaluateAsync<System.Text.Json.JsonElement>("""
+            async () => {
+                const status = await (await fetch('/api/editor/status?worldId=interactions')).json();
+                const room = await (await fetch('/api/editor/rooms/hall?worldId=interactions')).json();
+                const before = await (await fetch('/api/editor/rooms/hall/yaml?worldId=interactions')).text();
+                const invalid = structuredClone(room); invalid.objects[0].usePoints = [];
+                const options = body => ({method:'POST', headers:{'Content-Type':'application/json','X-Author-Token':status.token}, body:JSON.stringify(body)});
+                const rejected = await fetch('/api/editor/rooms/hall?worldId=interactions', options(invalid));
+                const after = await (await fetch('/api/editor/rooms/hall/yaml?worldId=interactions')).text();
+                room.notes = 'Roundtrip';
+                const accepted = await fetch('/api/editor/rooms/hall?worldId=interactions', options(room));
+                const reopened = await (await fetch('/api/editor/rooms/hall?worldId=interactions')).json();
+                return {rejected:!rejected.ok, unchanged:before===after, accepted:accepted.ok, points:reopened.objects[0].usePoints.length};
+            }
+            """);
+        Assert.That(saved.GetProperty("rejected").GetBoolean(), Is.True);
+        Assert.That(saved.GetProperty("unchanged").GetBoolean(), Is.True);
+        Assert.That(saved.GetProperty("accepted").GetBoolean(), Is.True);
+        Assert.That(saved.GetProperty("points").GetInt32(), Is.EqualTo(2));
+    }
+
+    [Test]
     public async Task Verbs_ActOnObjectsClickedInTheScene()
     {
         await using var server = new TestServerFixture(foregroundWorld: true);
@@ -37,6 +205,14 @@ public class InteractiveObjectTests
             await canvas.HoverAsync(new() { Position = position });
             await canvas.ClickAsync(new() { Position = position });
         }
+        await a.EvaluateAsync("window.__ADVENTURE_GAME__.setTarget({x:400,y:300})");
+        await a.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.character.state === 'idle' && window.__ADVENTURE_GAME__.character.position.x > 390");
+        await a.GetByRole(AriaRole.Button, new() { Name = "Drücken", Exact = true }).ClickAsync();
+        await ClickAt(a, 230, 230);
+        await a.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.character.speechBubble?.text === 'Das geht nicht.'", null, new() { Timeout = 8000 });
+        Assert.That(await a.EvaluateAsync<double>("window.__ADVENTURE_GAME__.character.position.x"), Is.LessThan(110));
+        Assert.That(await b.EvaluateAsync<bool>("[...window.__ADVENTURE_GAME__.remotePlayers.values()].every(p => !p.speechBubble)"), Is.True);
+        Assert.That(await a.Locator("#verb-bar [data-verb=walk]").GetAttributeAsync("aria-pressed"), Is.EqualTo("true"));
         await a.GetByRole(AriaRole.Button, new() { Name = "Ziehen", Exact = true }).ClickAsync();
         await ClickAt(a, 230, 230);
         await b.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.room.objects.find(o => o.id === 'chair').position.x === 240");
@@ -73,7 +249,8 @@ public class InteractiveObjectTests
         await a.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.character.state === 'walk'");
         await b.GetByRole(AriaRole.Button, new() { Name = "Ziehen", Exact = true }).ClickAsync();
         await ClickAt(b, 230, 230);
-        await a.GetByText("Der Objektzustand hat sich geändert. Bitte erneut versuchen.", new() { Exact = true }).WaitForAsync();
+        await a.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.character.speechBubble?.text === 'Der Objektzustand hat sich geändert. Bitte erneut versuchen.'");
+        Assert.That(await a.Locator("#verb-bar [data-verb=walk]").GetAttributeAsync("aria-pressed"), Is.EqualTo("true"));
         Assert.That(await a.EvaluateAsync<int>("window.__ADVENTURE_GAME__.room.objects.find(o => o.id === 'chair').position.x"), Is.EqualTo(240));
         await b.GetByRole(AriaRole.Button, new() { Name = "Drücken", Exact = true }).ClickAsync();
         await ClickAt(b, 270, 230);
@@ -84,6 +261,7 @@ public class InteractiveObjectTests
         await a.GetByRole(AriaRole.Button, new() { Name = "Benutzen", Exact = true }).ClickAsync();
         await ClickAt(a, 360, 220);
         Assert.That(await a.GetByRole(AriaRole.Button, new() { Name = "Einschalten", Exact = true }).CountAsync(), Is.Zero);
+        await a.GetByRole(AriaRole.Button, new() { Name = "Benutzen", Exact = true }).ClickAsync();
         await ClickAt(a, 370, 220);
         Assert.That(await a.Locator("#action-text").InnerTextAsync(), Is.EqualTo("Benutzen Schalter"));
         Assert.That(await a.Locator("#action-choices").EvaluateAsync<bool>("e => e.scrollHeight > e.clientHeight"), Is.True);

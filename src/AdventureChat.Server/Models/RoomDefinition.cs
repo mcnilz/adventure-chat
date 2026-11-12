@@ -17,7 +17,7 @@ public sealed record RoomExit(
     string? Label = null
 );
 
-public sealed record RoomObject(string Id, string Image, Point2D Position, RoomObjectSize Size, double DepthY, ObjectInteraction? Interaction = null);
+public sealed record RoomObject(string Id, string Image, Point2D Position, RoomObjectSize Size, double DepthY, ObjectInteraction? Interaction = null, IReadOnlyList<Point2D>? UsePoints = null);
 public sealed record RoomObjectSize(int Width, int Height);
 
 public sealed record DepthReference(double Y, double Factor)

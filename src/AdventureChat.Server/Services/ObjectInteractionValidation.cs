@@ -8,20 +8,37 @@ internal static class ObjectInteractionValidation
     {
         foreach (var obj in room.Objects ?? [])
         {
-            if (obj.Interaction is not { } interaction) continue;
-            var point = new Point2D(interaction.UsePoint.X, interaction.UsePoint.Y);
-            if (room.Geometry.IsWalkable(point) && !room.Spawns.Any(spawn => pathfinder.CalculatePath(room.Geometry, spawn.Position, point).Success))
-                errors.Add($"Object '{obj.Id}': use point is unreachable from every spawn.");
+            var points = obj.UsePoints ?? (obj.Interaction?.UsePoint is { } old ? [new Point2D(old.X, old.Y)] : []);
+            foreach (var point in points)
+                if (room.Geometry.IsWalkable(point) && !room.Spawns.Any(spawn => pathfinder.CalculatePath(room.Geometry, spawn.Position, point).Success))
+                    errors.Add($"Object '{obj.Id}': use point is unreachable from every spawn.");
         }
     }
 
-    public static void ValidateRoom(RoomYamlDto room, bool supported, List<string> errors)
+    public static void ValidateRoom(RoomYamlDto room, bool supported, bool supportsUsePoints, List<string> errors)
     {
+        var geometry = new RoomGeometry(
+            new Polygon(room.Walkable[0].Points.Select(p => new Point2D(p.X, p.Y)).ToList()),
+            (room.Obstacles ?? []).Select(o => new Polygon(o.Points.Select(p => new Point2D(p.X, p.Y)).ToList())).ToList());
         foreach (var obj in room.Objects ?? [])
         {
-            if (obj?.Interaction is not { } interaction) continue;
+            if (obj is null) continue;
+            if (obj.UsePoints is { } declared)
+            {
+                if (!supportsUsePoints) errors.Add($"Object '{obj.Id}': usePoints requires format 1.7.0.");
+                if (declared.Count is < 1 or > 8 || declared.Any(p => p is null) || declared.Select(p => (p.X, p.Y)).Distinct().Count() != declared.Count)
+                { errors.Add($"Object '{obj.Id}': usePoints requires 1–8 distinct points."); continue; }
+            }
+            var points = obj.UsePoints ?? (obj.Interaction?.UsePoint is { } old ? [old] : []);
+            foreach (var candidate in points.Where(p => p is not null))
+            {
+                var point = new Point2D(candidate.X, candidate.Y);
+                if (!point.IsFinite() || !geometry.IsWalkable(point))
+                    errors.Add($"Object '{obj.Id}': use points must be walkable.");
+            }
+            if (obj.Interaction is not { } interaction) continue;
             if (!supported) errors.Add($"Object '{obj.Id}': interaction requires format 1.6.0.");
-            if (interaction.States is null || interaction.Actions is null || interaction.UsePoint is null)
+            if (interaction.States is null || interaction.Actions is null || points.Count == 0)
             { errors.Add($"Object '{obj.Id}': interaction is incomplete."); continue; }
 
             var states = new HashSet<string>(StringComparer.Ordinal);
@@ -46,10 +63,8 @@ internal static class ObjectInteractionValidation
                 if (!states.Contains(action.From) || !states.Contains(action.To))
                     errors.Add($"Object '{obj.Id}', action '{action.Id}': unknown source or target state.");
             }
-            var point = new Point2D(interaction.UsePoint.X, interaction.UsePoint.Y);
-            if (!point.IsFinite() || !double.IsFinite(interaction.UseRadius) || interaction.UseRadius <= 0 || interaction.UseRadius > 200 ||
-                (room.Walkable?.FirstOrDefault()?.Points is { Count: >= 3 } && !room.ToRoomDefinition().Geometry.IsWalkable(point)))
-                errors.Add($"Object '{obj.Id}': use point must be walkable and radius within 0–200.");
+            if (!double.IsFinite(interaction.UseRadius) || interaction.UseRadius <= 0 || interaction.UseRadius > 200)
+                errors.Add($"Object '{obj.Id}': use radius must be within 0–200.");
         }
     }
 

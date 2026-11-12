@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adventure-chat.local/schemas/world/1.7.0/world.schema.json",
+  "type": "object",
+  "required": [
+    "formatVersion",
+    "id",
+    "name",
+    "contentVersion",
+    "startRoom",
+    "startSpawn",
+    "roomFormat"
+  ],
+  "properties": {
+    "formatVersion": {
+      "const": "1.7.0"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9_-]+$"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "contentVersion": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(-(0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)(\\.(0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*))*)?(\\+[0-9A-Za-z-]+(\\.[0-9A-Za-z-]+)*)?$"
+    },
+    "startRoom": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9_-]+$"
+    },
+    "startSpawn": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9_-]+$"
+    },
+    "roomFormat": {
+      "const": "legacy-1"
+    },
+    "defaultCharacterId": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9_-]+$"
+    },
+    "characters": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 32,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name",
+          "image",
+          "frameWidth",
+          "frameHeight"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_-]+$",
+            "maxLength": 64
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "image": {
+            "type": "string",
+            "pattern": "^assets/images/.+\\.png$",
+            "maxLength": 256
+          },
+          "frameWidth": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 256
+          },
+          "frameHeight": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 256
+          },
+          "topDownImage": {
+            "type": "string",
+            "pattern": "^assets/images/.+\\.png$",
+            "maxLength": 256
+          }
+        }
+      }
+    }
+  },
+  "additionalProperties": false,
+  "dependentRequired": {
+    "characters": [
+      "defaultCharacterId"
+    ],
+    "defaultCharacterId": [
+      "characters"
+    ]
+  }
+}

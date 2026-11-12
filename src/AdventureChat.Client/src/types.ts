@@ -82,12 +82,13 @@ export interface RoomObject {
  readonly size: { readonly width: number; readonly height: number };
  readonly depthY: number;
  readonly interaction?: ObjectInteraction | null;
+ readonly usePoints?: ReadonlyArray<Point> | null;
 }
 
 export interface ObjectInteraction {
  readonly name: string;
  readonly initialState: string;
- readonly usePoint: Point;
+ readonly usePoint?: Point | null;
  readonly useRadius: number;
  readonly states: ReadonlyArray<ObjectAppearance>;
  readonly actions: ReadonlyArray<{ readonly id: string; readonly name: string; readonly from: string; readonly to: string }>;

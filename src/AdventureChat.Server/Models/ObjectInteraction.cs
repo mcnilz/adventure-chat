@@ -4,7 +4,7 @@ public sealed class ObjectInteraction
 {
     public string Name { get; set; } = "";
     public string InitialState { get; set; } = "";
-    public RoomPointYamlDto UsePoint { get; set; } = new();
+    public RoomPointYamlDto? UsePoint { get; set; }
     public double UseRadius { get; set; }
     public List<ObjectState> States { get; set; } = [];
     public List<ObjectAction> Actions { get; set; } = [];

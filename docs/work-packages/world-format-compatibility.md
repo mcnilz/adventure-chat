@@ -112,14 +112,15 @@ Am 09.11.2026 ausdrücklich bestätigt: Ein Figurenkatalogeintrag darf zusätzli
 
 ## Interaktive Objekte und weitere Planung (20–23)
 
-Ticket 20 erweitert die ausdrückliche Unterstützung um 1.6.0. Die neuen Felder sind optional und nur im neuen Schema zulässig. Ältere Bündel und Referenzfixtures bleiben unverändert; neue Server behalten deren bisherige Darstellung und Navigation. Das ist eine additive Minor-Erweiterung. Maßgeblich sind [Formatvertrag](../../CONTENT-FORMAT.md), [ADR 0002](../adr/0002-declarative-object-interactions.md) und Tickets 20–23.
+Ticket 20 erweitert die ausdrückliche Unterstützung um 1.6.0 und nach Benutzerfeedback um 1.7.0 für mehrere Bedienpunkte. Die neuen Felder sind optional und nur im jeweiligen neuen Schema zulässig. Ältere Bündel und Referenzfixtures bleiben unverändert; neue Server behalten deren bisherige Darstellung und Navigation. Das sind additive Minor-Erweiterungen. Maßgeblich sind [Formatvertrag](../../CONTENT-FORMAT.md), [ADR 0002](../adr/0002-declarative-object-interactions.md) und Tickets 20–23.
 
 | Geplantes Paket | Vorgesehene Formatversion | SemVer-Begründung / Nachweis vor Veröffentlichung |
 | --- | --- | --- |
 | 20: Zustände, Aktionen, direkte Verknüpfungen | 1.6.0 | Minor nur mit optionalen Angaben; fehlend = weiterhin grafische Objekte ohne Aktionen. Alte Darstellung/Navigation unverändert. Neues eigenes Schema-Bündel und explizite Matrix. |
-| 21: Hindernisse und Ausgangssperren | 1.7.0 nach veröffentlichtem 1.6.0 | Weitere optionale Minor-Erweiterung; keine Änderung alter Fußpunkt-/Bodenregeln ohne neue Angaben. Eigenes Bündel; veröffentlichtes 1.6.0 nicht nachträglich erweitern. |
+| Nachtrag 20: mehrere Bedienpunkte | 1.7.0 | Optionale Punktliste; alter Einzelpunkt bleibt gültig. Eigenes Bündel; keine Änderung veröffentlichter Schemata. |
+| 21: Hindernisse und Ausgangssperren | 1.8.0 nach 1.7.0 | Weitere optionale Minor-Erweiterung; keine Änderung alter Fußpunkt-/Bodenregeln ohne neue Angaben. Eigenes Bündel. |
 | 22: Verben und Editor | keine weitere geplant | Bereits veröffentlichte Verträge bedienen/erhalten. Neues Feld oder neue Interpretation würde erneut eine Versionsentscheidung benötigen. Kein stilles Hochstufen alter Welten. |
-| 23: Referenzbeispiele | Format aus 21, geplant 1.7.0 | Inhaltsversion unabhängig begründen: aktuell reference 3.0.0; additive Szene bei Erhalt aller Zusagen Minor, geänderte bestehende Navigations-/Spawnsemantik Major. |
+| 23: Referenzbeispiele | Format aus 21, geplant 1.8.0 | Inhaltsversion unabhängig begründen: aktuell reference 3.0.0; additive Szene bei Erhalt aller Zusagen Minor, geänderte bestehende Navigations-/Spawnsemantik Major. |
 
 Versionsnummern bei Paketfreigabe gegen den tatsächlichen Stand prüfen. Eine spätere andere Reihenfolge darf keinen veröffentlichten Vertrag verändern. Bis Implementierung und Prüfung akzeptiert kein Server diese geplanten Versionen allein wegen dieses Dokuments.
 

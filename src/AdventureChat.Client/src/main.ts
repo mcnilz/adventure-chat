@@ -38,7 +38,6 @@ async function initialize(): Promise<void> {
   game.onVerbSelected = verb => verbBar.setSelected(verb);
   game.onActionChoices = (actions, choose) => verbBar.showChoices(actions, choose);
   game.onClearActionChoices = () => verbBar.clearChoices();
-  game.onInteractionMessage = message => chatUi.appendSystemMessage(message);
 
   game.onConnectionStatusChanged = (status) => {
     chatUi.setConnectionStatus(status);

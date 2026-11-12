@@ -32,9 +32,9 @@ internal sealed class ObjectInteractionRuntime(IRoomService rooms)
         var obj = room?.Objects?.FirstOrDefault(o => o.Id == request.ObjectId);
         if (room is null || obj?.Interaction is not { } interaction) return Reject("Objekt nicht verfügbar.");
         if (request.ExpectedRevision != Revision(room.Id)) return Reject("Der Objektzustand hat sich geändert. Bitte erneut versuchen.");
-        var dx = session.Position.X - interaction.UsePoint.X;
-        var dy = session.Position.Y - interaction.UsePoint.Y;
-        if (dx * dx + dy * dy > interaction.UseRadius * interaction.UseRadius) return Reject("Zu weit entfernt. Bitte näher herangehen.", "too_far");
+        var points = obj.UsePoints ?? (interaction.UsePoint is { } old ? [new Point2D(old.X, old.Y)] : []);
+        if (!points.Any(point => Math.Pow(session.Position.X - point.X, 2) + Math.Pow(session.Position.Y - point.Y, 2) <= interaction.UseRadius * interaction.UseRadius))
+            return Reject("Zu weit entfernt. Bitte näher herangehen.", "too_far");
         var current = _states.GetValueOrDefault((room.Id, obj.Id), interaction.InitialState);
         var action = interaction.Actions.FirstOrDefault(a => a.Id == request.ActionId && a.From == current);
         if (action is null) return Reject("Diese Aktion ist derzeit nicht möglich.");

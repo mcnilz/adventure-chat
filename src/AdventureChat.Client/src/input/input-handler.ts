@@ -10,6 +10,7 @@ export interface InputHandlerCallbacks {
   onNavigateToPoint: (point: Point) => Promise<void>;
   onToggleDebug: () => void;
   onObjectAction: (object: RoomObject) => Promise<void>;
+  onNavigateToObject: (object: RoomObject) => Promise<void>;
   onUnavailableTarget: () => void;
   onCanvasAction: () => void;
 }
@@ -61,11 +62,11 @@ export class InputHandler {
     this.pointer = { x: clientX, y: clientY };
     const logical = this.screenToLogical(clientX, clientY);
     const hit = this.getObjectAt(logical);
-    const object = hit?.interaction ? hit : undefined;
+    const object = hit;
     const verb = VERB_LABELS[this.getVerb()];
     if (object) {
       this.canvas.style.cursor = 'pointer';
-      this.callbacks.onHoverExitChanged(null, `${verb} ${object.interaction!.name}`);
+      this.callbacks.onHoverExitChanged(null, `${verb} ${object.interaction?.name ?? object.id}`);
       return;
     }
     const exit = hit ? null : this.findClickedExit(logical);
@@ -99,9 +100,11 @@ export class InputHandler {
     this.callbacks.onCanvasAction();
     const logical = this.screenToLogical(clientX, clientY);
     const hit = this.getObjectAt(logical);
-    const object = hit?.interaction ? hit : undefined;
+    const object = hit;
     if (object) {
-      if (this.getVerb() === 'walk') await this.callbacks.onNavigateToPoint(object.interaction!.usePoint);
+      if (this.getVerb() === 'walk' && !object.interaction && !object.usePoints?.length)
+        await this.callbacks.onNavigateToPoint(logical);
+      else if (this.getVerb() === 'walk') await this.callbacks.onNavigateToObject(object);
       else await this.callbacks.onObjectAction(object);
       return { point: logical, exit: null };
     }

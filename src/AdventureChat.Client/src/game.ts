@@ -1,7 +1,8 @@
-import { DEFAULT_ROOM, EXIT_TRIGGER_DISTANCE } from './constants.js';
+import { DEFAULT_ROOM, EXIT_TRIGGER_DISTANCE, SPEECH_BUBBLE_DURATION } from './constants.js';
 import { InputHandler } from './input/input-handler.js';
 import { actionsForVerb } from './input/object-action.js';
 import { ObjectActionFlow } from './input/object-action-flow.js';
+import { nearestUsePoints, objectUsePoints } from './input/object-use-points.js';
 import { RoomNetworkClient } from './network/room-client.js';
 import { RoomRenderer } from './rendering/renderer.js';
 import { assignPathToCharacter, updateCharacterMovement } from './simulation/movement.js';
@@ -32,7 +33,6 @@ export class AdventureGame {
   public onActionChanged?: (actionText: string) => void;
   public onWorldUnavailable?: (message: string) => void;
   public onObjectsChanged?: () => void;
-  public onInteractionMessage?: (message: string) => void;
   public onActionChoices?: (actions: ReadonlyArray<{ readonly id: string; readonly name: string }>, choose: (id: string) => void) => void;
   public onClearActionChoices?: () => void;
   public onVerbSelected?: (verb: InteractionVerb) => void;
@@ -43,6 +43,7 @@ export class AdventureGame {
   private isRunning = false;
   private animationFrameId: number | null = null;
   private currentRequestId = 0;
+  private objectWalkToken = 0;
   private exitRequestInFlight = false;
   private exitRetries = 0;
   private nextExitAttempt = 0;
@@ -61,6 +62,7 @@ export class AdventureGame {
     this.renderer = new RoomRenderer(this.canvas, this.state.room);
 
     this.state.onRoomChanged = (room) => {
+      this.objectWalkToken++;
       this.objectActionFlow.cancel();
       this.renderer.setRoom(room);
       this.onRoomChanged?.(room);
@@ -78,7 +80,13 @@ export class AdventureGame {
       onChatMessageReceived: (dto) => this.dispatchRoomEvent(() => this.state.handleChatMessage(dto)),
       onObjectStatesChanged: (dto) => this.dispatchRoomEvent(() => this.state.handleObjectStates(dto)),
       onWorldReset: () => this.onWorldUnavailable?.('Die Welt wurde geändert und neu gestartet. Bitte erneut beitreten.'),
-      onConnectionStatusChanged: (status) => { if (status !== 'connected') this.objectActionFlow.cancel(); this.onConnectionStatusChanged?.(status); },
+      onConnectionStatusChanged: (status) => {
+        if (status !== 'connected' && this.objectActionFlow.cancel()) {
+          this.speakLocally('Die Verbindung wurde unterbrochen.');
+          this.selectVerb('walk');
+        }
+        this.onConnectionStatusChanged?.(status);
+      },
       onReconnected: async () => {
         try { await this.joinRoom(); }
         catch (error) { this.networkClient.setStatus('disconnected'); this.onWorldUnavailable?.(String(error)); }
@@ -90,7 +98,7 @@ export class AdventureGame {
         revision: this.state.objectRevision, stateOf: id => this.state.objectStates.get(id) }),
       point => this.setTarget(point),
       (room, object, action, revision) => this.networkClient.requestObjectAction(room, object, action, revision),
-      error => { if (error) this.onInteractionMessage?.(error); this.selectVerb('walk'); }
+      error => { if (error) this.speakLocally(error); this.selectVerb('walk'); }
     );
 
     this.inputHandler = new InputHandler(
@@ -116,21 +124,31 @@ export class AdventureGame {
           this.state.pendingExit = null;
           await this.setTarget(point);
         },
+        onNavigateToObject: async object => {
+          this.state.pendingExit = null;
+          const token = this.objectWalkToken;
+          for (const point of nearestUsePoints(objectUsePoints(object), this.character.position)) {
+            const result = await this.setTarget(point);
+            if (token !== this.objectWalkToken || result.accepted) return;
+          }
+          this.speakLocally('Der Weg zum Objekt ist nicht erreichbar.');
+          this.selectVerb('walk');
+        },
         onToggleDebug: () => {
           this.renderer.toggleDebugOverlay();
         },
         onObjectAction: async object => {
           this.onClearActionChoices?.();
           const actions = actionsForVerb(object, this.state.objectStates.get(object.id), this.verb);
-          if (actions.length === 0) { this.onInteractionMessage?.('Diese Handlung ist für dieses Objekt derzeit nicht möglich.'); return; }
           const roomId = this.room.id, expectedState = this.state.objectStates.get(object.id);
           this.state.pendingExit = null;
-          const execute = (actionId: string) => this.objectActionFlow.start(roomId, object, actionId, expectedState);
-          if (actions.length === 1) await execute(actions[0]!.id);
+          const execute = (actionId: string | null) => this.objectActionFlow.start(roomId, object, actionId, expectedState);
+          if (actions.length === 0) await execute(null);
+          else if (actions.length === 1) await execute(actions[0]!.id);
           else this.onActionChoices?.(actions, id => { void execute(id); });
         },
-        onUnavailableTarget: () => this.onInteractionMessage?.('Diese Handlung ist für dieses Ziel derzeit nicht möglich.'),
-        onCanvasAction: () => { this.objectActionFlow.cancel(); this.onClearActionChoices?.(); },
+        onUnavailableTarget: () => { this.speakLocally('Das geht nicht.'); this.selectVerb('walk'); },
+        onCanvasAction: () => { this.objectWalkToken++; this.objectActionFlow.cancel(); this.onClearActionChoices?.(); },
       },
       () => this.state.room,
       () => this.state.character.position,
@@ -141,10 +159,15 @@ export class AdventureGame {
   }
 
   public selectVerb(verb: InteractionVerb): void {
+    this.objectWalkToken++;
     this.objectActionFlow.cancel();
     this.verb = verb;
     this.onVerbSelected?.(verb);
     this.inputHandler.updateVerb();
+  }
+
+  private speakLocally(text: string): void {
+    this.character.speechBubble = { text, startTime: performance.now(), duration: SPEECH_BUBBLE_DURATION };
   }
 
   // --- Properties for backwards compatibility with tests and callers ---
