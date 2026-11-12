@@ -1,5 +1,5 @@
 # Umsetzungsplan
-Status (12.11.2026): Tickets 01–17 sind menschlich abgenommen und done. Tickets 18, 19 und 20 sind umgesetzt und ready-for-human; 21–23 bleiben draft. Tatsächliche Implementierungs- und Testbelege im jeweiligen Ticket und active-state.md.
+Status (12.11.2026): Tickets 01–17 sind menschlich abgenommen und done. Tickets 18–20 sind ready-for-human; Ticket 20 wurde nach Feedback überarbeitet. 21–23 bleiben draft. Tatsächliche Implementierungs- und Testbelege im jeweiligen Ticket und active-state.md.
 
 | Ticket | Vorführbares Ergebnis | Blocked by |
 | --- | --- | --- |
@@ -22,7 +22,7 @@ Status (12.11.2026): Tickets 01–17 sind menschlich abgenommen und done. Ticket
 | 17 (done) | Verlässliche Bearbeitungen und Ungespeichert-Status im Raumeditor | 06, 07, 11–15 (done); menschlich abgenommen am 09.11.2026 |
 | 18 (ready-for-human) | Gesamte Spieloberfläche an Fensterbreite und -höhe anpassen; Vergrößern per Button | keine; am 09.11.2026 bestätigt, menschliche Abnahme ausstehend |
 | 19 (ready-for-human) | Referenzrunde und Draufsicht gestalterisch an die Taverne angleichen | 13, 16 (done); finale menschliche Abnahme ausstehend |
-| [20 (ready-for-human)](.scratch/adventure-chat/issues/20-shared-object-actions.md) | Zwei Spieler ändern gemeinsame Objektzustände samt direkten atomaren Verknüpfungen | 09, 10, 15 (done); menschliche Abnahme ausstehend |
+| [20 (ready-for-human)](.scratch/adventure-chat/issues/20-shared-object-actions.md) | Zwei Spieler ändern gemeinsame Objektzustände samt direkten atomaren Verknüpfungen | 09, 10, 15 (done); erneute menschliche Abnahme ausstehend |
 | [21 (draft)](.scratch/adventure-chat/issues/21-state-dependent-navigation.md) | Tür-/Stuhlhindernisse und laufende Wege folgen sicher dem Zustand | 20 |
 | [22 (draft)](.scratch/adventure-chat/issues/22-verbs-and-interaction-editor.md) | Verben mit Objektsatz und vollständige Konfiguration im Browsereditor | 20, 21, 18; 06, 15, 17 (done) |
 | [23 (draft)](.scratch/adventure-chat/issues/23-interactive-reference-examples.md) | Tür, Stuhl und Schalter/Tor als erreichbare gemeinsame Referenzdemo | 20, 21, 22, 19 |
@@ -36,7 +36,7 @@ Die Reihenfolge 01–07 ist die empfohlene serielle Umsetzung. Ticket 06 hängt 
 
 Die vier Erweiterungspakete aus SPEC.md sind angelegt; Ticket 20 wurde inzwischen separat zur Umsetzung bestätigt. Empfohlene serielle Reihenfolge: **20 → 21 → 22 → 23**. 21–23 warten auf die menschliche Abnahme ihrer jeweiligen Vorgänger. Zusätzlich benötigt 22 die noch offene Abnahme von 18; 23 die noch offene Abnahme von 19. Kein anderes Paket automatisch beginnen und keine parallele Umsetzung ableiten.
 
-20 liefert einen vertikalen Einstieg mit echter kleiner Aktionsbedienung, Zustandsdarstellung und Mehrspielerkommandos; 21 ergänzt sichere Navigation; 22 vervollständigt die klassische Verbenoberfläche und das Autorenwerkzeug; 23 integriert erst danach Referenzinhalte. Datenverträge werden je veröffentlichendem Paket versioniert: geplant 1.6.0 und danach 1.7.0, ohne Änderungen eingefrorener Bündel. Offene Details und vorgeschlagene Testgrenzen stehen in den Tickets. Die Definition von Einschließen in 21 muss ausdrücklich vor dessen Implementierung bestätigt werden.
+20 liefert nach Benutzerfeedback bereits eine erste klassische Verbenleiste mit Objektklick, Zustandsdarstellung und Mehrspielerkommandos; 21 ergänzt sichere Navigation; 22 vervollständigt das Autorenwerkzeug und die spätere Interaktionsintegration; 23 integriert erst danach Referenzinhalte. Datenverträge werden je veröffentlichendem Paket versioniert: 1.6.0 und danach geplant 1.7.0, ohne Änderungen eingefrorener Bündel. Offene Details und vorgeschlagene Testgrenzen stehen in den Tickets. Die Definition von Einschließen in 21 muss ausdrücklich vor dessen Implementierung bestätigt werden.
 
 ## Meilensteine
 M1 nach 02: Bewegung und Geometrie funktionieren an einem Beispiel.

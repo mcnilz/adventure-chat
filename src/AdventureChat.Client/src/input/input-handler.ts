@@ -1,12 +1,17 @@
 import { screenToRoom } from '../rendering/camera.js';
 import { EXIT_TRIGGER_DISTANCE } from '../constants.js';
-import type { Point, RoomDefinition, RoomExit } from '../types.js';
+import type { InteractionVerb, Point, RoomDefinition, RoomExit, RoomObject } from '../types.js';
+
+const VERB_LABELS: Record<InteractionVerb, string> = { walk: 'Gehe zu', pull: 'Ziehen', push: 'Drücken', use: 'Benutzen' };
 
 export interface InputHandlerCallbacks {
   onHoverExitChanged: (exit: RoomExit | null, actionText: string) => void;
   onNavigateToExit: (exit: RoomExit, isImmediate: boolean) => Promise<void>;
   onNavigateToPoint: (point: Point) => Promise<void>;
   onToggleDebug: () => void;
+  onObjectAction: (object: RoomObject) => Promise<void>;
+  onUnavailableTarget: () => void;
+  onCanvasAction: () => void;
 }
 
 export class InputHandler {
@@ -16,7 +21,9 @@ export class InputHandler {
     private readonly callbacks: InputHandlerCallbacks,
     private getRoom: () => RoomDefinition,
     private getPlayerPosition: () => Point,
-    private getCameraOffset: () => number = () => 0
+    private getCameraOffset: () => number = () => 0,
+    private getVerb: () => InteractionVerb = () => 'walk',
+    private getObjectAt: (point: Point) => RoomObject | undefined = () => undefined
   ) {
     this.setupListeners();
   }
@@ -53,31 +60,56 @@ export class InputHandler {
   public handleMouseMove(clientX: number, clientY: number): void {
     this.pointer = { x: clientX, y: clientY };
     const logical = this.screenToLogical(clientX, clientY);
-    const exit = this.findClickedExit(logical);
+    const hit = this.getObjectAt(logical);
+    const object = hit?.interaction ? hit : undefined;
+    const verb = VERB_LABELS[this.getVerb()];
+    if (object) {
+      this.canvas.style.cursor = 'pointer';
+      this.callbacks.onHoverExitChanged(null, `${verb} ${object.interaction!.name}`);
+      return;
+    }
+    const exit = hit ? null : this.findClickedExit(logical);
 
     if (exit) {
       this.canvas.style.cursor = 'pointer';
       const label = exit.label || exit.targetRoomId;
-      this.callbacks.onHoverExitChanged(exit, `Go to ${label}`);
+      this.callbacks.onHoverExitChanged(this.getVerb() === 'walk' ? exit : null, `${verb} ${label}`);
     } else {
       this.canvas.style.cursor = 'default';
-      this.callbacks.onHoverExitChanged(null, 'Walk to');
+      this.callbacks.onHoverExitChanged(null, verb);
     }
   }
 
   public handleMouseLeave(): void {
     this.pointer = null;
     this.canvas.style.cursor = 'default';
-    this.callbacks.onHoverExitChanged(null, '');
+    this.callbacks.onHoverExitChanged(null, VERB_LABELS[this.getVerb()]);
   }
 
   public refreshHover(): void {
     if (this.pointer) this.handleMouseMove(this.pointer.x, this.pointer.y);
   }
 
+  public updateVerb(): void {
+    if (this.pointer) this.refreshHover();
+    else this.callbacks.onHoverExitChanged(null, VERB_LABELS[this.getVerb()]);
+  }
+
   public async handleCanvasClick(clientX: number, clientY: number): Promise<{ point: Point; exit: RoomExit | null }> {
+    this.callbacks.onCanvasAction();
     const logical = this.screenToLogical(clientX, clientY);
-    const clickedExit = this.findClickedExit(logical);
+    const hit = this.getObjectAt(logical);
+    const object = hit?.interaction ? hit : undefined;
+    if (object) {
+      if (this.getVerb() === 'walk') await this.callbacks.onNavigateToPoint(object.interaction!.usePoint);
+      else await this.callbacks.onObjectAction(object);
+      return { point: logical, exit: null };
+    }
+    if (this.getVerb() !== 'walk') {
+      if (hit || this.findClickedExit(logical)) this.callbacks.onUnavailableTarget();
+      return { point: logical, exit: null };
+    }
+    const clickedExit = hit ? null : this.findClickedExit(logical);
 
     if (clickedExit) {
       const playerPos = this.getPlayerPosition();

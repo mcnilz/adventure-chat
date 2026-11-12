@@ -158,18 +158,18 @@ public class RoomTransitionTests
         var floorY = (float)(box.Y + (box.Height * (280.0 / 360.0)));
         await page.Mouse.MoveAsync(floorX, floorY);
 
-        await page.WaitForFunctionAsync("() => document.getElementById('action-text').innerText === 'Walk to'");
+        await page.WaitForFunctionAsync("() => document.getElementById('action-text').innerText === 'Gehe zu'");
         var floorAction = await page.InnerTextAsync("#action-text");
-        Assert.That(floorAction, Is.EqualTo("Walk to"));
+        Assert.That(floorAction, Is.EqualTo("Gehe zu"));
 
         // 2. Hover over the doorway to garden (x=570, y=160 - door archway)
         var doorX = (float)(box.X + (box.Width * (570.0 / 640.0)));
         var doorY = (float)(box.Y + (box.Height * (160.0 / 360.0)));
         await page.Mouse.MoveAsync(doorX, doorY);
 
-        await page.WaitForFunctionAsync("() => document.getElementById('action-text').innerText.includes('Go to Tavernen-Garten')");
+        await page.WaitForFunctionAsync("() => document.getElementById('action-text').innerText.includes('Gehe zu Tavernen-Garten')");
         var doorAction = await page.InnerTextAsync("#action-text");
-        Assert.That(doorAction, Is.EqualTo("Go to Tavernen-Garten"));
+        Assert.That(doorAction, Is.EqualTo("Gehe zu Tavernen-Garten"));
 
         // 3. Clicking on the door arch should trigger the transition
         await page.Mouse.ClickAsync(doorX, doorY);
@@ -184,9 +184,9 @@ public class RoomTransitionTests
         var gDoorY = (float)(box.Y + (box.Height * (160.0 / 360.0)));
         await page.Mouse.MoveAsync(gDoorX, gDoorY);
 
-        await page.WaitForFunctionAsync("() => document.getElementById('action-text').innerText.includes('Go to Lounge')");
+        await page.WaitForFunctionAsync("() => document.getElementById('action-text').innerText.includes('Gehe zu Lounge')");
         var gardenDoorAction = await page.InnerTextAsync("#action-text");
-        Assert.That(gardenDoorAction, Is.EqualTo("Go to Lounge"));
+        Assert.That(gardenDoorAction, Is.EqualTo("Gehe zu Lounge"));
 
         await context.DisposeAsync();
     }

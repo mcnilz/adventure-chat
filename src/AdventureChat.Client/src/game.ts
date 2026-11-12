@@ -1,5 +1,6 @@
 import { DEFAULT_ROOM, EXIT_TRIGGER_DISTANCE } from './constants.js';
 import { InputHandler } from './input/input-handler.js';
+import { actionsForVerb } from './input/object-action.js';
 import { RoomNetworkClient } from './network/room-client.js';
 import { RoomRenderer } from './rendering/renderer.js';
 import { assignPathToCharacter, updateCharacterMovement } from './simulation/movement.js';
@@ -13,6 +14,7 @@ import type {
   RoomExit,
   RoomSnapshotDto,
   SendChatMessageResultDto,
+  InteractionVerb,
 } from './types.js';
 
 export { DEFAULT_ROOM } from './constants.js';
@@ -29,6 +31,10 @@ export class AdventureGame {
   public onActionChanged?: (actionText: string) => void;
   public onWorldUnavailable?: (message: string) => void;
   public onObjectsChanged?: () => void;
+  public onInteractionMessage?: (message: string) => void;
+  public onActionChoices?: (actions: ReadonlyArray<{ readonly id: string; readonly name: string }>, choose: (id: string) => void) => void;
+  public onClearActionChoices?: () => void;
+  private verb: InteractionVerb = 'walk';
 
   private lastTimestamp = 0;
   private isRunning = false;
@@ -59,7 +65,7 @@ export class AdventureGame {
     this.state.onChatMessage = (msg) => {
       this.onChatMessage?.(msg);
     };
-    this.state.onObjectsChanged = () => { this.renderer.setObjects(this.state.room.objects ?? []); this.onObjectsChanged?.(); };
+    this.state.onObjectsChanged = () => { this.renderer.setObjects(this.state.room.objects ?? []); this.onClearActionChoices?.(); this.onObjectsChanged?.(); };
 
     this.networkClient = new RoomNetworkClient({
       onUserJoined: (dto) => this.dispatchRoomEvent(() => { if (dto.roomId === this.state.room.id) { this.state.addOrUpdateRemotePlayer(dto.player); const character = this.state.remotePlayers.get(dto.player.sessionId); if (character) this.resolveAppearance(character); } }),
@@ -101,11 +107,32 @@ export class AdventureGame {
         onToggleDebug: () => {
           this.renderer.toggleDebugOverlay();
         },
+        onObjectAction: async object => {
+          this.onClearActionChoices?.();
+          const actions = actionsForVerb(object, this.state.objectStates.get(object.id), this.verb);
+          if (actions.length === 0) { this.onInteractionMessage?.('Diese Handlung ist für dieses Objekt derzeit nicht möglich.'); return; }
+          const roomId = this.room.id, revision = this.state.objectRevision;
+          const execute = async (actionId: string) => {
+            const result = await this.networkClient.requestObjectAction(roomId, object.id, actionId, revision);
+            if (!result.success) this.onInteractionMessage?.(result.error ?? 'Aktion abgelehnt.');
+          };
+          if (actions.length === 1) await execute(actions[0]!.id);
+          else this.onActionChoices?.(actions, id => { void execute(id); });
+        },
+        onUnavailableTarget: () => this.onInteractionMessage?.('Diese Handlung ist für dieses Ziel derzeit nicht möglich.'),
+        onCanvasAction: () => this.onClearActionChoices?.(),
       },
       () => this.state.room,
       () => this.state.character.position,
-      () => this.renderer.camera.offset
+      () => this.renderer.camera.offset,
+      () => this.verb,
+      point => this.renderer.objectAt(point)
     );
+  }
+
+  public selectVerb(verb: InteractionVerb): void {
+    this.verb = verb;
+    this.inputHandler.updateVerb();
   }
 
   // --- Properties for backwards compatibility with tests and callers ---

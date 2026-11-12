@@ -6,6 +6,63 @@ namespace AdventureChat.E2ETests;
 public class InteractiveObjectTests
 {
     [Test]
+    public async Task Verbs_ActOnObjectsClickedInTheScene()
+    {
+        await using var server = new TestServerFixture(foregroundWorld: true);
+        var source = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../../tests/Fixtures/interactions"));
+        var world = Path.Combine(server.TempRoot, "world");
+        foreach (var file in Directory.GetFiles(source, "*", SearchOption.AllDirectories))
+        {
+            var destination = Path.Combine(world, Path.GetRelativePath(source, file));
+            Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+            File.Copy(file, destination);
+        }
+        var hall = Path.Combine(world, "rooms", "hall.yaml");
+        var extraActions = string.Join("\n", Enumerable.Range(1, 24).Select(i => $"        - {{ id: inspect-{i}, name: 'Untersuchen Alternative {i}', from: off, to: off }}"));
+        File.AppendAllText(hall, $"\n{extraActions}\n  - {{ id: cover, image: assets/images/table.png, position: {{ x: 350, y: 200 }}, size: {{ width: 40, height: 40 }}, depthY: 320 }}\n");
+        await server.StartAsync();
+        using var playwright = await Playwright.CreateAsync();
+        await using var browser = await playwright.Chromium.LaunchAsync(new() { Headless = true });
+        var a = await browser.NewPageAsync(); var b = await browser.NewPageAsync();
+        foreach (var page in new[] { a, b })
+        {
+            await page.GotoAsync(server.BaseUrl);
+            await page.ClickAsync("#world-enter");
+            await page.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__?.connectionStatus === 'connected'");
+        }
+        async Task ClickAt(IPage page, int x, int y)
+        {
+            var canvas = page.Locator("#game-canvas"); var box = (await canvas.BoundingBoxAsync())!;
+            var position = new Position { X = (float)(box.Width * x / 640), Y = (float)(box.Height * y / 360) };
+            await canvas.HoverAsync(new() { Position = position });
+            await canvas.ClickAsync(new() { Position = position });
+        }
+        await a.GetByRole(AriaRole.Button, new() { Name = "Ziehen", Exact = true }).ClickAsync();
+        await ClickAt(a, 230, 230);
+        Assert.That(await a.Locator("#action-text").InnerTextAsync(), Is.EqualTo("Ziehen Stuhl"));
+        await b.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.room.objects.find(o => o.id === 'chair').position.x === 240");
+        await b.GetByRole(AriaRole.Button, new() { Name = "Drücken", Exact = true }).ClickAsync();
+        await ClickAt(b, 270, 230);
+        await a.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.room.objects.find(o => o.id === 'chair').position.x === 200");
+        Assert.That(await a.EvaluateAsync<int>("window.__ADVENTURE_GAME__.character.position.x"), Is.EqualTo(100));
+        await b.GetByRole(AriaRole.Button, new() { Name = "Gehe zu", Exact = true }).ClickAsync();
+        await ClickAt(b, 100, 300);
+        await b.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.room.id === 'next'");
+        await a.GetByRole(AriaRole.Button, new() { Name = "Benutzen", Exact = true }).ClickAsync();
+        await ClickAt(a, 360, 220);
+        Assert.That(await a.GetByRole(AriaRole.Button, new() { Name = "Einschalten", Exact = true }).CountAsync(), Is.Zero);
+        await ClickAt(a, 370, 220);
+        Assert.That(await a.Locator("#action-text").InnerTextAsync(), Is.EqualTo("Benutzen Schalter"));
+        Assert.That(await a.Locator("#action-choices").EvaluateAsync<bool>("e => e.scrollHeight > e.clientHeight"), Is.True);
+        var previousRevision = await a.EvaluateAsync<long>("window.__ADVENTURE_GAME__.state.objectRevision");
+        await a.GetByRole(AriaRole.Button, new() { Name = "Untersuchen Alternative 24", Exact = true }).ClickAsync();
+        await a.WaitForFunctionAsync("revision => window.__ADVENTURE_GAME__.state.objectRevision > revision", previousRevision);
+        await ClickAt(a, 370, 220);
+        await a.GetByRole(AriaRole.Button, new() { Name = "Einschalten", Exact = true }).ClickAsync();
+        await b.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.room.objects.find(o => o.id === 'gate').position.x === 260");
+    }
+
+    [Test]
     public async Task Hub_SharedActionIsSeenByOtherAndLatePlayers()
     {
         await using var server = new TestServerFixture(foregroundWorld: true, multipleWorlds: true, authoring: true);
@@ -89,9 +146,24 @@ public class InteractiveObjectTests
         using var playwright = await Playwright.CreateAsync();
         await using var browser = await playwright.Chromium.LaunchAsync(new() { Headless = true });
         var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 800, Height = 600 } });
+        async Task ClickTable()
+        {
+            var canvas = page.Locator("#game-canvas");
+            var box = (await canvas.BoundingBoxAsync())!;
+            var coords = await page.EvaluateAsync<double[]>("""
+                () => { const g = window.__ADVENTURE_GAME__, o = g.room.objects.find(x => x.id === 'table');
+                    return [o.position.x + o.size.width / 4 - g.renderer.camera.offset, o.position.y + o.size.height / 2]; }
+                """);
+            var position = new Position { X = (float)(coords[0] * box.Width / 320), Y = (float)(coords[1] * box.Height / 360) };
+            await canvas.HoverAsync(new() { Position = position });
+            await canvas.ClickAsync(new() { Position = position });
+        }
         await page.GotoAsync(proxy.BaseUrl);
         await page.ClickAsync("#world-enter");
         await page.WaitForFunctionAsync("() => window.signalR && window.__ADVENTURE_GAME__?.connectionStatus === 'connected'");
+        Assert.That(await page.Locator("#action-bar select").CountAsync(), Is.Zero);
+        foreach (var verb in new[] { "Gehe zu", "Ziehen", "Drücken", "Benutzen" })
+            Assert.That(await page.GetByRole(AriaRole.Button, new() { Name = verb, Exact = true }).CountAsync(), Is.EqualTo(1));
         var result = await page.EvaluateAsync<System.Text.Json.JsonElement>("""
             async () => {
                 const connections = [];
@@ -148,17 +220,17 @@ public class InteractiveObjectTests
         await page.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.room.objects[0].position.x === 240");
         await page.WaitForTimeoutAsync(200);
         var openPixel = await page.EvaluateAsync<int[]>("() => [...document.querySelector('#game-canvas').getContext('2d').getImageData(230,250,1,1).data]");
-        await page.Locator("#interaction-object").SelectOptionAsync("table");
-        await page.Locator("#interaction-action").SelectOptionAsync("close");
+        await page.GetByRole(AriaRole.Button, new() { Name = "Benutzen", Exact = true }).ClickAsync();
         await page.EvaluateAsync("window.__ADVENTURE_GAME__.setTarget({x:400,y:300})");
         await page.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.character.position.x > 390");
-        await page.Locator("#interaction-submit").ClickAsync();
+        await ClickTable();
+        Assert.That(await page.Locator("#action-text").InnerTextAsync(), Is.EqualTo("Benutzen Table"));
         await page.GetByText("Zu weit entfernt. Bitte näher herangehen.", new() { Exact = true }).First.WaitForAsync();
         await page.EvaluateAsync("window.__ADVENTURE_GAME__.setTarget({x:260,y:300})");
         await page.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.character.state === 'idle' && Math.abs(window.__ADVENTURE_GAME__.character.position.x - 260) < 2");
         var offsetBefore = await page.EvaluateAsync<double>("window.__ADVENTURE_GAME__.renderer.camera.offset");
         Assert.That(offsetBefore, Is.GreaterThan(0));
-        await page.Locator("#interaction-submit").ClickAsync();
+        await ClickTable();
         await page.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.room.objects[0].position.x === 200");
         await second.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.room.objects[0].position.x === 200");
         await page.WaitForTimeoutAsync(100);
@@ -167,9 +239,7 @@ public class InteractiveObjectTests
         var closedPixel = await page.EvaluateAsync<int[]>("() => [...document.querySelector('#game-canvas').getContext('2d').getImageData(230-window.__ADVENTURE_GAME__.renderer.camera.offset,250,1,1).data]");
         Assert.That(closedPixel, Is.EqualTo(new[] { 240, 20, 40, 255 }));
         Assert.That(openPixel, Is.Not.EqualTo(closedPixel));
-        Assert.That(await page.Locator("#interaction-feedback").InnerTextAsync(), Does.Contain("Close"));
-        await page.Locator("#interaction-action").SelectOptionAsync("open");
-        await page.Locator("#interaction-submit").ClickAsync();
+        await ClickTable();
         await page.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.room.objects[0].position.x === 240");
         var author = await browser.NewPageAsync();
         await author.GotoAsync(server.BaseUrl);

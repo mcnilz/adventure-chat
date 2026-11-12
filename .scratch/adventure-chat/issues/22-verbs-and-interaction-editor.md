@@ -43,4 +43,6 @@ Exakte Anordnung/Größe der Verbenleiste, deutschsprachige Beschriftungen/Objek
 
 ## Stand / Abnahme
 
+12.11.2026: Benutzerfeedback zieht eine erste Verbenleiste mit direkter Objektwahl in die Nacharbeit zu Ticket 20 vor. Die vollständige Editor-, Vorschau- und Navigationsintegration dieses Tickets bleibt gesondert geplant; der bisherige Blocker 18 ist dadurch nicht abgenommen.
+
 10.11.2026: draft, ausschließlich geplant. Vor Umsetzung Paketumfang und Testgrenzen bestätigen lassen.

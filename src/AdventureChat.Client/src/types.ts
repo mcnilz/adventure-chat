@@ -87,9 +87,12 @@ export interface RoomObject {
 export interface ObjectInteraction {
  readonly name: string;
  readonly initialState: string;
+ readonly usePoint: Point;
+ readonly useRadius: number;
  readonly states: ReadonlyArray<ObjectAppearance>;
  readonly actions: ReadonlyArray<{ readonly id: string; readonly name: string; readonly from: string; readonly to: string }>;
 }
+export type InteractionVerb = 'walk' | 'pull' | 'push' | 'use';
 export interface ObjectAppearance {
  readonly id: string;
  readonly name: string;

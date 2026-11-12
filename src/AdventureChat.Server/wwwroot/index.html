@@ -15,14 +15,15 @@
       </div>
       <canvas id="game-canvas" width="640" height="360"></canvas>
       <div id="action-bar" class="action-bar">
-        <span id="action-text" class="action-text">Walk to</span>
-        <span id="interactions" hidden>
-          <label>Objekt <select id="interaction-object"></select></label>
-          <label>Aktion <select id="interaction-action"></select></label>
-          <button type="button" id="interaction-submit">Ausführen</button>
-          <span id="interaction-feedback" role="status"></span>
-        </span>
+        <span id="action-text" class="action-text" role="status">Gehe zu</span>
       </div>
+      <nav id="verb-bar" aria-label="Verben">
+        <button type="button" data-verb="walk" aria-pressed="true">Gehe zu</button>
+        <button type="button" data-verb="pull" aria-pressed="false">Ziehen</button>
+        <button type="button" data-verb="push" aria-pressed="false">Drücken</button>
+        <button type="button" data-verb="use" aria-pressed="false">Benutzen</button>
+      </nav>
+      <div id="action-choices" aria-label="Mögliche Aktionen" role="group" hidden></div>
       <div id="chat-container">
         <div id="chat-messages" class="chat-messages">
           <div class="chat-system-message">Willkommen im Adventure Chat. Klicke auf den Boden, um dich zu bewegen.</div>
