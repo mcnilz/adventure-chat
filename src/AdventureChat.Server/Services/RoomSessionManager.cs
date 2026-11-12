@@ -13,6 +13,7 @@ public partial class RoomSessionManager : IRoomSessionManager
     private readonly ConcurrentDictionary<string, List<ChatMessageDto>> _roomChatHistory = new();
     private readonly ConcurrentDictionary<string, Queue<DateTime>> _messageTimestampsByConnection = new();
     private readonly object _lock = new();
+    private readonly ObjectInteractionRuntime _interactions;
 
     private const int MaxChatHistoryPerRoom = 50;
     private const int MaxMessageLength = 200;
@@ -24,6 +25,7 @@ public partial class RoomSessionManager : IRoomSessionManager
         _roomService = roomService;
         _pathfinder = pathfinder;
         _clock = clock ?? TimeProvider.System;
+        _interactions = new ObjectInteractionRuntime(roomService);
     }
 
     public JoinResult JoinRoom(string connectionId, string roomId, string? displayName, Point2D? initialPosition = null, string? characterId = null)
@@ -164,7 +166,28 @@ public partial class RoomSessionManager : IRoomSessionManager
             foreach (var player in players) AdvanceMovement(player);
             var history = includeHistory && _roomChatHistory.TryGetValue(session.RoomId, out var messages)
                 ? messages.ToList() : new List<ChatMessageDto>();
-            return new RoomSnapshotDto(session.RoomId, session.SessionId, players.Select(p => p.ToDto()).ToList(), history, room.ToDto());
+            return new RoomSnapshotDto(session.RoomId, session.SessionId, players.Select(p => p.ToDto()).ToList(), history, room.ToDto(), _interactions.Revision(room.Id), _interactions.States(room));
+        }
+    }
+
+    public SaveRoomResult SaveRoomAndReset(Func<SaveRoomResult> save)
+    {
+        lock (_lock)
+        {
+            var result = save();
+            if (!result.Success) return result;
+            _interactions.Reset();
+            return result;
+        }
+    }
+
+    public ObjectActionResult RequestObjectAction(string connectionId, ObjectActionRequestDto request)
+    {
+        lock (_lock)
+        {
+            if (!_sessionsByConnection.TryGetValue(connectionId, out var session)) return new(false, "Sitzung nicht gefunden.", []);
+            AdvanceMovement(session);
+            return _interactions.Execute(session, request);
         }
     }
 

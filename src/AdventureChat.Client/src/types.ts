@@ -81,7 +81,25 @@ export interface RoomObject {
  readonly position: Point;
  readonly size: { readonly width: number; readonly height: number };
  readonly depthY: number;
+ readonly interaction?: ObjectInteraction | null;
 }
+
+export interface ObjectInteraction {
+ readonly name: string;
+ readonly initialState: string;
+ readonly states: ReadonlyArray<ObjectAppearance>;
+ readonly actions: ReadonlyArray<{ readonly id: string; readonly name: string; readonly from: string; readonly to: string }>;
+}
+export interface ObjectAppearance {
+ readonly id: string;
+ readonly name: string;
+ readonly image: string;
+ readonly position: Point;
+ readonly size: { readonly width: number; readonly height: number };
+ readonly depthY: number;
+}
+export interface ObjectStateDto { readonly objectId: string; readonly stateId: string }
+export interface ObjectStatesChangedDto { readonly roomId: string; readonly revision: number; readonly states: ReadonlyArray<ObjectStateDto> }
 
 export interface DepthScale {
   readonly back: { readonly y: number; readonly factor: number };
@@ -143,6 +161,8 @@ export interface RoomSnapshotDto {
   readonly players: ReadonlyArray<PlayerDto>;
   readonly recentMessages?: ReadonlyArray<ChatMessageDto>;
   readonly room?: RoomDefinition;
+  readonly objectRevision?: number;
+  readonly objectStates?: ReadonlyArray<ObjectStateDto> | null;
 }
 
 export interface PlayerMovedDto {

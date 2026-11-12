@@ -43,3 +43,19 @@
 | Tiefenlinie | Horizontale Raum-Y-Linie eines Objekts; Figuren dahinter werden von sichtbaren PNG-Pixeln verdeckt, bei gleicher Tiefe steht die Figur davor |
 
 | Tiefenverlauf | Optionale hintere/vordere horizontale Bezugslinie mit je einem Faktor; linear interpoliert und außerhalb begrenzt |
+
+## Geplante interaktive Raumobjekte (20–23)
+
+**Interaktives Raumobjekt:** Ein Raumobjekt mit benannten Zuständen und erlaubten Aktionen. Ohne solche Definition bleibt ein Raumobjekt rein grafisch.
+
+**Objektzustand:** Der aktuelle benannte Zustand eines interaktiven Raumobjekts, beispielsweise eine offene Tür oder ein zurückgeschobener Stuhl.
+
+**Anfangszustand:** Der vom Autor festgelegte Objektzustand beim Start einer Welt.
+
+**Objektaktion:** Eine für einen Ausgangszustand ausdrücklich erlaubte Handlung mit festgelegten Zustandswirkungen, etwa Öffnen oder Ziehen.
+
+**Direkte Objektverknüpfung:** Die ausdrückliche Zuordnung einer Objektaktion zu Zustandswirkungen an einem anderen Objekt derselben Welt. Sie löst keine weiteren Aktionen aus.
+
+**Zustandsabhängiges Hindernis:** Eine ausdrücklich definierte gesperrte Bodenfläche, deren Lage oder Wirksamkeit vom Objektzustand abhängt.
+
+**Verbenleiste:** Die sichtbare Auswahl von Handlungen, die mit einem Raumobjekt zu einem Aktionssatz kombiniert werden.

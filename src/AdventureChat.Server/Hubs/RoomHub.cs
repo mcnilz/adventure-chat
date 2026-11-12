@@ -108,6 +108,15 @@ public class RoomHub : Hub
         return new SendChatMessageResultDto(true, null, result.Message);
     }
 
+    public async Task<ObjectActionResultDto> RequestObjectAction(ObjectActionRequestDto request)
+    {
+        var result = Sessions.RequestObjectAction(Context.ConnectionId, request);
+        if (!result.Success) return new ObjectActionResultDto(false, result.Error);
+        foreach (var change in result.Changes)
+            await Clients.Group(Group(change.RoomId)).SendAsync("ObjectStatesChanged", change);
+        return new ObjectActionResultDto(true, null);
+    }
+
     public Task UpdateProgress(PointDto position, string direction, string state)
     {
         Sessions.UpdatePlayerProgress(Context.ConnectionId, new Point2D(position.X, position.Y), direction, state);

@@ -1,4 +1,5 @@
 import { EditorObjects } from './ui/editor-objects.js';
+import { applyObjectAppearances } from '../state/object-appearance.js';
 import { EditorCamera } from './canvas/editor-camera.js';
 import { EditorApi } from './core/editor-api.js';
 import { EditorState } from './core/editor-state.js';
@@ -329,7 +330,9 @@ export class EditorApp {
       this.toolbar.updateModeButton('preview');
       this.setStatus('Vorschaumodus aktiv: Klicke auf die begehbare Fläche, um die Spielfigur zu steuern.', 'info');
       const room = this.state.toRoomDefinition();
-      this.preview.start({ ...room, objects: room.objects?.map(o => ({ ...o, image: EditorApi.backgroundUrl(o.image) })) ?? [], backgroundUrl: EditorApi.backgroundUrl(room.backgroundUrl) });
+      const states = (room.objects ?? []).flatMap(o => o.interaction ? [{ objectId: o.id, stateId: o.interaction.initialState }] : []);
+      const objects = applyObjectAppearances(room.objects ?? [], states).map(o => ({ ...o, image: EditorApi.backgroundUrl(o.image) }));
+      this.preview.start({ ...room, objects, backgroundUrl: EditorApi.backgroundUrl(room.backgroundUrl) });
     } else {
       this.mode = 'edit';
       this.toolbar.updateModeButton('edit');

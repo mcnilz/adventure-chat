@@ -104,6 +104,19 @@ body {
   letter-spacing: 0.5px;
 }
 
+#interactions:not([hidden]) {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  margin-left: 10px;
+  color: #f4e9bb;
+  font-size: 12px;
+}
+
+#interactions select { max-width: 110px; }
+#interaction-feedback { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
 #chat-container {
   height: 120px;
   background: #0f172a;

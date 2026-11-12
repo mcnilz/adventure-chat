@@ -79,7 +79,7 @@ public sealed class RoomYamlDto
             ActorHeight: ActorHeight ?? 64,
             DepthScale: DepthScale,
             WalkSpeed: WalkSpeed ?? 130,
-            Objects: Objects?.Select(o => new RoomObject(o.Id, o.Image, new Point2D(o.Position.X, o.Position.Y), new RoomObjectSize(o.Size.Width, o.Size.Height), o.DepthY)).ToList(),
+            Objects: Objects?.Select(o => new RoomObject(o.Id, o.Image, new Point2D(o.Position.X, o.Position.Y), new RoomObjectSize(o.Size.Width, o.Size.Height), o.DepthY, o.Interaction)).ToList(),
             Viewport: Viewport is null ? null : new RoomViewport(Viewport.Width, Viewport.Height, Viewport.ScrollMode)
         );
     }
@@ -138,7 +138,7 @@ public sealed class RoomYamlDto
                 }).ToList()
                 : null,
             Notes = room.Notes,
-            Objects = room.Objects?.Select(o => new RoomObjectYamlDto { Id = o.Id, Image = o.Image, Position = new RoomPointYamlDto { X = o.Position.X, Y = o.Position.Y }, Size = new RoomSizeYamlDto { Width = o.Size.Width, Height = o.Size.Height }, DepthY = o.DepthY }).ToList(),
+            Objects = room.Objects?.Select(o => new RoomObjectYamlDto { Id = o.Id, Image = o.Image, Position = new RoomPointYamlDto { X = o.Position.X, Y = o.Position.Y }, Size = new RoomSizeYamlDto { Width = o.Size.Width, Height = o.Size.Height }, DepthY = o.DepthY, Interaction = o.Interaction }).ToList(),
             Perspective = room.Perspective == "adventure" ? null : room.Perspective,
             DepthScale = room.DepthScale,
             ActorHeight = room.ActorHeight == 64 ? null : room.ActorHeight,
@@ -243,4 +243,5 @@ public sealed class RoomObjectYamlDto
  public RoomPointYamlDto Position { get; set; } = new();
  public RoomSizeYamlDto Size { get; set; } = new();
  public double DepthY { get; set; }
+ public ObjectInteraction? Interaction { get; set; }
 }

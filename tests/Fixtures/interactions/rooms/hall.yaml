@@ -1,0 +1,57 @@
+version: 1
+id: hall
+name: Testraum
+background: assets/images/background.png
+size: { width: 640, height: 360 }
+perspective: top-down
+spawns: [{ id: entry, position: { x: 100, y: 300 } }]
+walkable:
+  - id: floor
+    points: [{ x: 10, y: 100 }, { x: 630, y: 100 }, { x: 630, y: 350 }, { x: 10, y: 350 }]
+exits:
+  - id: next
+    position: { x: 100, y: 300 }
+    radius: 30
+    label: Nebenraum
+    target: { room: next, spawn: entry }
+objects:
+  - id: chair
+    image: assets/images/table.png
+    position: { x: 200, y: 200 }
+    size: { width: 80, height: 80 }
+    depthY: 280
+    interaction:
+      name: Stuhl
+      initialState: table
+      usePoint: { x: 100, y: 300 }
+      useRadius: 50
+      states:
+        - { id: table, name: Am Tisch, image: assets/images/table.png, position: { x: 200, y: 200 }, size: { width: 80, height: 80 }, depthY: 280 }
+        - { id: pulled, name: Zurückgeschoben, image: assets/images/table.png, position: { x: 240, y: 200 }, size: { width: 80, height: 80 }, depthY: 280 }
+      actions:
+        - { id: pull, name: Ziehen, from: table, to: pulled }
+        - { id: push, name: Drücken, from: pulled, to: table }
+  - id: switch
+    image: assets/images/table.png
+    position: { x: 360, y: 200 }
+    size: { width: 40, height: 40 }
+    depthY: 240
+    interaction:
+      name: Schalter
+      initialState: off
+      usePoint: { x: 100, y: 300 }
+      useRadius: 50
+      states:
+        - { id: off, name: Aus, image: assets/images/table.png, position: { x: 360, y: 200 }, size: { width: 40, height: 40 }, depthY: 240 }
+        - { id: on, name: An, image: assets/images/table.png, position: { x: 380, y: 200 }, size: { width: 40, height: 40 }, depthY: 240 }
+      actions:
+        - id: switch-on
+          name: Einschalten
+          from: off
+          to: on
+          effects: [{ room: next, object: gate, state: open }]
+        - id: switch-off
+          name: Ausschalten
+          from: on
+          to: off
+          effects: [{ room: next, object: gate, state: closed }]

@@ -2,7 +2,7 @@ import { actorHeightAt } from './depth-scale.js';
 import { ObjectRenderer, compareObjectDepth } from './object-renderer.js';
 import { HorizontalCamera, resizeCanvas } from './camera.js';
 import { CLICK_MARKER_DURATION } from '../constants.js';
-import type { Character, RoomDefinition, RoomExit } from '../types.js';
+import type { Character, RoomDefinition, RoomExit, RoomObject } from '../types.js';
 import { CharacterRenderer } from './character-renderer.js';
 import { OverlayRenderer, type ClickMarker } from './overlay-renderer.js';
 import { SpeechBubbleRenderer } from './speech-bubble-renderer.js';
@@ -57,6 +57,10 @@ export class RoomRenderer {
       this.backgroundLoaded = false;
       this.backgroundImage.src = newRoom.backgroundUrl;
     }
+  }
+
+  public setObjects(objects: ReadonlyArray<RoomObject>): void {
+    this.room = { ...this.room, objects };
   }
 
   public addClickMarker(x: number, y: number, type: 'valid' | 'invalid'): void {

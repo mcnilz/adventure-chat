@@ -9,3 +9,6 @@ Synthetische Testwelt für Ticket 15, auf characters-a aufgebaut. table.png ist 
 
 ## Eingefrorene Karten-/Scrollwelten vor Ticket 13
 map-v1 (Format 1.1.0) und scroll-v1 (1.2.0) entsprechen bytegetreu dem Stand 7733562 unter worlds/map bzw. worlds/scroll. Alle zwölf Dateien wurden unabhängig gegen Git-Blobs bzw. Git-LFS-SHA256 verglichen. Bestehende Karten-/Scroll-Browserregressionen verwenden diese unveränderten Fixtures; neue Tiefentests prüfen die weiterentwickelten mitgelieferten Welten separat.
+
+## interactions (Format 1.6.0)
+Kleine synthetische Testwelt für Ticket 20: Stuhl und Schalter im Testraum, verknüpftes Tor im Nebenraum. Die farbigen PNG-Testmuster sind Kopien aus `foreground`; sie illustrieren Zustandspositionen und sind keine endgültige Gestaltung. Die Objekte beeinflussen noch keine Navigation. Die eingefrorenen älteren Fixtures bleiben unverändert.

@@ -8,6 +8,7 @@ import type {
   SendChatMessageResultDto,
   UserJoinedDto,
   UserLeftDto,
+  ObjectStatesChangedDto,
 } from '../types.js';
 import type { HubConnection } from '@microsoft/signalr';
 
@@ -22,6 +23,8 @@ export interface RoomClientEvents {
   onChatMessageReceived: (dto: ChatMessageDto) => void;
   onConnectionStatusChanged: (status: 'connected' | 'connecting' | 'disconnected') => void;
   onReconnected: () => Promise<void>;
+  onObjectStatesChanged: (dto: ObjectStatesChangedDto) => void;
+  onWorldReset: () => void;
 }
 
 export class RoomNetworkClient {
@@ -59,6 +62,8 @@ export class RoomNetworkClient {
       this.hubConnection.on('ChatMessageReceived', (dto: ChatMessageDto) => {
         this.events.onChatMessageReceived(dto);
       });
+      this.hubConnection.on('ObjectStatesChanged', (dto: ObjectStatesChangedDto) => this.events.onObjectStatesChanged(dto));
+      this.hubConnection.on('WorldReset', () => this.events.onWorldReset());
 
       this.hubConnection.onreconnecting(() => {
         this.setStatus('connecting');
@@ -156,6 +161,12 @@ export class RoomNetworkClient {
     } catch (e) {
       return { success: false, error: String(e) };
     }
+  }
+
+  public async requestObjectAction(roomId: string, objectId: string, actionId: string, expectedRevision: number): Promise<MoveResultDto> {
+    if (!this.hubConnection || this.connectionStatus !== 'connected') return { success: false, error: 'Nicht verbunden.' };
+    try { return await this.hubConnection.invoke('RequestObjectAction', { roomId, objectId, actionId, expectedRevision }) as MoveResultDto; }
+    catch (error) { return { success: false, error: String(error) }; }
   }
 
   public async sendChatMessage(text: string): Promise<SendChatMessageResultDto> {

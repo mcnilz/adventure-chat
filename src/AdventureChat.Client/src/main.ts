@@ -3,6 +3,7 @@ import { ChatUiController } from './ui/chat-ui.js';
 import type { ChatMessageDto } from './types.js';
 import { chooseWorld, loadWorlds, showStartupError } from './ui/world-picker.js';
 import { GameViewport } from './ui/game-viewport.js';
+import { ObjectActions } from './ui/object-actions.js';
 
 declare global {
   interface Window {
@@ -33,6 +34,10 @@ async function initialize(): Promise<void> {
       return { success: result.success, error: result.error };
     }
   );
+  const objectActions = new ObjectActions(() => game.room, () => game.state.objectStates,
+    (objectId, actionId) => game.networkClient.requestObjectAction(game.room.id, objectId, actionId, game.state.objectRevision),
+    message => chatUi.appendSystemMessage(message));
+  game.onObjectsChanged = () => objectActions.refresh();
 
   game.onConnectionStatusChanged = (status) => {
     chatUi.setConnectionStatus(status);
@@ -43,6 +48,7 @@ async function initialize(): Promise<void> {
   };
 
   game.onRoomChanged = (room) => {
+    objectActions.refresh();
     chatUi.appendSystemMessage(`--- Raum gewechselt: ${room.name} ---`);
   };
 

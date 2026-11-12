@@ -1,0 +1,10 @@
+formatVersion: 1.6.0
+id: interactions
+name: Interaktions-Testwelt
+contentVersion: 1.0.0
+roomFormat: legacy-1
+startRoom: hall
+startSpawn: entry
+defaultCharacterId: hero
+characters:
+  - { id: hero, name: Testfigur, image: assets/images/small.png, frameWidth: 48, frameHeight: 64 }

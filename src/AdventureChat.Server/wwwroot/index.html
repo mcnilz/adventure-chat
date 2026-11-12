@@ -16,6 +16,12 @@
       <canvas id="game-canvas" width="640" height="360"></canvas>
       <div id="action-bar" class="action-bar">
         <span id="action-text" class="action-text">Walk to</span>
+        <span id="interactions" hidden>
+          <label>Objekt <select id="interaction-object"></select></label>
+          <label>Aktion <select id="interaction-action"></select></label>
+          <button type="button" id="interaction-submit">Ausführen</button>
+          <span id="interaction-feedback" role="status"></span>
+        </span>
       </div>
       <div id="chat-container">
         <div id="chat-messages" class="chat-messages">

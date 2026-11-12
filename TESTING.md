@@ -45,3 +45,16 @@ Für Ticket 14 am 04.11.2026 bestätigt: öffentliche Weltlade-/Inhaltsgrenze, S
 Für Ticket 15 am 04.11.2026 bestätigt: öffentliche Inhalts-Lade-/Speichergrenze, Editorbedienung und öffentliche Canvas-/Browserdarstellung. Objektvalidierung, PNG/Pfade, Transparenz, davor/dahinter/Gleichstand, mehrere Figuren, Figurengrößen, Kamera und Editor-Roundtrip; Navigation und unveränderte ältere Fixtures als Regression. Maskenkanten und Bediengefühl bleiben menschliche Abnahme. Konkrete Nachweise im Ticket 15.
 
 Für Ticket 13 am 09.11.2026 mit „ja ok“ bestätigt: öffentliche Skalierungs-/Canvasdarstellung, Inhaltsvalidierung und Snapshot, Editor-Speicherung und Browserabläufe. Endpunkte, Zwischenwert einschließlich Bruchteilen, Begrenzung, Defaults und ungültige Werte; ältere unveränderte Fixtures, unterschiedliche Kameraoffsets/Fenstergrößen, zwei Teilnehmer und erreichbare Demo-Szenarien. Automatisierung ersetzt keine Sichtabnahme der räumlichen Gestaltung und des Bewegungsgefühls.
+
+## Grenzen für 20–23
+
+Ticket 20 wurde am 12.11.2026 einschließlich der unten genannten Grenzen bestätigt. Die Grenzen der weiteren Pakete bleiben vor ihrer Umsetzung zu bestätigen.
+
+| Paket | Vorgeschlagene öffentliche Grenzen / Schwerpunkt | Ausdrückliche Grenze |
+| --- | --- | --- |
+| [20](.scratch/adventure-chat/issues/20-shared-object-actions.md) | Inhalts-Laden/Speichern, echte SignalR-Kommandos, Browser/Canvas: reversible Zustände, atomare direkte Wirkungen, Konkurrenz, Snapshots, Weltisolation, Neustart | Keine privaten Sperren/Zustandscontainer testen; keine Script-Ausführung oder Persistenz zusichern. |
+| [21](.scratch/adventure-chat/issues/21-state-dependent-navigation.md) | Inhaltsgrenze und öffentliche Bewegungs-/Aktions-/Übergangskommandos: dynamische Sperren, Fußpunkt, lokale Sicherheitsanker, laufende Wege und Mehrfachänderungen | Sicherheitsankerdefinition und Toleranzen vor Umsetzung bestätigen. Kein Beweis globaler Welt-/Rätsellösbarkeit oder kontinuierlicher Möbelphysik. |
+| [22](.scratch/adventure-chat/issues/22-verbs-and-interaction-editor.md) | Browser/Editor, öffentliche Speicher-/Hubgrenzen: Satzbildung, echte Verbwahl, Roundtrip, Vorschauisolation, Referenzen, explizite Formatwahl, Skalierung | Keine neue Test-API; Bediengefühl und Satzverständlichkeit bleiben menschlich. |
+| [23](.scratch/adventure-chat/issues/23-interactive-reference-examples.md) | Echte Referenzabläufe in isolierter Weltkopie: zwei Spieler, späterer Eintritt, Tür/Stuhl/Schalter/Tor, Navigation, Editor, Reconnect/Neustart | Grafik-/Szenenwirkung bleibt menschliche Abnahme; keine bestehenden Abnahmewelten oder eingefrorenen Fixtures ändern. |
+
+Bei jedem Formatpaket unveränderte ältere Schemas/Teilschemas und Referenzfixtures samt zugesicherter alter Semantik prüfen. Neue Daten nur in neuen Testwelten beziehungsweise temporären Kopien. Typcheck/Build und vollständige einschlägige Suite gehören zur späteren Umsetzung, wurden für diesen reinen Planungsauftrag nicht ausgeführt. Detaillierte Fälle und offene Entscheidungen stehen in den Tickets.

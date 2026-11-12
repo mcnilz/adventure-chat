@@ -81,6 +81,7 @@ export class EditorObjects {
     const object=this.selected(); if(!object) return;
     const value=(key:string)=>this.fields.get(key)!.value;
     const edited = {
+      ...object,
       id: value('id'), image: value('image'),
       position: { x: Number(value('x')), y: Number(value('y')) },
       size: { width: Number(value('width')), height: Number(value('height')) },

@@ -1,5 +1,6 @@
 import { DEFAULT_ROOM, DEFAULT_SPEED, SPEECH_BUBBLE_DURATION } from '../constants.js';
 import { assignPathToCharacter } from '../simulation/movement.js';
+import { applyObjectAppearances } from './object-appearance.js';
 import type {
   Character,
   ChatMessageDto,
@@ -9,6 +10,8 @@ import type {
   RoomDefinition,
   RoomExit,
   RoomSnapshotDto,
+  ObjectStateDto,
+  ObjectStatesChangedDto,
 } from '../types.js';
 
 export class RoomState {
@@ -20,9 +23,12 @@ export class RoomState {
   public readonly chatMessages: ChatMessageDto[] = [];
   public pendingExit: RoomExit | null = null;
   private readonly movementRevisions = new Map<string, number>();
+  public objectRevision = 0;
+  public readonly objectStates = new Map<string, string>();
 
   public onRoomChanged?: (room: RoomDefinition) => void;
   public onChatMessage?: (message: ChatMessageDto) => void;
+  public onObjectsChanged?: () => void;
 
   public constructor(initialRoom: RoomDefinition = DEFAULT_ROOM, playerName?: string) {
     this.room = initialRoom;
@@ -57,6 +63,8 @@ export class RoomState {
     if (snapshot.room) {
       this.room = snapshot.room;
     }
+    this.objectRevision = snapshot.objectRevision ?? 0;
+    this.applyObjectStates(snapshot.objectStates ?? []);
 
     if (snapshot.yourSessionId) {
       this.setSessionId(snapshot.yourSessionId);
@@ -84,6 +92,19 @@ export class RoomState {
 
     this.pendingExit = null;
     this.onRoomChanged?.(this.room);
+  }
+
+  public handleObjectStates(dto: ObjectStatesChangedDto): void {
+    if (dto.roomId !== this.room.id || dto.revision <= this.objectRevision) return;
+    this.objectRevision = dto.revision;
+    this.applyObjectStates(dto.states);
+    this.onObjectsChanged?.();
+  }
+
+  private applyObjectStates(states: ReadonlyArray<ObjectStateDto>): void {
+    this.objectStates.clear();
+    for (const state of states) this.objectStates.set(state.objectId, state.stateId);
+    this.room = { ...this.room, objects: applyObjectAppearances(this.room.objects ?? [], states) };
   }
 
   public addOrUpdateRemotePlayer(player: PlayerDto): void {

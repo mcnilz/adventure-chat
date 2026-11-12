@@ -88,8 +88,15 @@ public record RoomSnapshotDto(
     string YourSessionId,
     IReadOnlyList<PlayerDto> Players,
     IReadOnlyList<ChatMessageDto> RecentMessages,
-    RoomDefinitionDto? Room = null
+    RoomDefinitionDto? Room = null,
+    long ObjectRevision = 0,
+    IReadOnlyList<ObjectStateDto>? ObjectStates = null
 );
+
+public record ObjectStateDto(string ObjectId, string StateId);
+public record ObjectStatesChangedDto(string RoomId, long Revision, IReadOnlyList<ObjectStateDto> States);
+public record ObjectActionRequestDto(string RoomId, string ObjectId, string ActionId, long ExpectedRevision);
+public record ObjectActionResultDto(bool Success, string? Error);
 
 public record ChatMessageDto(
     string MessageId,

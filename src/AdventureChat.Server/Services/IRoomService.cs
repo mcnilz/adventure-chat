@@ -213,8 +213,19 @@ public sealed class RoomService : IRoomService
         return room with
         {
             BackgroundUrl = background,
-            Objects = room.Objects?.Select(o => o with { Image = $"/world-assets/{Uri.EscapeDataString(_world.Id)}/images/{o.Image[prefix.Length..]}" }).ToList(),
+            Objects = room.Objects?.Select(o => o with { Image = Asset(o.Image), Interaction = ConvertInteraction(o.Interaction) }).ToList(),
             SpawnPoint = room.Id == _world.StartRoom ? room.GetSpawnPosition(_world.StartSpawn) : room.SpawnPoint
+        };
+
+        string Asset(string path) => $"/world-assets/{Uri.EscapeDataString(_world.Id)}/images/{path[prefix.Length..]}";
+        ObjectInteraction? ConvertInteraction(ObjectInteraction? interaction) => interaction is null ? null : new ObjectInteraction
+        {
+            Name = interaction.Name, InitialState = interaction.InitialState, UsePoint = interaction.UsePoint,
+            UseRadius = interaction.UseRadius, Actions = interaction.Actions,
+            States = interaction.States.Select(s => new ObjectState
+            {
+                Id = s.Id, Name = s.Name, Image = Asset(s.Image), Position = s.Position, Size = s.Size, DepthY = s.DepthY
+            }).ToList()
         };
     }
 }

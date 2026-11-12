@@ -109,3 +109,20 @@ Server akzeptiert ausdrücklich 1.0.0, 1.1.0, 1.2.0, 1.3.0, 1.4.0 und 1.5.0. Let
 
 ### Optionale Draufsicht-Sheets (1.5.0)
 Am 09.11.2026 ausdrücklich bestätigt: Ein Figurenkatalogeintrag darf zusätzlich topDownImage nennen. Es gelten dieselben PNG-/Pfadgrenzen und dasselbe Quellraster wie image (vier Spalten, Reihen rechts/hinten/vorne, links gespiegelt). In top-down-Räumen wird dieses Sheet verwendet; fehlt es, bleibt die bisherige Katalogfigur erhalten. In Adventure-Räumen gilt immer image. Auswahl und Figuren-ID bleiben über Übergänge erhalten. Dies ist ebenfalls eine optionale Minor-Erweiterung; frühere Formate erlauben das Feld nicht.
+
+## Interaktive Objekte und weitere Planung (20–23)
+
+Ticket 20 erweitert die ausdrückliche Unterstützung um 1.6.0. Die neuen Felder sind optional und nur im neuen Schema zulässig. Ältere Bündel und Referenzfixtures bleiben unverändert; neue Server behalten deren bisherige Darstellung und Navigation. Das ist eine additive Minor-Erweiterung. Maßgeblich sind [Formatvertrag](../../CONTENT-FORMAT.md), [ADR 0002](../adr/0002-declarative-object-interactions.md) und Tickets 20–23.
+
+| Geplantes Paket | Vorgesehene Formatversion | SemVer-Begründung / Nachweis vor Veröffentlichung |
+| --- | --- | --- |
+| 20: Zustände, Aktionen, direkte Verknüpfungen | 1.6.0 | Minor nur mit optionalen Angaben; fehlend = weiterhin grafische Objekte ohne Aktionen. Alte Darstellung/Navigation unverändert. Neues eigenes Schema-Bündel und explizite Matrix. |
+| 21: Hindernisse und Ausgangssperren | 1.7.0 nach veröffentlichtem 1.6.0 | Weitere optionale Minor-Erweiterung; keine Änderung alter Fußpunkt-/Bodenregeln ohne neue Angaben. Eigenes Bündel; veröffentlichtes 1.6.0 nicht nachträglich erweitern. |
+| 22: Verben und Editor | keine weitere geplant | Bereits veröffentlichte Verträge bedienen/erhalten. Neues Feld oder neue Interpretation würde erneut eine Versionsentscheidung benötigen. Kein stilles Hochstufen alter Welten. |
+| 23: Referenzbeispiele | Format aus 21, geplant 1.7.0 | Inhaltsversion unabhängig begründen: aktuell reference 3.0.0; additive Szene bei Erhalt aller Zusagen Minor, geänderte bestehende Navigations-/Spawnsemantik Major. |
+
+Versionsnummern bei Paketfreigabe gegen den tatsächlichen Stand prüfen. Eine spätere andere Reihenfolge darf keinen veröffentlichten Vertrag verändern. Bis Implementierung und Prüfung akzeptiert kein Server diese geplanten Versionen allein wegen dieses Dokuments.
+
+Nachweispflicht je Formatpaket: veröffentlichte Schemas einschließlich aller Teilschemas unverändert vergleichen; vorhandene ältere Referenzfixtures unverändert laden und ihre zugesicherte Darstellung, Navigation und Defaults ausführen. Insbesondere tests/Fixtures/reference-v1 sowie die vorhandenen versionsbezogenen Fixtures verwenden, keine erwarteten Altwerte an das neue Verhalten anpassen. Neue Fälle in neuen synthetischen Welten ergänzen; ältere Weltstände in temporären Kopien durch öffentliche Lade-/Speichergrenzen prüfen. Neue Felder unter alter Version, nicht unterstützte Versionen und inkonsistente Zustandsreferenzen gezielt abweisen. Erweiterung darf kein bestehendes gültiges älteres Dokument neu ablehnen; andernfalls Major-Frage vor Umsetzung klären.
+
+Dieser Planungsdiff selbst verändert weder Schemas/Teilschemas noch Fixtures, Welten oder deren Interpretation. Die spätere Referenzintegration erfolgt ausschließlich in Ticket 23 nach Abnahme von 19.

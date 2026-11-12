@@ -4,6 +4,7 @@ using AdventureChat.Server.Models;
 using AdventureChat.Server.Services;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.AspNetCore.Antiforgery;
+using Microsoft.AspNetCore.SignalR;
 
 namespace AdventureChat.Server;
 
@@ -297,7 +298,7 @@ public static class AppFactory
             });
         });
 
-        editorGroup.MapPost("/rooms/{id}", (string id, RoomYamlDto dto, IEditorService editorService) =>
+        editorGroup.MapPost("/rooms/{id}", async (string id, RoomYamlDto dto, IEditorService editorService, HttpContext context, WorldRuntimeCatalog catalog, IHubContext<RoomHub> hub) =>
         {
             if (!string.Equals(dto.Id, id, StringComparison.OrdinalIgnoreCase))
             {
@@ -310,7 +311,10 @@ public static class AppFactory
 
             try
             {
-                var result = editorService.SaveRoom(dto);
+                var selectedId = context.Request.Query["worldId"].ToString();
+                var runtime = catalog.Find(string.IsNullOrEmpty(selectedId) ? world?.Id ?? "" : selectedId);
+                var reset = runtime?.Package.FormatVersion == "1.6.0";
+                var result = reset ? runtime!.Sessions.SaveRoomAndReset(() => editorService.SaveRoom(dto)) : editorService.SaveRoom(dto);
                 if (!result.Success)
                 {
                     return Results.BadRequest(new
@@ -319,6 +323,10 @@ public static class AppFactory
                         errors = result.Errors
                     });
                 }
+
+                if (reset)
+                    foreach (var room in runtime!.Rooms.GetAllRooms())
+                        await hub.Clients.Group($"world:{runtime.Package.Id}:room:{room.Id.ToLowerInvariant()}").SendAsync("WorldReset");
 
                 return Results.Ok(new
                 {

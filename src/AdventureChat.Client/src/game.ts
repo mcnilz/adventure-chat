@@ -28,6 +28,7 @@ export class AdventureGame {
   public onRoomChanged?: (room: RoomDefinition) => void;
   public onActionChanged?: (actionText: string) => void;
   public onWorldUnavailable?: (message: string) => void;
+  public onObjectsChanged?: () => void;
 
   private lastTimestamp = 0;
   private isRunning = false;
@@ -58,12 +59,15 @@ export class AdventureGame {
     this.state.onChatMessage = (msg) => {
       this.onChatMessage?.(msg);
     };
+    this.state.onObjectsChanged = () => { this.renderer.setObjects(this.state.room.objects ?? []); this.onObjectsChanged?.(); };
 
     this.networkClient = new RoomNetworkClient({
       onUserJoined: (dto) => this.dispatchRoomEvent(() => { if (dto.roomId === this.state.room.id) { this.state.addOrUpdateRemotePlayer(dto.player); const character = this.state.remotePlayers.get(dto.player.sessionId); if (character) this.resolveAppearance(character); } }),
       onUserLeft: (dto) => this.dispatchRoomEvent(() => { if (dto.roomId === this.state.room.id) this.state.removeRemotePlayer(dto.sessionId); }),
       onPlayerMoved: (dto) => this.dispatchRoomEvent(() => this.state.handlePlayerMoved(dto)),
       onChatMessageReceived: (dto) => this.dispatchRoomEvent(() => this.state.handleChatMessage(dto)),
+      onObjectStatesChanged: (dto) => this.dispatchRoomEvent(() => this.state.handleObjectStates(dto)),
+      onWorldReset: () => this.onWorldUnavailable?.('Die Welt wurde geändert und neu gestartet. Bitte erneut beitreten.'),
       onConnectionStatusChanged: (status) => this.onConnectionStatusChanged?.(status),
       onReconnected: async () => {
         try { await this.joinRoom(); }

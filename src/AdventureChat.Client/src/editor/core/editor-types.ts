@@ -40,6 +40,7 @@ export interface RoomExitDto {
 
 export interface RoomObjectDto {
  id: string; image: string; position: RoomPointDto; size: {width: number; height: number}; depthY: number;
+ interaction?: import('../../types.js').ObjectInteraction | null;
 }
 
 export interface RoomYamlDto {

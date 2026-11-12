@@ -32,9 +32,19 @@ internal static class RoomObjectValidation
     {
         foreach (var obj in objects ?? [])
         {
+            ValidateImage(root, obj.Id, obj.Image);
+            foreach (var state in obj.Interaction?.States ?? [])
+                ValidateImage(root, obj.Id, state.Image);
+        }
+    }
+
+    private static void ValidateImage(string root, string objectId, string image)
+    {
             try
             {
-                var file = WorldPackage.SafePath(root, obj.Image, true);
+                if (string.IsNullOrWhiteSpace(image) || !image.StartsWith("assets/images/", StringComparison.Ordinal) || !image.EndsWith(".png", StringComparison.OrdinalIgnoreCase))
+                    throw new InvalidOperationException("Image must be a PNG under assets/images.");
+                var file = WorldPackage.SafePath(root, image, true);
                 using var stream = File.OpenRead(file);
                 var header = new byte[24];
                 stream.ReadExactly(header);
@@ -44,7 +54,6 @@ internal static class RoomObjectValidation
                 PngValidator.Validate(file, width, height);
             }
             catch (Exception ex) when (ex is IOException or InvalidOperationException or OverflowException)
-            { throw new InvalidOperationException($"Object '{obj.Id}', image '{obj.Image}': {ex.Message}", ex); }
-        }
+            { throw new InvalidOperationException($"Object '{objectId}', image '{image}': {ex.Message}", ex); }
     }
 }

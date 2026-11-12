@@ -30,6 +30,7 @@ public sealed partial class RoomValidator : IRoomValidator
     private readonly bool _supportsViewport;
     private readonly bool _supportsObjects;
     private readonly bool _supportsDepthScale;
+    private readonly bool _supportsInteractions;
     private readonly IPathfindingService _pathfinder;
 
     public RoomValidator(string? schemaPath = null, IPathfindingService? pathfinder = null)
@@ -41,6 +42,7 @@ public sealed partial class RoomValidator : IRoomValidator
             _jsonSchema = JsonSchema.FromText(schemaText);
             _supportsDepthScale = JsonNode.Parse(schemaText)?["properties"]?["depthScale"] is not null;
             _supportsObjects = JsonNode.Parse(schemaText)?["properties"]?["objects"] is not null;
+            _supportsInteractions = JsonNode.Parse(schemaText)?["properties"]?["objects"]?["items"]?["properties"]?["interaction"] is not null;
             _supportsViewport = JsonNode.Parse(schemaText)?["properties"]?["viewport"] is not null;
             _supportsDisplay = JsonNode.Parse(schemaText)?["properties"]?["perspective"] is not null;
         }
@@ -177,10 +179,14 @@ public sealed partial class RoomValidator : IRoomValidator
             }
         }
 
+        if (dto.Spawns is null || dto.Spawns.Count == 0) errors.Add("Room must define at least one spawn point.");
+        if (errors.Count == 0) ObjectInteractionValidation.ValidateRoom(dto, _supportsInteractions, errors);
+
         // 8. Geometry checks if walkable is valid
         if (errors.Count == 0)
         {
             var roomDef = dto.ToRoomDefinition();
+            ObjectInteractionValidation.ValidateReachability(roomDef, _pathfinder, errors);
 
             // Obstacles must be inside outer boundary
             if (dto.Obstacles is not null)
@@ -319,6 +325,8 @@ public sealed partial class RoomValidator : IRoomValidator
                 }
             }
         }
+
+        if (errors.Count == 0) ObjectInteractionValidation.ValidateWorld(rooms, errors);
 
         // 2. Cross-room exit and spawn reference validation
         foreach (var room in rooms)

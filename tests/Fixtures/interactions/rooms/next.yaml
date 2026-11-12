@@ -1,0 +1,33 @@
+version: 1
+id: next
+name: Nebenraum
+background: assets/images/background.png
+size: { width: 640, height: 360 }
+perspective: top-down
+spawns: [{ id: entry, position: { x: 100, y: 300 } }]
+walkable:
+  - id: floor
+    points: [{ x: 10, y: 100 }, { x: 630, y: 100 }, { x: 630, y: 350 }, { x: 10, y: 350 }]
+exits:
+  - id: hall
+    position: { x: 100, y: 300 }
+    radius: 30
+    label: Testraum
+    target: { room: hall, spawn: entry }
+objects:
+  - id: gate
+    image: assets/images/table.png
+    position: { x: 200, y: 200 }
+    size: { width: 100, height: 100 }
+    depthY: 280
+    interaction:
+      name: Tor
+      initialState: closed
+      usePoint: { x: 100, y: 300 }
+      useRadius: 50
+      states:
+        - { id: closed, name: Geschlossen, image: assets/images/table.png, position: { x: 200, y: 200 }, size: { width: 100, height: 100 }, depthY: 280 }
+        - { id: open, name: Offen, image: assets/images/table.png, position: { x: 260, y: 200 }, size: { width: 100, height: 100 }, depthY: 280 }
+      actions:
+        - { id: open, name: Öffnen, from: closed, to: open }
+        - { id: close, name: Schließen, from: open, to: closed }
