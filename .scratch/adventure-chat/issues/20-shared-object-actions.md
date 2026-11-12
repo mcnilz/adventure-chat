@@ -4,7 +4,7 @@
 
 **Blocked by:** 09, 10, 15 (alle done). Keine implizite Abnahme von 18 oder 19; deren noch offene Sichtabnahmen sind keine Voraussetzung für den unabhängigen Zustandsvertrag.
 
-**Status:** ready-for-human
+**Status:** done
 
 ## Auftrag und Freigabegrenze
 
@@ -46,6 +46,8 @@ Automatisierung belegt Reihenfolge und Zustand, menschliche Abnahme bewertet Ver
 
 ## Stand / Abnahme
 
+12.11.2026: Benutzer hat die Umsetzung ausdrücklich abgenommen: „ja abgenommen“.
+
 12.11.2026, dritte Nacharbeit: Auch unmögliche Aktionen führen zunächst zum Objekt; dort spricht die Figur die Ablehnung nur im eigenen Browser. Nach Erfolg, Ablehnung oder Verbindungsabbruch wird „Gehe zu“ aktiviert. Format 1.7.0 ergänzt optional ein bis acht Bedienpunkte pro Objekt; erreichbare Punkte werden der Reihe nach versucht. Ältere Objekte behalten ihren einzelnen Bedienpunkt, rein grafische Altobjekte verwenden eine geometrische Ersatzsuche, die bei ungünstiger Geometrie keinen erreichbaren Punkt garantieren kann. Alte Schemas und Fixtures unverändert; keine neue Abhängigkeit. Typcheck, Clientbuild und gezielte Server-/Browserprüfungen einschließlich privater Sprechblase, unerreichbarem erstem Punkt, Editor-Roundtrip und Wiederverbindung bestanden. Zwei unabhängige Reviews ohne verbleibende konkrete Befunde nach Korrekturen. Zwei Gesamtläufe ergaben jeweils 296 bestandene Tests und einen Timeout im unveränderten Editorvorschautest; der Einzelfall bestand im Nachlauf. Die Ursache für den Unterschied im Gesamtlauf ist offen.
 
 12.11.2026: Weiteres Benutzerfeedback: Auch unmögliche Aktionen sollen zuerst zum Objekt führen; eine Ablehnung soll die eigene Figur nur lokal sprechen und anschließend „Gehe zu“ aktiv sein. Gewünscht sind ein oder mehrere Zielpunkte pro Objekt. Keine Abnahme. Neue Formatfelder und Auswirkungen auf ältere Versionen müssen geprüft und durch ein neues Schema sowie unveränderte ältere Fixtures abgesichert werden.
@@ -66,7 +68,7 @@ Automatisierung belegt Reihenfolge und Zustand, menschliche Abnahme bewertet Ver
 2. In B „Gehe zu“ wählen und den Ausgang am Startpunkt der Figur anklicken (beim Darüberfahren erscheint „Gehe zu Nebenraum“). In A „Benutzen“ wählen und den Schalter im Bild anklicken; das Tor im Nebenraum bewegt sich in B. Erneutes Benutzen stellt es zurück. Die roten Muster sind Platzhalter; das Tor ist noch keine Wegsperre.
 3. In A „Ziehen“ und den Stuhl anklicken; die Figur läuft hin und zieht ihn, B sieht die neue Position. In B „Drücken“ und den verschobenen Stuhl anklicken. Nach jeder Aktion ist „Gehe zu“ aktiv. Eine neue Ziel- oder Verbwahl während des Wegs bricht die ausstehende Aktion ab. Bei mehreren erlaubten Aktionen erscheinen nach dem Objektklick zusätzliche beschriftete Aktionsknöpfe; keine Objekt-Dropdowns.
 
-Die neue Abnahmeansicht verwendet die isolierte Weltkopie `.scratch/adventure-chat/evidence/20/private-world` mit mehreren Bedienpunkten und die separate Programmkopie `private-final-server`; PID zuletzt 31056. Erst ausdrückliche Benutzerabnahme setzt das Ticket auf `done`.
+Die Abnahmeansicht verwendet die isolierte Weltkopie `.scratch/adventure-chat/evidence/20/private-world` mit mehreren Bedienpunkten und die separate Programmkopie `private-final-server`; PID zuletzt 31056. Die Benutzerabnahme ist erfolgt.
 
 Lokaler Commit: `Implement shared object actions (ticket 20)`. Nach rein mechanischer Zeilenendenkorrektur der neuen Schemas sechs Inhaltsfälle erneut bestanden; der gestufte Diff ist whitespace-sauber.
 

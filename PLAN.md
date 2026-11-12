@@ -1,5 +1,5 @@
 # Umsetzungsplan
-Status (12.11.2026): Tickets 01–17 sind menschlich abgenommen und done. Tickets 18–20 sind ready-for-human; 21–23 bleiben draft. Tatsächliche Implementierungs- und Testbelege im jeweiligen Ticket und active-state.md.
+Status (12.11.2026): Tickets 01–17 und 20 sind menschlich abgenommen und done. Tickets 18/19 sind ready-for-human; 21–23 bleiben draft. Tatsächliche Implementierungs- und Testbelege im jeweiligen Ticket und active-state.md.
 
 | Ticket | Vorführbares Ergebnis | Blocked by |
 | --- | --- | --- |
@@ -22,7 +22,7 @@ Status (12.11.2026): Tickets 01–17 sind menschlich abgenommen und done. Ticket
 | 17 (done) | Verlässliche Bearbeitungen und Ungespeichert-Status im Raumeditor | 06, 07, 11–15 (done); menschlich abgenommen am 09.11.2026 |
 | 18 (ready-for-human) | Gesamte Spieloberfläche an Fensterbreite und -höhe anpassen; Vergrößern per Button | keine; am 09.11.2026 bestätigt, menschliche Abnahme ausstehend |
 | 19 (ready-for-human) | Referenzrunde und Draufsicht gestalterisch an die Taverne angleichen | 13, 16 (done); finale menschliche Abnahme ausstehend |
-| [20 (ready-for-human)](.scratch/adventure-chat/issues/20-shared-object-actions.md) | Zwei Spieler ändern gemeinsame Objektzustände samt direkten atomaren Verknüpfungen | 09, 10, 15 (done); menschliche Abnahme ausstehend |
+| [20 (done)](.scratch/adventure-chat/issues/20-shared-object-actions.md) | Zwei Spieler ändern gemeinsame Objektzustände samt direkten atomaren Verknüpfungen | 09, 10, 15 (done); menschlich abgenommen am 12.11.2026 |
 | [21 (draft)](.scratch/adventure-chat/issues/21-state-dependent-navigation.md) | Tür-/Stuhlhindernisse und laufende Wege folgen sicher dem Zustand | 20 |
 | [22 (draft)](.scratch/adventure-chat/issues/22-verbs-and-interaction-editor.md) | Verben mit Objektsatz und vollständige Konfiguration im Browsereditor | 20, 21, 18; 06, 15, 17 (done) |
 | [23 (draft)](.scratch/adventure-chat/issues/23-interactive-reference-examples.md) | Tür, Stuhl und Schalter/Tor als erreichbare gemeinsame Referenzdemo | 20, 21, 22, 19 |
