@@ -15,6 +15,8 @@ Die Module unten sind Verantwortlichkeiten, keine Anweisung für je ein Projekt 
 | Raumeditor | Geometrie und Eigenschaften bearbeiten, prüfen, speichern und testen |
 
 ## Bewegung
+
+Ticket 21 / Weltformat 1.8.0: `ObjectNavigation` kombiniert unveränderten Boden mit den ausdrücklich angegebenen aktuellen Zustandshindernissen und Ausgangssperren. `RoomSessionNavigation` prüft alle direkten Aktionswirkungen vor Übernahme anhand zum selben Zeitpunkt projizierter Figurenpositionen und lokaler Sicherheitsanker, einschließlich betroffener Übergangsziele. Erst nach Erfolg werden Zustand und nötige Wegkorrekturen gemeinsam bestätigt. Fehlgeschlagene Aktionen verändern keine Laufaufträge. Der Browser erhält wirksame Geometrie, Ausgänge und korrigierte Spielerwege in einem revidierten Raumereignis. Editorvorschau führt dieselben Regeln auf einer isolierten Raumdraft-/Weltkopie aus; keine zweite Browser-Wegfindung. Absolute Koordinaten, Toleranzen und Grenzen in CONTENT-FORMAT.md.
 Vorgeschlagene MVP-Regel: logische Pixelkoordinaten im Hintergrundbild, Ursprung links oben, Fußpunkt als Figurenposition. Fenstergröße verändert keine Weltdaten.
 Ein Raum besitzt einfache, nicht selbstschneidende begehbare Polygone. Hindernisse werden zunächst durch nicht begehbare Bereiche ausgespart; separate Kollisionsobjekte entfallen.
 Der Client sendet ein Ziel. Der Server berechnet die aktuelle Position aus Weg und Zeit und ermittelt den neuen Weg mit 130 logischen Pixeln pro Sekunde. Eine vom Client mitgesendete Startposition und Fortschrittsmeldungen verändern die Serverposition nicht. Ein neuer gültiger Befehl ersetzt den alten Weg.

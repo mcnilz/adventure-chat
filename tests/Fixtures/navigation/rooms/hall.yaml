@@ -1,0 +1,76 @@
+version: 1
+id: hall
+name: Dynamische Durchgänge
+background: assets/images/background.png
+size: {width: 640, height: 360}
+perspective: top-down
+spawns:
+  - {id: entry, position: {x: 100, y: 300}}
+  - {id: right, position: {x: 500, y: 300}}
+walkable:
+  - id: floor
+    points: [{x: 10, y: 100}, {x: 630, y: 100}, {x: 630, y: 350}, {x: 10, y: 350}]
+exits:
+  - id: next
+    position: {x: 500, y: 300}
+    radius: 30
+    label: Nebenraum
+    target: {room: next, spawn: entry}
+objects:
+  - id: door
+    image: assets/images/table.png
+    position: {x: 280, y: 200}
+    size: {width: 40, height: 100}
+    depthY: 300
+    usePoints: [{x: 100, y: 300}, {x: 500, y: 300}]
+    interaction:
+      name: Tür
+      initialState: closed
+      useRadius: 200
+      states:
+        - id: closed
+          name: Geschlossen
+          image: assets/images/table.png
+          position: {x: 280, y: 200}
+          size: {width: 40, height: 100}
+          depthY: 300
+          blockedExits: [next]
+          obstacles:
+            - id: passage
+              points: [{x: 280, y: 100}, {x: 320, y: 100}, {x: 320, y: 350}, {x: 280, y: 350}]
+        - {id: open, name: Offen, image: assets/images/table.png, position: {x: 330, y: 200}, size: {width: 40, height: 100}, depthY: 300}
+      actions:
+        - {id: open, name: Öffnen, from: closed, to: open}
+        - {id: close, name: Schließen, from: open, to: closed}
+  - id: chair
+    image: assets/images/table.png
+    position: {x: 150, y: 180}
+    size: {width: 40, height: 40}
+    depthY: 220
+    interaction:
+      name: Stuhl
+      initialState: table
+      usePoint: {x: 100, y: 300}
+      useRadius: 200
+      states:
+        - id: table
+          name: Am Tisch
+          image: assets/images/table.png
+          position: {x: 150, y: 180}
+          size: {width: 40, height: 40}
+          depthY: 220
+          obstacles:
+            - id: chair-floor
+              points: [{x: 150, y: 200}, {x: 190, y: 200}, {x: 190, y: 220}, {x: 150, y: 220}]
+        - id: pulled
+          name: Zurückgeschoben
+          image: assets/images/table.png
+          position: {x: 200, y: 180}
+          size: {width: 40, height: 40}
+          depthY: 220
+          obstacles:
+            - id: chair-floor
+              points: [{x: 200, y: 200}, {x: 240, y: 200}, {x: 240, y: 220}, {x: 200, y: 220}]
+      actions:
+        - {id: pull, name: Ziehen, from: table, to: pulled}
+        - {id: push, name: Drücken, from: pulled, to: table}

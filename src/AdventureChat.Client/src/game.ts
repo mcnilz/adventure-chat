@@ -71,7 +71,12 @@ export class AdventureGame {
     this.state.onChatMessage = (msg) => {
       this.onChatMessage?.(msg);
     };
-    this.state.onObjectsChanged = () => { this.renderer.setObjects(this.state.room.objects ?? []); this.onClearActionChoices?.(); this.onObjectsChanged?.(); };
+    this.state.onObjectsChanged = () => { this.renderer.updateRoomState(this.state.room); this.onClearActionChoices?.(); this.onObjectsChanged?.(); };
+    this.state.onNavigationStopped = () => {
+      this.objectWalkToken++;
+      this.objectActionFlow.cancel();
+      this.selectVerb('walk');
+    };
 
     this.networkClient = new RoomNetworkClient({
       onUserJoined: (dto) => this.dispatchRoomEvent(() => { if (dto.roomId === this.state.room.id) { this.state.addOrUpdateRemotePlayer(dto.player); const character = this.state.remotePlayers.get(dto.player.sessionId); if (character) this.resolveAppearance(character); } }),

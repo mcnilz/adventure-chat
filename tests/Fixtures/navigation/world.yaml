@@ -1,0 +1,7 @@
+formatVersion: 1.8.0
+id: navigation
+name: Navigationstest
+contentVersion: 1.0.0
+roomFormat: legacy-1
+startRoom: hall
+startSpawn: entry

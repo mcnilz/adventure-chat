@@ -12,6 +12,8 @@ public sealed class ObjectInteraction
 
 public sealed class ObjectState
 {
+    public List<RoomPolygonYamlDto>? Obstacles { get; set; }
+    public List<string>? BlockedExits { get; set; }
     public string Id { get; set; } = "";
     public string Name { get; set; } = "";
     public string Image { get; set; } = "";

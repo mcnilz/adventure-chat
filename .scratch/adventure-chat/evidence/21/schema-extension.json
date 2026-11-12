@@ -1,0 +1,6 @@
+{
+  "onlyOptionalStateFieldsAndVersionAdded": {
+    "room.schema.json": true,
+    "world.schema.json": true
+  }
+}

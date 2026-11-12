@@ -224,7 +224,8 @@ public sealed class RoomService : IRoomService
             UseRadius = interaction.UseRadius, Actions = interaction.Actions,
             States = interaction.States.Select(s => new ObjectState
             {
-                Id = s.Id, Name = s.Name, Image = Asset(s.Image), Position = s.Position, Size = s.Size, DepthY = s.DepthY
+                Id = s.Id, Name = s.Name, Image = Asset(s.Image), Position = s.Position, Size = s.Size, DepthY = s.DepthY,
+                Obstacles = s.Obstacles, BlockedExits = s.BlockedExits
             }).ToList()
         };
     }

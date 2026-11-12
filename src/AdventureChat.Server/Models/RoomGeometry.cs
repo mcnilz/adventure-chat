@@ -44,6 +44,8 @@ public sealed record RoomGeometry(Polygon OuterBoundary, IReadOnlyList<Polygon> 
             var edges = Obstacles[o].GetEdges();
             for (int e = 0; e < edges.Count; e++)
             {
+                // Dynamic boundaries are closed, including tangential/collinear contact.
+                if (Obstacles[o].ClosedBoundary && SegmentsTouch(a, b, edges[e].A, edges[e].B)) return false;
                 if (SegmentsIntersectStrict(a, b, edges[e].A, edges[e].B))
                 {
                     return false;
@@ -160,4 +162,8 @@ public sealed record RoomGeometry(Polygon OuterBoundary, IReadOnlyList<Polygon> 
     {
         return (pk.X - pi.X) * (pj.Y - pi.Y) - (pj.X - pi.X) * (pk.Y - pi.Y);
     }
+
+    private static bool SegmentsTouch(Point2D a, Point2D b, Point2D c, Point2D d) =>
+        SegmentsIntersectStrict(a, b, c, d) || DistanceToSegment(a, c, d) <= 1e-6 ||
+        DistanceToSegment(b, c, d) <= 1e-6 || DistanceToSegment(c, a, b) <= 1e-6 || DistanceToSegment(d, a, b) <= 1e-6;
 }

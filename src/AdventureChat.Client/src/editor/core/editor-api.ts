@@ -4,6 +4,7 @@ import type {
   RoomYamlDto,
   RoomView
 } from './editor-types.js';
+import type { ObjectStateDto, PreviewObjectStates, RoomSnapshotDto } from '../../types.js';
 
 export interface ValidationResponse {
   valid: boolean;
@@ -43,13 +44,23 @@ export class EditorApi {
     const status = await response.json() as { token: string };
     return status.token;
   }
-  public static async previewPath(room: RoomView, start: { x: number; y: number }, target: { x: number; y: number }): Promise<{ success: boolean; waypoints: { x: number; y: number }[] | null }> {
+  public static async previewPath(room: RoomView, start: { x: number; y: number }, target: { x: number; y: number }, states: ReadonlyArray<ObjectStateDto> = []): Promise<{ success: boolean; waypoints: { x: number; y: number }[] | null }> {
     const response = await this.request('/api/editor/preview-path', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Author-Token': await this.authorToken() },
-      body: JSON.stringify({ room, start, target })
+      body: JSON.stringify({ room, start, target, states })
     });
     if (!response.ok) return { success: false, waypoints: null };
+    return response.json();
+  }
+
+  public static async previewAction(room: RoomView, position: { x: number; y: number }, objectId: string, actionId: string,
+    states: ReadonlyArray<PreviewObjectStates>): Promise<{ success: boolean; error: string | null; snapshot: RoomSnapshotDto; states: PreviewObjectStates[] }> {
+    const response = await this.request('/api/editor/preview-action', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Author-Token': await this.authorToken() },
+      body: JSON.stringify({ room, position, objectId, actionId, states })
+    });
+    if (!response.ok) throw new Error('Die Vorschauaktion konnte nicht geprüft werden.');
     return response.json();
   }
 

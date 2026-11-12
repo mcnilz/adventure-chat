@@ -1,6 +1,6 @@
 namespace AdventureChat.Server.Models;
 
-public sealed record Polygon(IReadOnlyList<Point2D> Vertices)
+public sealed record Polygon(IReadOnlyList<Point2D> Vertices, bool ClosedBoundary = false)
 {
     public bool ContainsPoint(Point2D p)
     {
@@ -11,6 +11,9 @@ public sealed record Polygon(IReadOnlyList<Point2D> Vertices)
 
         var inside = false;
         var count = Vertices.Count;
+
+        if (ClosedBoundary && GetEdges().Any(e => RoomGeometry.DistanceToSegment(p, e.A, e.B) <= 1e-6))
+            return true;
 
         for (int i = 0, j = count - 1; i < count; j = i++)
         {

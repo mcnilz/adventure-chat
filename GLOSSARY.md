@@ -44,7 +44,7 @@
 
 | Tiefenverlauf | Optionale hintere/vordere horizontale Bezugslinie mit je einem Faktor; linear interpoliert und außerhalb begrenzt |
 
-## Geplante interaktive Raumobjekte (20–23)
+## Interaktive Raumobjekte (20–23)
 
 **Interaktives Raumobjekt:** Ein Raumobjekt mit benannten Zuständen und erlaubten Aktionen. Ohne solche Definition bleibt ein Raumobjekt rein grafisch.
 
@@ -57,5 +57,7 @@
 **Direkte Objektverknüpfung:** Die ausdrückliche Zuordnung einer Objektaktion zu Zustandswirkungen an einem anderen Objekt derselben Welt. Sie löst keine weiteren Aktionen aus.
 
 **Zustandsabhängiges Hindernis:** Eine ausdrücklich definierte gesperrte Bodenfläche, deren Lage oder Wirksamkeit vom Objektzustand abhängt.
+
+**Sicherheitsanker:** Ein vor einer Zustandsänderung für eine Figur erreichbarer gültiger benannter Raumspawn oder nutzbarer Ausgang mit gültigem Zielspawn. Mindestens einer dieser bisherigen lokalen Anker muss nach der Änderung erreichbar bleiben; keine globale Lösbarkeitsgarantie.
 
 **Verbenleiste:** Die sichtbare Auswahl von Handlungen, die mit einem Raumobjekt zu einem Aktionssatz kombiniert werden.

@@ -313,7 +313,7 @@ public static class AppFactory
             {
                 var selectedId = context.Request.Query["worldId"].ToString();
                 var runtime = catalog.Find(string.IsNullOrEmpty(selectedId) ? world?.Id ?? "" : selectedId);
-                var reset = runtime?.Package.FormatVersion is "1.6.0" or "1.7.0";
+                var reset = runtime?.Package.FormatVersion is "1.6.0" or "1.7.0" or "1.8.0";
                 var result = reset ? runtime!.Sessions.SaveRoomAndReset(() => editorService.SaveRoom(dto)) : editorService.SaveRoom(dto);
                 if (!result.Success)
                 {

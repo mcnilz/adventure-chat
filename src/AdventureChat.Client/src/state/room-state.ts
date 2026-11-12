@@ -25,10 +25,12 @@ export class RoomState {
   private readonly movementRevisions = new Map<string, number>();
   public objectRevision = 0;
   public readonly objectStates = new Map<string, string>();
+  private lastNavigationStopRevision = -1;
 
   public onRoomChanged?: (room: RoomDefinition) => void;
   public onChatMessage?: (message: ChatMessageDto) => void;
   public onObjectsChanged?: () => void;
+  public onNavigationStopped?: () => void;
 
   public constructor(initialRoom: RoomDefinition = DEFAULT_ROOM, playerName?: string) {
     this.room = initialRoom;
@@ -55,6 +57,7 @@ export class RoomState {
   }
 
   public setSessionId(id: string): void {
+    if (id !== this.sessionId) this.lastNavigationStopRevision = -1;
     this.sessionId = id;
     this.character.id = id;
   }
@@ -98,6 +101,22 @@ export class RoomState {
     if (dto.roomId !== this.room.id || dto.revision <= this.objectRevision) return;
     this.objectRevision = dto.revision;
     this.applyObjectStates(dto.states);
+    if (dto.geometry) this.room = { ...this.room, geometry: dto.geometry };
+    if (dto.exits) this.room = { ...this.room, exits: dto.exits };
+    for (const player of dto.players ?? []) {
+      this.handlePlayerMoved({ roomId: dto.roomId, sessionId: player.sessionId, revision: player.movementRevision,
+        target: player.target ?? player.position, waypoints: player.waypoints.length > 0 ? player.waypoints : [player.position] }, true);
+    }
+    const stoppedPlayer = dto.players?.find(p => p.sessionId === this.sessionId);
+    if (dto.stoppedSessions?.includes(this.sessionId) && stoppedPlayer &&
+      stoppedPlayer.movementRevision === this.movementRevisions.get(this.sessionId) &&
+      stoppedPlayer.movementRevision > this.lastNavigationStopRevision) {
+      this.lastNavigationStopRevision = stoppedPlayer.movementRevision;
+      this.onNavigationStopped?.();
+      this.pendingExit = null;
+      this.character.speechBubble = { text: 'Der Weg ist jetzt versperrt. Ich bleibe hier stehen.',
+        startTime: performance.now(), duration: SPEECH_BUBBLE_DURATION };
+    }
     this.onObjectsChanged?.();
   }
 
@@ -137,8 +156,9 @@ export class RoomState {
     this.remotePlayers.delete(sessionId);
   }
 
-  public handlePlayerMoved(dto: PlayerMovedDto): void {
-    if (dto.roomId !== this.room.id || dto.revision <= (this.movementRevisions.get(dto.sessionId) ?? -1)) return;
+  public handlePlayerMoved(dto: PlayerMovedDto, fromObjectSnapshot = false): void {
+    const currentRevision = this.movementRevisions.get(dto.sessionId) ?? -1;
+    if (dto.roomId !== this.room.id || dto.revision < currentRevision || (!fromObjectSnapshot && dto.revision === currentRevision)) return;
     this.movementRevisions.set(dto.sessionId, dto.revision);
     const waypoints = dto.waypoints as Point[];
     if (dto.sessionId === this.sessionId) {

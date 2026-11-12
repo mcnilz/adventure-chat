@@ -10,6 +10,22 @@ internal sealed class ObjectInteractionRuntime(IRoomService rooms)
     private long _revision;
 
     public long Revision(string roomId) => _revisions.GetValueOrDefault(roomId);
+    public void SetRevision(string roomId, long revision) => _revisions[roomId] = revision;
+
+    public void RestorePreview(IReadOnlyList<PreviewObjectStates> restored)
+    {
+        foreach (var group in restored)
+        {
+            var room = rooms.GetRoom(group.RoomId) ?? throw new ArgumentException("Unknown preview room.");
+            foreach (var state in group.States)
+            {
+                var obj = room.Objects?.SingleOrDefault(o => o.Id == state.ObjectId);
+                if (obj?.Interaction?.States.Any(s => s.Id == state.StateId) != true)
+                    throw new ArgumentException("Unknown preview object or state.");
+                _states.Add((room.Id, state.ObjectId), state.StateId);
+            }
+        }
+    }
 
     public IReadOnlyList<ObjectStateDto> States(RoomDefinition room) => (room.Objects ?? [])
         .Where(o => o.Interaction is not null)
@@ -23,7 +39,8 @@ internal sealed class ObjectInteractionRuntime(IRoomService rooms)
         foreach (var room in rooms.GetAllRooms()) _revisions[room.Id] = revision;
     }
 
-    public ObjectActionResult Execute(PlayerSession session, ObjectActionRequestDto request)
+    public ObjectActionResult Execute(PlayerSession session, ObjectActionRequestDto request,
+        Func<ObjectNavigation, IReadOnlyList<string>, string?>? validate = null)
     {
         ObjectActionResult Reject(string message, string? code = null) => new(false, message, [], code);
         if (!string.Equals(request.RoomId, session.RoomId, StringComparison.OrdinalIgnoreCase))
@@ -47,6 +64,11 @@ internal sealed class ObjectInteractionRuntime(IRoomService rooms)
                 return Reject("Das Aktionsziel ist nicht mehr verfügbar.");
             assignments.Add((targetRoom.Id, effect.Object, effect.State));
         }
+        var affectedIds = assignments.Select(a => a.Room).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        var proposedStates = assignments.ToDictionary(a => (a.Room, a.Object), a => a.State);
+        var proposed = new ObjectNavigation(rooms, r => States(r)
+            .Select(s => new ObjectStateDto(s.ObjectId, proposedStates.GetValueOrDefault((r.Id, s.ObjectId), s.StateId))).ToList());
+        if (validate?.Invoke(proposed, affectedIds) is { } error) return Reject(error);
         foreach (var assignment in assignments) _states[(assignment.Room, assignment.Object)] = assignment.State;
         var revision = ++_revision;
         var changes = new List<ObjectStatesChangedDto>();

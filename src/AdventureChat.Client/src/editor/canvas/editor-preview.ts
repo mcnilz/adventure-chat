@@ -3,7 +3,8 @@ import { EditorApi } from '../core/editor-api.js';
 import type { RoomView } from '../core/editor-types.js';
 import { RoomRenderer } from '../../rendering/renderer.js';
 import { assignPathToCharacter, updateCharacterMovement } from '../../simulation/movement.js';
-import type { Character, RoomDefinition } from '../../types.js';
+import type { Character, PreviewObjectStates, RoomDefinition } from '../../types.js';
+import { applyObjectAppearances } from '../../state/object-appearance.js';
 
 export class EditorPreview {
   private previewRenderer: RoomRenderer | null = null;
@@ -12,6 +13,7 @@ export class EditorPreview {
   private lastFrameTime = performance.now();
   private isRunning = false;
   private requestRevision = 0;
+  private objectStates: ReadonlyArray<PreviewObjectStates> = [];
 
   public constructor(private readonly canvas: HTMLCanvasElement) {}
 
@@ -23,6 +25,8 @@ export class EditorPreview {
 
   public start(roomDef: RoomDefinition): void {
     this.isRunning = true;
+    this.objectStates = [{ roomId: roomDef.id, states: (roomDef.objects ?? []).flatMap(o =>
+      o.interaction ? [{ objectId: o.id, stateId: o.interaction.initialState }] : []) }];
     this.previewRenderer = new RoomRenderer(this.canvas, roomDef);
 
     // Initial character spawn
@@ -39,7 +43,7 @@ export class EditorPreview {
       walkFrame: 0,
       frameTimer: 0,
       speechBubble: {
-        text: 'Vorschaumodus aktiv! Klicke, um zu laufen.',
+        text: 'Klicke zum Laufen oder auf ein interaktives Objekt zum Ausprobieren.',
         startTime: performance.now(),
         duration: 4000
       }
@@ -75,7 +79,22 @@ export class EditorPreview {
     this.previewCharacter.waypoints = [];
     this.previewCharacter.state = 'idle';
     try {
-      const result = await EditorApi.previewPath(room, start, { x: logicalX, y: logicalY });
+      const states = this.objectStates.find(s => s.roomId === room.id)?.states ?? [];
+      const object = this.previewRenderer?.objectAt({ x: logicalX, y: logicalY });
+      const stateId = states.find(s => s.objectId === object?.id)?.stateId;
+      const action = object?.interaction?.actions.find(a => a.from === stateId);
+      if (object && action) {
+        const result = await EditorApi.previewAction(room, start, object.id, action.id, this.objectStates);
+        if (!this.isRunning || revision !== this.requestRevision) return;
+        this.objectStates = result.states;
+        const definition = result.snapshot.room;
+        if (definition) this.previewRenderer?.updateRoomState({ ...definition,
+          backgroundUrl: EditorApi.backgroundUrl(definition.backgroundUrl),
+          objects: applyObjectAppearances(definition.objects ?? [], result.snapshot.objectStates ?? []).map(o => ({ ...o, image: EditorApi.backgroundUrl(o.image) })) });
+        this.previewCharacter.speechBubble = { text: result.error ?? 'Aktion ausgeführt.', startTime: performance.now(), duration: 4000 };
+        return;
+      }
+      const result = await EditorApi.previewPath(room, start, { x: logicalX, y: logicalY }, states);
       if (!this.isRunning || revision !== this.requestRevision) return;
       this.previewRenderer?.addClickMarker(logicalX, logicalY, result.success ? 'valid' : 'invalid');
       if (result.success && result.waypoints) assignPathToCharacter(this.previewCharacter, result.waypoints);

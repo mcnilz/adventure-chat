@@ -95,6 +95,8 @@ export interface ObjectInteraction {
 }
 export type InteractionVerb = 'walk' | 'pull' | 'push' | 'use';
 export interface ObjectAppearance {
+ readonly obstacles?: ReadonlyArray<{ readonly id: string; readonly points: ReadonlyArray<Point> }> | null;
+ readonly blockedExits?: ReadonlyArray<string> | null;
  readonly id: string;
  readonly name: string;
  readonly image: string;
@@ -103,7 +105,16 @@ export interface ObjectAppearance {
  readonly depthY: number;
 }
 export interface ObjectStateDto { readonly objectId: string; readonly stateId: string }
-export interface ObjectStatesChangedDto { readonly roomId: string; readonly revision: number; readonly states: ReadonlyArray<ObjectStateDto> }
+export interface PreviewObjectStates { readonly roomId: string; readonly states: ReadonlyArray<ObjectStateDto> }
+export interface ObjectStatesChangedDto {
+ readonly roomId: string;
+ readonly revision: number;
+ readonly states: ReadonlyArray<ObjectStateDto>;
+ readonly geometry?: RoomGeometry | null;
+ readonly exits?: ReadonlyArray<RoomExit> | null;
+ readonly players?: ReadonlyArray<PlayerDto> | null;
+ readonly stoppedSessions?: ReadonlyArray<string> | null;
+}
 
 export interface DepthScale {
   readonly back: { readonly y: number; readonly factor: number };

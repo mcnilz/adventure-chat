@@ -48,6 +48,8 @@ Für Ticket 13 am 09.11.2026 mit „ja ok“ bestätigt: öffentliche Skalierung
 
 ## Grenzen für 20–23
 
+Ticket 21 am 12.11.2026 mit „ja“ für die im Paketvorschlag genannten Entscheidungen und öffentlichen Grenzen bestätigt: Inhalte-Laden/Speichern, echte Bewegungs-/Aktions-/Übergangskommandos und Browser/Canvas samt isolierter Editorvorschau. Fußpunkt einschließlich Sperrrand; mindestens ein zuvor erreichbarer lokaler Sicherheitsanker; blockierten vorgesehenen Spawn ablehnen; gültigen Umweg oder sicheren Stopp ohne automatische Fortsetzung. Konkrete Fälle und tatsächliche Belege im Ticket 21. Keine neue öffentliche Geometrie-Testgrenze und kein Nachweis globaler Weltlösbarkeit.
+
 Ticket 20 wurde am 12.11.2026 einschließlich der unten genannten Grenzen bestätigt. Die Grenzen der weiteren Pakete bleiben vor ihrer Umsetzung zu bestätigen.
 
 | Paket | Vorgeschlagene öffentliche Grenzen / Schwerpunkt | Ausdrückliche Grenze |

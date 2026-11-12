@@ -14,6 +14,7 @@ public class PlayerSession
     public Point2D? Target { get; set; }
     public DateTimeOffset MovementUpdatedAt { get; set; }
     public long MovementRevision { get; set; }
+    public bool NavigationStopped { get; set; }
     public DateTime LastActivity { get; set; } = DateTime.UtcNow;
 
     public PlayerDto ToDto()
@@ -94,7 +95,9 @@ public record RoomSnapshotDto(
 );
 
 public record ObjectStateDto(string ObjectId, string StateId);
-public record ObjectStatesChangedDto(string RoomId, long Revision, IReadOnlyList<ObjectStateDto> States);
+public record ObjectStatesChangedDto(string RoomId, long Revision, IReadOnlyList<ObjectStateDto> States,
+    RoomGeometryDto? Geometry = null, IReadOnlyList<RoomExitDto>? Exits = null,
+    IReadOnlyList<PlayerDto>? Players = null, IReadOnlyList<string>? StoppedSessions = null);
 public record ObjectActionRequestDto(string RoomId, string ObjectId, string ActionId, long ExpectedRevision);
 public record ObjectActionResultDto(bool Success, string? Error, string? ErrorCode = null);
 

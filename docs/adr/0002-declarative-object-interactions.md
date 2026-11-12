@@ -6,6 +6,8 @@ Nachtrag 12.11.2026: Paket 20 einschließlich Datenvertrag, Bedienpunkt, Revisio
 
 Weiterer Nachtrag: Auf Benutzerwunsch erhält 20 mehrere optionale Bedienpunkte in einem eigenen 1.7.0-Bündel; das veröffentlichte 1.6.0 bleibt unverändert. Das neue Navigationsformat für 21 verschiebt sich auf geplant 1.8.0.
 
+Nachtrag 12.11.2026, Ticket 21: Benutzer bestätigt Fußpunkt einschließlich Sperrrand und Erhalt mindestens eines vorher erreichbaren lokalen Sicherheitsankers. Gesperrten vorgesehenen Spawn ablehnen, kein Ersatzspawn; ungültige laufende Wege neu berechnen oder am aktuellen Punkt stoppen und lokal melden, keine automatische Fortsetzung. Neues Format 1.8.0 mit absoluten Raumkoordinaten für explizite Zustandshindernisse und eigenen Ausgangssperren. Diese Bestätigung ersetzt die nachfolgenden historischen Planungsvorbehalte für Paket 21; 22/23 bleiben separat freizugeben. Vertrag und Toleranzen in CONTENT-FORMAT.md, tatsächliche Prüfung im Ticket.
+
 ## Entscheidung und Grund
 
 Interaktive Raumobjekte erhalten endliche deklarierte Zustände und explizit erlaubte Aktionen. Eine Aktion setzt ihren eigenen und gegebenenfalls direkt benannte andere Objektzustände gemeinsam oder gar nicht. Zustandsänderungen lösen keine weiteren Aktionen aus. Dies ermöglicht reversible Tür-/Stuhlaktionen und Schalter-/Torverknüpfungen, ohne einen Skriptinterpreter, eine VM oder einen generischen Ereignisbus einzuführen. Die Grenze verhindert, dass ein scheinbar einfacher Schalter unbegrenzte automatische Ketten und deren Reihenfolge-/Abbruchprobleme in das Autorenformat einführt.

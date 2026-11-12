@@ -14,6 +14,7 @@ public partial class RoomSessionManager : IRoomSessionManager
     private readonly ConcurrentDictionary<string, Queue<DateTime>> _messageTimestampsByConnection = new();
     private readonly object _lock = new();
     private readonly ObjectInteractionRuntime _interactions;
+    private readonly ObjectNavigation _navigation;
 
     private const int MaxChatHistoryPerRoom = 50;
     private const int MaxMessageLength = 200;
@@ -26,6 +27,7 @@ public partial class RoomSessionManager : IRoomSessionManager
         _pathfinder = pathfinder;
         _clock = clock ?? TimeProvider.System;
         _interactions = new ObjectInteractionRuntime(roomService);
+        _navigation = new ObjectNavigation(roomService, _interactions.States);
     }
 
     public JoinResult JoinRoom(string connectionId, string roomId, string? displayName, Point2D? initialPosition = null, string? characterId = null)
@@ -37,6 +39,7 @@ public partial class RoomSessionManager : IRoomSessionManager
         }
 
         var sanitizedName = SanitizeDisplayName(displayName, connectionId);
+        roomId = room.Id;
         var spawn = initialPosition ?? room.SpawnPoint;
 
         // Ensure valid spawn within room geometry
@@ -63,6 +66,8 @@ public partial class RoomSessionManager : IRoomSessionManager
         {
             if (_sessionsByConnection.ContainsKey(connectionId))
                 return new JoinResult(false, "Connection has already joined a room.", null, null);
+            if (!_navigation.Geometry(room).IsWalkable(spawn))
+                return new JoinResult(false, "Der vorgesehene Startpunkt ist derzeit gesperrt.", null, null);
             _sessionsByConnection[connectionId] = session;
 
             foreach (var player in _sessionsByConnection.Values.Where(s => s.RoomId == roomId))
@@ -77,8 +82,7 @@ public partial class RoomSessionManager : IRoomSessionManager
                 ? list.ToList()
                 : new List<ChatMessageDto>();
 
-            var snapshot = new RoomSnapshotDto(roomId, sessionId, players, recentMessages, room.ToDto());
-            return new JoinResult(true, null, session, snapshot);
+            return new JoinResult(true, null, session, GetSnapshot(connectionId, includeHistory: true));
         }
     }
 
@@ -97,6 +101,9 @@ public partial class RoomSessionManager : IRoomSessionManager
         {
             return new ChangeRoomResult(false, "Exit not found.", session.RoomId, session, null);
         }
+
+        if (!_navigation.ExitUsable(currentRoom!, exit))
+            return new ChangeRoomResult(false, "Der Ausgang oder sein Ziel ist derzeit gesperrt.", session.RoomId, session, null);
 
         AdvanceMovement(session);
         // Five pixels allow for small network and frame timing differences.
@@ -124,6 +131,7 @@ public partial class RoomSessionManager : IRoomSessionManager
             session.Direction = "down";
             session.State = "idle";
             session.MovementRevision++;
+            session.NavigationStopped = false;
             session.Target = null;
             session.Waypoints.Clear();
             session.LastActivity = DateTime.UtcNow;
@@ -136,8 +144,7 @@ public partial class RoomSessionManager : IRoomSessionManager
                 .Select(s => s.ToDto())
                 .ToList();
 
-            var snapshot = new RoomSnapshotDto(targetRoomId, session.SessionId, players, Array.Empty<ChatMessageDto>(), targetRoom.ToDto());
-            return new ChangeRoomResult(true, null, oldRoomId, session, snapshot);
+            return new ChangeRoomResult(true, null, oldRoomId, session, GetSnapshot(connectionId));
         }
         }
     }
@@ -166,7 +173,7 @@ public partial class RoomSessionManager : IRoomSessionManager
             foreach (var player in players) AdvanceMovement(player);
             var history = includeHistory && _roomChatHistory.TryGetValue(session.RoomId, out var messages)
                 ? messages.ToList() : new List<ChatMessageDto>();
-            return new RoomSnapshotDto(session.RoomId, session.SessionId, players.Select(p => p.ToDto()).ToList(), history, room.ToDto(), _interactions.Revision(room.Id), _interactions.States(room));
+            return new RoomSnapshotDto(session.RoomId, session.SessionId, players.Select(p => p.ToDto()).ToList(), history, _navigation.EffectiveRoom(room).ToDto(), _interactions.Revision(room.Id), _interactions.States(room));
         }
     }
 
@@ -186,8 +193,7 @@ public partial class RoomSessionManager : IRoomSessionManager
         lock (_lock)
         {
             if (!_sessionsByConnection.TryGetValue(connectionId, out var session)) return new(false, "Sitzung nicht gefunden.", []);
-            AdvanceMovement(session);
-            return _interactions.Execute(session, request);
+            return ExecuteObjectAction(session, request);
         }
     }
 
@@ -226,7 +232,7 @@ public partial class RoomSessionManager : IRoomSessionManager
 
         AdvanceMovement(session);
         var start = session.Position;
-        var pathResult = _pathfinder.CalculatePath(room.Geometry, start, target);
+        var pathResult = _pathfinder.CalculatePath(_navigation.Geometry(room), start, target);
         if (!pathResult.Success)
         {
             return new MoveResult(false, pathResult.Error ?? "Path calculation failed.", null, null, null);
@@ -237,6 +243,7 @@ public partial class RoomSessionManager : IRoomSessionManager
         {
             session.Position = start;
             session.Target = target;
+            session.NavigationStopped = false;
             session.Waypoints = waypoints.ToList();
             session.State = "walk";
             session.MovementRevision++;
@@ -269,10 +276,10 @@ public partial class RoomSessionManager : IRoomSessionManager
         // Progress is calculated exclusively by the server.
     }
 
-    private void AdvanceMovement(PlayerSession session)
+    private void AdvanceMovement(PlayerSession session, DateTimeOffset? timestamp = null)
     {
         if (session.State != "walk") return;
-        var now = _clock.GetUtcNow();
+        var now = timestamp ?? _clock.GetUtcNow();
         var distance = Math.Max(0, (now - session.MovementUpdatedAt).TotalSeconds) * (_roomService.GetRoom(session.RoomId)?.WalkSpeed ?? 130);
         var position = session.Position;
         var remaining = session.Waypoints.Skip(1).ToList();

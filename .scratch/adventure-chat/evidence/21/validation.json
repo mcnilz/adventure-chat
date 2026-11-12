@@ -1,0 +1,24 @@
+{
+  "date": "2026-11-12",
+  "typecheck": "passed",
+  "clientBuild": "passed",
+  "fullSuite": {
+    "total": 328,
+    "passed": 328,
+    "server": 221,
+    "browser": 107,
+    "warnings": 0,
+    "durationSeconds": 478.8
+  },
+  "newPublicBoundaryCases": {
+    "server": 25,
+    "browser": 6
+  },
+  "reviews": {
+    "standardsOpenFindings": 0,
+    "specOpenFindings": 0,
+    "specFindingsFixed": 2,
+    "independentAgents": true
+  },
+  "humanAcceptance": "pending"
+}

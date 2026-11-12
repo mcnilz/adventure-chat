@@ -63,6 +63,11 @@ export class RoomRenderer {
     this.room = { ...this.room, objects };
   }
 
+  public updateRoomState(room: RoomDefinition): void {
+    this.room = room;
+    this.hoveredExit = null;
+  }
+
   public objectAt(point: Point): RoomObject | undefined {
     return [...(this.room.objects ?? [])].sort(compareObjectDepth).reverse()
       .find(object => this.objects.containsVisiblePixel(object, point));

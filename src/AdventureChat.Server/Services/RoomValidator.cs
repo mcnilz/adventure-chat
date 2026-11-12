@@ -32,6 +32,7 @@ public sealed partial class RoomValidator : IRoomValidator
     private readonly bool _supportsDepthScale;
     private readonly bool _supportsInteractions;
     private readonly bool _supportsUsePoints;
+    private readonly bool _supportsStateNavigation;
     private readonly IPathfindingService _pathfinder;
 
     public RoomValidator(string? schemaPath = null, IPathfindingService? pathfinder = null)
@@ -45,6 +46,7 @@ public sealed partial class RoomValidator : IRoomValidator
             _supportsObjects = JsonNode.Parse(schemaText)?["properties"]?["objects"] is not null;
             _supportsInteractions = JsonNode.Parse(schemaText)?["properties"]?["objects"]?["items"]?["properties"]?["interaction"] is not null;
             _supportsUsePoints = JsonNode.Parse(schemaText)?["properties"]?["objects"]?["items"]?["properties"]?["usePoints"] is not null;
+            _supportsStateNavigation = JsonNode.Parse(schemaText)?["properties"]?["objects"]?["items"]?["properties"]?["interaction"]?["properties"]?["states"]?["items"]?["properties"]?["obstacles"] is not null;
             _supportsViewport = JsonNode.Parse(schemaText)?["properties"]?["viewport"] is not null;
             _supportsDisplay = JsonNode.Parse(schemaText)?["properties"]?["perspective"] is not null;
         }
@@ -183,6 +185,7 @@ public sealed partial class RoomValidator : IRoomValidator
 
         if (dto.Spawns is null || dto.Spawns.Count == 0) errors.Add("Room must define at least one spawn point.");
         if (errors.Count == 0) ObjectInteractionValidation.ValidateRoom(dto, _supportsInteractions, _supportsUsePoints, errors);
+        if (errors.Count == 0) ObjectNavigationValidation.Validate(dto, _supportsStateNavigation, _pathfinder, errors);
 
         // 8. Geometry checks if walkable is valid
         if (errors.Count == 0)
@@ -366,7 +369,7 @@ public sealed partial class RoomValidator : IRoomValidator
         return errors.Count == 0 ? ValidationResult.Success() : ValidationResult.Failure(errors);
     }
 
-    private static void ValidatePolygon(IReadOnlyList<RoomPointYamlDto> points, string polyName, List<string> errors)
+    internal static void ValidatePolygon(IReadOnlyList<RoomPointYamlDto> points, string polyName, List<string> errors)
     {
         if (points is null || points.Count < 3)
         {
