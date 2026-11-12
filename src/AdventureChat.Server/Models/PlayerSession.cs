@@ -96,7 +96,7 @@ public record RoomSnapshotDto(
 public record ObjectStateDto(string ObjectId, string StateId);
 public record ObjectStatesChangedDto(string RoomId, long Revision, IReadOnlyList<ObjectStateDto> States);
 public record ObjectActionRequestDto(string RoomId, string ObjectId, string ActionId, long ExpectedRevision);
-public record ObjectActionResultDto(bool Success, string? Error);
+public record ObjectActionResultDto(bool Success, string? Error, string? ErrorCode = null);
 
 public record ChatMessageDto(
     string MessageId,

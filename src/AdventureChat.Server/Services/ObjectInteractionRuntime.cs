@@ -25,7 +25,7 @@ internal sealed class ObjectInteractionRuntime(IRoomService rooms)
 
     public ObjectActionResult Execute(PlayerSession session, ObjectActionRequestDto request)
     {
-        ObjectActionResult Reject(string message) => new(false, message, []);
+        ObjectActionResult Reject(string message, string? code = null) => new(false, message, [], code);
         if (!string.Equals(request.RoomId, session.RoomId, StringComparison.OrdinalIgnoreCase))
             return Reject("Der Raum hat sich geändert. Bitte erneut versuchen.");
         var room = rooms.GetRoom(session.RoomId);
@@ -34,7 +34,7 @@ internal sealed class ObjectInteractionRuntime(IRoomService rooms)
         if (request.ExpectedRevision != Revision(room.Id)) return Reject("Der Objektzustand hat sich geändert. Bitte erneut versuchen.");
         var dx = session.Position.X - interaction.UsePoint.X;
         var dy = session.Position.Y - interaction.UsePoint.Y;
-        if (dx * dx + dy * dy > interaction.UseRadius * interaction.UseRadius) return Reject("Zu weit entfernt. Bitte näher herangehen.");
+        if (dx * dx + dy * dy > interaction.UseRadius * interaction.UseRadius) return Reject("Zu weit entfernt. Bitte näher herangehen.", "too_far");
         var current = _states.GetValueOrDefault((room.Id, obj.Id), interaction.InitialState);
         var action = interaction.Actions.FirstOrDefault(a => a.Id == request.ActionId && a.From == current);
         if (action is null) return Reject("Diese Aktion ist derzeit nicht möglich.");

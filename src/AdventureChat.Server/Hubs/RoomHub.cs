@@ -111,7 +111,7 @@ public class RoomHub : Hub
     public async Task<ObjectActionResultDto> RequestObjectAction(ObjectActionRequestDto request)
     {
         var result = Sessions.RequestObjectAction(Context.ConnectionId, request);
-        if (!result.Success) return new ObjectActionResultDto(false, result.Error);
+        if (!result.Success) return new ObjectActionResultDto(false, result.Error, result.ErrorCode);
         foreach (var change in result.Changes)
             await Clients.Group(Group(change.RoomId)).SendAsync("ObjectStatesChanged", change);
         return new ObjectActionResultDto(true, null);

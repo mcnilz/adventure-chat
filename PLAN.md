@@ -1,5 +1,5 @@
 # Umsetzungsplan
-Status (12.11.2026): Tickets 01–17 sind menschlich abgenommen und done. Tickets 18–20 sind ready-for-human; Ticket 20 wurde nach Feedback überarbeitet. 21–23 bleiben draft. Tatsächliche Implementierungs- und Testbelege im jeweiligen Ticket und active-state.md.
+Status (12.11.2026): Tickets 01–17 sind menschlich abgenommen und done. Tickets 18–20 sind ready-for-human; Ticket 20 wurde nach weiterem Feedback erneut überarbeitet. 21–23 bleiben draft. Tatsächliche Implementierungs- und Testbelege im jeweiligen Ticket und active-state.md.
 
 | Ticket | Vorführbares Ergebnis | Blocked by |
 | --- | --- | --- |

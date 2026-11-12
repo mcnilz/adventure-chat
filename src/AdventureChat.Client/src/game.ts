@@ -1,6 +1,7 @@
 import { DEFAULT_ROOM, EXIT_TRIGGER_DISTANCE } from './constants.js';
 import { InputHandler } from './input/input-handler.js';
 import { actionsForVerb } from './input/object-action.js';
+import { ObjectActionFlow } from './input/object-action-flow.js';
 import { RoomNetworkClient } from './network/room-client.js';
 import { RoomRenderer } from './rendering/renderer.js';
 import { assignPathToCharacter, updateCharacterMovement } from './simulation/movement.js';
@@ -34,7 +35,9 @@ export class AdventureGame {
   public onInteractionMessage?: (message: string) => void;
   public onActionChoices?: (actions: ReadonlyArray<{ readonly id: string; readonly name: string }>, choose: (id: string) => void) => void;
   public onClearActionChoices?: () => void;
+  public onVerbSelected?: (verb: InteractionVerb) => void;
   private verb: InteractionVerb = 'walk';
+  private readonly objectActionFlow: ObjectActionFlow;
 
   private lastTimestamp = 0;
   private isRunning = false;
@@ -58,6 +61,7 @@ export class AdventureGame {
     this.renderer = new RoomRenderer(this.canvas, this.state.room);
 
     this.state.onRoomChanged = (room) => {
+      this.objectActionFlow.cancel();
       this.renderer.setRoom(room);
       this.onRoomChanged?.(room);
     };
@@ -74,12 +78,20 @@ export class AdventureGame {
       onChatMessageReceived: (dto) => this.dispatchRoomEvent(() => this.state.handleChatMessage(dto)),
       onObjectStatesChanged: (dto) => this.dispatchRoomEvent(() => this.state.handleObjectStates(dto)),
       onWorldReset: () => this.onWorldUnavailable?.('Die Welt wurde geändert und neu gestartet. Bitte erneut beitreten.'),
-      onConnectionStatusChanged: (status) => this.onConnectionStatusChanged?.(status),
+      onConnectionStatusChanged: (status) => { if (status !== 'connected') this.objectActionFlow.cancel(); this.onConnectionStatusChanged?.(status); },
       onReconnected: async () => {
         try { await this.joinRoom(); }
         catch (error) { this.networkClient.setStatus('disconnected'); this.onWorldUnavailable?.(String(error)); }
       },
     });
+
+    this.objectActionFlow = new ObjectActionFlow(
+      () => ({ roomId: this.room.id, position: this.character.position, idle: this.character.state === 'idle',
+        revision: this.state.objectRevision, stateOf: id => this.state.objectStates.get(id) }),
+      point => this.setTarget(point),
+      (room, object, action, revision) => this.networkClient.requestObjectAction(room, object, action, revision),
+      error => { if (error) this.onInteractionMessage?.(error); this.selectVerb('walk'); }
+    );
 
     this.inputHandler = new InputHandler(
       this.canvas,
@@ -111,16 +123,14 @@ export class AdventureGame {
           this.onClearActionChoices?.();
           const actions = actionsForVerb(object, this.state.objectStates.get(object.id), this.verb);
           if (actions.length === 0) { this.onInteractionMessage?.('Diese Handlung ist für dieses Objekt derzeit nicht möglich.'); return; }
-          const roomId = this.room.id, revision = this.state.objectRevision;
-          const execute = async (actionId: string) => {
-            const result = await this.networkClient.requestObjectAction(roomId, object.id, actionId, revision);
-            if (!result.success) this.onInteractionMessage?.(result.error ?? 'Aktion abgelehnt.');
-          };
+          const roomId = this.room.id, expectedState = this.state.objectStates.get(object.id);
+          this.state.pendingExit = null;
+          const execute = (actionId: string) => this.objectActionFlow.start(roomId, object, actionId, expectedState);
           if (actions.length === 1) await execute(actions[0]!.id);
           else this.onActionChoices?.(actions, id => { void execute(id); });
         },
         onUnavailableTarget: () => this.onInteractionMessage?.('Diese Handlung ist für dieses Ziel derzeit nicht möglich.'),
-        onCanvasAction: () => this.onClearActionChoices?.(),
+        onCanvasAction: () => { this.objectActionFlow.cancel(); this.onClearActionChoices?.(); },
       },
       () => this.state.room,
       () => this.state.character.position,
@@ -131,7 +141,9 @@ export class AdventureGame {
   }
 
   public selectVerb(verb: InteractionVerb): void {
+    this.objectActionFlow.cancel();
     this.verb = verb;
+    this.onVerbSelected?.(verb);
     this.inputHandler.updateVerb();
   }
 
@@ -203,6 +215,7 @@ export class AdventureGame {
 
   public stop(): void {
     this.isRunning = false;
+    this.objectActionFlow.cancel();
     if (this.animationFrameId !== null) {
       cancelAnimationFrame(this.animationFrameId);
       this.animationFrameId = null;
@@ -344,6 +357,7 @@ export class AdventureGame {
     for (const remote of this.state.remotePlayers.values()) {
       updateCharacterMovement(remote, dt);
     }
+    this.objectActionFlow.update();
 
     // Check if local character finished walking to an exit
     if (this.state.pendingExit && this.state.character.state === 'idle') {

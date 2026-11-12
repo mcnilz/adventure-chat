@@ -6,10 +6,14 @@ export class VerbBar {
 
   public constructor(onSelect: (verb: InteractionVerb) => void) {
     for (const button of this.buttons) button.addEventListener('click', () => {
-      for (const item of this.buttons) item.setAttribute('aria-pressed', String(item === button));
+      this.setSelected(button.dataset.verb as InteractionVerb);
       this.clearChoices();
       onSelect(button.dataset.verb as InteractionVerb);
     });
+  }
+
+  public setSelected(verb: InteractionVerb): void {
+    for (const button of this.buttons) button.setAttribute('aria-pressed', String(button.dataset.verb === verb));
   }
 
   public clearChoices(): void { this.choices.replaceChildren(); this.choices.hidden = true; }

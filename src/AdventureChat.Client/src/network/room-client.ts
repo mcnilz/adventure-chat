@@ -9,6 +9,7 @@ import type {
   UserJoinedDto,
   UserLeftDto,
   ObjectStatesChangedDto,
+  ObjectActionResultDto,
 } from '../types.js';
 import type { HubConnection } from '@microsoft/signalr';
 
@@ -163,9 +164,9 @@ export class RoomNetworkClient {
     }
   }
 
-  public async requestObjectAction(roomId: string, objectId: string, actionId: string, expectedRevision: number): Promise<MoveResultDto> {
+  public async requestObjectAction(roomId: string, objectId: string, actionId: string, expectedRevision: number): Promise<ObjectActionResultDto> {
     if (!this.hubConnection || this.connectionStatus !== 'connected') return { success: false, error: 'Nicht verbunden.' };
-    try { return await this.hubConnection.invoke('RequestObjectAction', { roomId, objectId, actionId, expectedRevision }) as MoveResultDto; }
+    try { return await this.hubConnection.invoke('RequestObjectAction', { roomId, objectId, actionId, expectedRevision }) as ObjectActionResultDto; }
     catch (error) { return { success: false, error: String(error) }; }
   }
 

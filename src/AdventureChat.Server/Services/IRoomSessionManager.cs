@@ -6,7 +6,7 @@ public record JoinResult(bool Success, string? Error, PlayerSession? Session, Ro
 public record ChangeRoomResult(bool Success, string? Error, string? OldRoomId, PlayerSession? Session, RoomSnapshotDto? Snapshot);
 public record MoveResult(bool Success, string? Error, string? SessionId, PointDto? Target, IReadOnlyList<PointDto>? Waypoints, string? RoomId = null, long Revision = 0);
 public record SendChatMessageResult(bool Success, string? Error, ChatMessageDto? Message);
-public record ObjectActionResult(bool Success, string? Error, IReadOnlyList<ObjectStatesChangedDto> Changes);
+public record ObjectActionResult(bool Success, string? Error, IReadOnlyList<ObjectStatesChangedDto> Changes, string? ErrorCode = null);
 
 public interface IRoomSessionManager
 {

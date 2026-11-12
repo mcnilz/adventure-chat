@@ -35,6 +35,7 @@ async function initialize(): Promise<void> {
     }
   );
   const verbBar = new VerbBar(verb => game.selectVerb(verb));
+  game.onVerbSelected = verb => verbBar.setSelected(verb);
   game.onActionChoices = (actions, choose) => verbBar.showChoices(actions, choose);
   game.onClearActionChoices = () => verbBar.clearChoices();
   game.onInteractionMessage = message => chatUi.appendSystemMessage(message);

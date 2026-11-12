@@ -215,6 +215,12 @@ export interface MoveResultDto {
   readonly error: string | null;
 }
 
+export interface ObjectActionResultDto {
+  readonly success: boolean;
+  readonly error: string | null;
+  readonly errorCode?: string | null;
+}
+
 export interface RequestMoveDto {
   readonly start?: Point | null;
   readonly target: Point;
