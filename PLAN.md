@@ -1,5 +1,5 @@
 # Umsetzungsplan
-Status (12.11.2026): Tickets 01–17, 20 und 21 sind menschlich abgenommen und done. Tickets 18/19 sind ready-for-human; 22/23 bleiben draft. Tatsächliche Implementierungs- und Testbelege im jeweiligen Ticket und active-state.md.
+Status (19.11.2026): Tickets 01–17, 20 und 21 sind menschlich abgenommen und done. Tickets 18/19 sind ready-for-human. 22/23 und das neue Epic mit seinen Paketen 24–32 stehen auf draft. Tatsächliche Implementierungs- und Testbelege stehen im jeweiligen Ticket und in active-state.md.
 
 | Ticket | Vorführbares Ergebnis | Blocked by |
 | --- | --- | --- |
@@ -26,6 +26,15 @@ Status (12.11.2026): Tickets 01–17, 20 und 21 sind menschlich abgenommen und d
 | [21 (done)](.scratch/adventure-chat/issues/21-state-dependent-navigation.md) | Tür-/Stuhlhindernisse und laufende Wege folgen sicher dem Zustand | 20 |
 | [22 (draft)](.scratch/adventure-chat/issues/22-verbs-and-interaction-editor.md) | Verben mit Objektsatz und vollständige Konfiguration im Browsereditor | 20, 21, 18; 06, 15, 17 (done) |
 | [23 (draft)](.scratch/adventure-chat/issues/23-interactive-reference-examples.md) | Tür, Stuhl und Schalter/Tor als erreichbare gemeinsame Referenzdemo | 20, 21, 22, 19 |
+| [24 (draft)](.scratch/adventure-chat/issues/24-interactive-worlds-epic.md) | Epic für konfigurierbare Figureninteraktionen und NPCs | Planung frei, Umsetzung über 25–32 |
+| [25 (draft)](.scratch/adventure-chat/issues/25-object-state-transitions.md) | Sichtbare Übergänge zwischen konfigurierten Objektzuständen | 21, 22 |
+| [26 (draft)](.scratch/adventure-chat/issues/26-character-animations-for-object-actions.md) | Gehaltene Posen und kurze Figurenanimationen je Objektaktion | 21, 22 |
+| [27 (draft)](.scratch/adventure-chat/issues/27-npc-dialogue.md) | NPC mit „Spreche mit“ ansprechen und Antwort wählen | 22 |
+| [28 (draft)](.scratch/adventure-chat/issues/28-state-dependent-dialogue.md) | Gespräch verändert sich mit dem Objektzustand | 20, 27 |
+| [29 (draft)](.scratch/adventure-chat/issues/29-npc-movement.md) | NPC läuft Wegpunkte und optional in einem Aufenthaltsbereich | 21, 27 |
+| [30 (draft)](.scratch/adventure-chat/issues/30-follow-npc.md) | Einem NPC freiwillig durch mehrere Räume folgen und abbrechen | 27, 29 |
+| [31 (draft)](.scratch/adventure-chat/issues/31-combined-reference-scenario.md) | Objektinteraktionen, Dialog und Führung in einer Referenzszene erleben | 25, 26, 28, 30 |
+| [32 (draft)](.scratch/adventure-chat/issues/32-object-triggered-npc-reactions.md) | Optional eine Objektaktion mit einer gezielten NPC-Reaktion verbinden | 20, 21, 29 |
 
 Tickets 14–16 wurden am 04.11.2026 auf Benutzerauftrag als draft angelegt. Nur Planung beauftragt; andere Agenten übernehmen die spätere Umsetzung nach Bestätigung von Umfang und Testgrenzen. Verbindliche Reihenfolge laut anschließendem Benutzerauftrag: 14 → 15 → 16 → 13. Keine automatische Parallelbeauftragung. Formatversionen fortlaufend anhand des tatsächlichen Stands wählen; Ticket 13 ergänzt seine Demo-Anforderungen erst nach der neuen Referenzwelt.
 
@@ -37,6 +46,12 @@ Die Reihenfolge 01–07 ist die empfohlene serielle Umsetzung. Ticket 06 hängt 
 Die vier Erweiterungspakete aus SPEC.md sind angelegt; Ticket 20 wurde separat umgesetzt und abgenommen, Ticket 21 danach separat einschließlich Sicherheitsregel umgesetzt und am 12.11.2026 mit „funktioniert“ abgenommen. Serielle Reihenfolge: **20 → 21 → 22 → 23**. 22/23 warten auf die menschliche Abnahme ihrer jeweiligen Vorgänger. Zusätzlich benötigt 22 die noch offene Abnahme von 18; 23 die noch offene Abnahme von 19. Kein anderes Paket automatisch beginnen und keine parallele Umsetzung ableiten.
 
 20 liefert nach Benutzerfeedback bereits eine erste klassische Verbenleiste mit Objektklick, Zustandsdarstellung und Mehrspielerkommandos; 21 ergänzt sichere Navigation; 22 vervollständigt das Autorenwerkzeug und die spätere Interaktionsintegration; 23 integriert erst danach Referenzinhalte. Datenverträge: 1.6.0 für Objektaktionen, 1.7.0 für mehrere Bedienpunkte und 1.8.0 für Ticket 21, ohne Änderungen eingefrorener Bündel. Die lokale Definition von Einschließen und die übrigen Paketentscheidungen für 21 wurden am 12.11.2026 vor Implementierungsbeginn ausdrücklich bestätigt; Details im Ticket.
+
+## Beispiele in der Referenzwelt
+
+Jede neue Spieler- oder Autorenfunktion erhält im selben Arbeitspaket ein konkretes Beispiel in der Referenzwelt. Funktionstickets formulieren die Fähigkeit und ihre Wiederverwendung unabhängig vom Motiv. Die Abnahmeschritte geben an, wo das Beispiel liegt, wie es vom regulären Start aus auf kurzem Weg erreicht wird und was dort beobachtbar ist.
+
+Beispiele möglichst in vorhandene Räume und Stationen integrieren. Ein zusätzlicher Raum ist sinnvoll, wenn das Beispiel ihn benötigt, etwa für einen Raumübergang. Wo mehrere spezielle Räume einen gemeinsamen Zugang brauchen, kann ein zentraler Startraum mit klar erkennbaren direkten Wegen dienen. Platzierung und ein möglicher Hub werden beim jeweiligen Paket entschieden.
 
 ## Meilensteine
 M1 nach 02: Bewegung und Geometrie funktionieren an einem Beispiel.

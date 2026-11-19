@@ -6,6 +6,7 @@
 | Room definition / Raumdefinition | Gespeicherte, versionierte Autorendaten |
 | Room state / Raumzustand | Flüchtige Teilnehmer und bestätigte Bewegungen |
 | Actor / Figur | Sichtbare Repräsentation einer Teilnehmersitzung |
+| NPC | Computergesteuerte Figur in der Welt |
 | Session / Sitzung | Serverseitig gebundene aktuelle Teilnahme |
 | Spawn | Benannter gültiger Startpunkt in einem Raum |
 | Exit / Ausgang | Erreichbarer Übergang zu Raum und Spawn |

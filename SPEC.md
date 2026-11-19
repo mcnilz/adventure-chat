@@ -1,5 +1,5 @@
 # Spezifikation – begehbarer Adventure-Chat
-MVP abgenommen; tatsächlicher Umsetzungsstand in active-state.md. Interaktive Raumobjekte als Erweiterung in Tickets 20–23 geplant (10.11.2026); keine Implementierungsfreigabe.
+MVP abgenommen. Der tatsächliche Umsetzungsstand steht in active-state.md. Tickets 20–23 behandeln interaktive Raumobjekte. Das neue Epic für Figureninteraktionen und NPCs steht als Planungsentwurf in Tickets 24–32.
 
 ## Problem Statement
 Ein gewöhnliches Chatfenster vermittelt keinen gemeinsamen Ort. Der Benutzer möchte sich mit anderen Personen in einer Welt im Stil klassischer Lucasfilm-Adventures treffen, mit Figuren bewegen und schreiben können.
@@ -47,7 +47,7 @@ Beobachtbares Verhalten statt interner Methoden prüfen. TESTING.md schlägt dre
 - [ ] Keine Node-Laufzeit auf dem Anwendungsserver erforderlich.
 
 ## Out of Scope des ursprünglichen MVP
-Inventar, Gegenstandsaktionen, Dialogbäume, Skriptsprache, SCUMM-Dateiformate, Charaktereditor, Audio-/Videochat, öffentliche Registrierung, öffentliche Moderationsoberfläche, mobile Optimierung, Datenbank, persistente Chatarchive, verteilte Server, Hosting und GitHub-Veröffentlichung. Die unten bestätigte Erweiterung nimmt ausschließlich die dort beschriebenen Gegenstandsaktionen hinzu; Inventar, Aufheben, Dialogsystem und Skriptsprache bleiben ausgeschlossen.
+Inventar, Gegenstandsaktionen, Dialogbäume, Skriptsprache, SCUMM-Dateiformate, Charaktereditor, Audio-/Videochat, öffentliche Registrierung, öffentliche Moderationsoberfläche, mobile Optimierung, Datenbank, persistente Chatarchive, verteilte Server, Hosting und GitHub-Veröffentlichung. Die späteren Erweiterungen legen ihren jeweiligen Umfang separat fest.
 
 ## Further Notes
 Vorläufige Testzielgröße: zehn gleichzeitige Teilnehmer. Private Testumgebung ist keine Freigabe für öffentlichen Betrieb. Für öffentliche Nutzung später Zugang, Moderation, Datenschutz und Missbrauchsschutz konkret planen.
@@ -78,6 +78,22 @@ Die abnehmbaren Pakete und ihre noch zu bestätigenden Detailentscheidungen/Test
 3. [22: Verbenbedienung und Browsereditor](.scratch/adventure-chat/issues/22-verbs-and-interaction-editor.md).
 4. [23: Interaktive Referenzbeispiele](.scratch/adventure-chat/issues/23-interactive-reference-examples.md).
 
-Der aktuelle veröffentlichte Formatstand ist 1.5.0. Geplant sind optionale Minor-Erweiterungen 1.6.0 in 20 und bei nachfolgender separater Veröffentlichung 1.7.0 in 21; genaue Verträge/Versionsnummern vor Umsetzung gegen den Iststand prüfen. Alte grafische Objekte bleiben ohne neue Angaben rein grafisch, alte Navigation unverändert. Veröffentlichte Schemas einschließlich Teilschemas sowie ältere Referenzfixtures bleiben unverändert; Server akzeptieren nur ausdrücklich unterstützte Versionen. Details: [ADR 0002](docs/adr/0002-declarative-object-interactions.md) und [Kompatibilitätsvertrag](docs/work-packages/world-format-compatibility.md).
+Ticket 20 veröffentlichte die optionalen Minor-Erweiterungen 1.6.0 für Objektaktionen und 1.7.0 für mehrere Bedienpunkte. Ticket 21 veröffentlichte 1.8.0 für zustandsabhängige Navigation. Alte grafische Objekte bleiben ohne neue Angaben rein grafisch und alte Navigation behält ihr Verhalten. Veröffentlichte Schemas einschließlich Teilschemas sowie ältere Referenzfixtures bleiben unverändert. Server akzeptieren nur ausdrücklich unterstützte Versionen. Details stehen in [ADR 0002](docs/adr/0002-declarative-object-interactions.md) und im [Kompatibilitätsvertrag](docs/work-packages/world-format-compatibility.md).
 
 Dieser Planungsauftrag verändert keine Produktdateien, Weltinhalte oder Bilder, führt keine neuen Abhängigkeiten ein und autorisiert keine Bilderzeugung, Serveränderung oder Implementierungscommits. Umsetzung erst nach separater Freigabe des jeweiligen Pakets gemäß PLAN.md.
+
+## Beispiele in der Referenzwelt
+
+Zu jeder neuen Funktion gehört im selben Paket ein konkretes, vom normalen Einstieg aus gut auffindbares Beispiel in der Referenzwelt. Beispiele werden nach Möglichkeit in vorhandene Räume integriert und über kurze Wege erreichbar gemacht. Wenn eigene Räume sinnvoll sind, kann ein zentraler Startraum direkte Zugänge anbieten. Die konkrete Platzierung hängt von der Funktion ab. Die [Abnahmeregeln](PLAN.md#beispiele-in-der-referenzwelt) stehen im Umsetzungsplan.
+
+## Geplante Erweiterung: Figureninteraktionen und NPCs (24–32)
+
+Autoren können Objektaktionen sichtbare Übergänge zwischen definierten Zuständen zuordnen. Sie können außerdem je Objektaktion einen Bedienpunkt, eine Blickrichtung und eine gehaltene Figurenpose oder eine kurze Animation festlegen. Die Zuordnung lässt sich an verschiedenen Objekten und für verschiedene Handlungen einsetzen. Eine sichtbare Objektwirkung kann auf die kurze Animation folgen.
+
+Mit „Spreche mit“ öffne ich bei einem NPC vorbereitete Gesprächsoptionen. Vorhandene Objektzustände können verfügbare Fragen oder Antworten im Verlauf ändern. Ein NPC kann im Raum einen vorgegebenen Weg ablaufen. Ein konfigurierbarer Aufenthaltsbereich mit wechselnden Zielen ist eine optionale Vertiefung.
+
+Ein NPC kann eine Führung anbieten. Nach Zustimmung folgt ihm die Figur des Besuchers über mehrere Räume und der Besucher erhält an Stationen Erläuterungen. Er kann jederzeit wieder selbst steuern. Als optionale Vertiefung können Autoren einer gezielten Objektaktion eine Reaktion eines NPC zuordnen, etwa das Ansteuern eines konfigurierten Ziels.
+
+Ein mögliches Gesamtbeispiel ist eine kurze Büroeinführung. Eine Klingel verändert das Empfangsgespräch und kann bei Umsetzung der optionalen Reaktion einen NPC zum Eingang rufen. Beim Rundgang fährt ein Schreibtisch per Taste zwischen zwei Höhen. Ein Sitzplatz und eine Tafel zeigen eine gehaltene Pose und eine kurze Geste mit sichtbarem Ergebnis.
+
+Der [Epic-Entwurf](.scratch/adventure-chat/issues/24-interactive-worlds-epic.md) und [PLAN](PLAN.md) verlinken die abnehmbaren Pakete, offenen Entscheidungen und vorgeschlagenen öffentlichen Testgrenzen. Die Erweiterung baut auf vorhandenen Objektzuständen, Verben und geprüften Laufwegen auf. Der Vertrag für direkte Objektaktionen steht in [ADR 0002](docs/adr/0002-declarative-object-interactions.md). Neue optionale Autorenangaben erfordern die Prüfung von SemVer und älteren unveränderten Referenzfixtures. Inventar und eine allgemeine Skriptsprache gehören weiterhin nicht zum Produktumfang. Die Tickets dokumentieren Vorschläge zur Planung. Jedes Umsetzungspaket benötigt seine eigene Freigabe.
