@@ -9,3 +9,6 @@ TestResults/
 
 # Generated client build artifacts
 src/AdventureChat.Server/wwwroot/js/
+
+# Local ticket evidence
+/.scratch/adventure-chat/evidence/
