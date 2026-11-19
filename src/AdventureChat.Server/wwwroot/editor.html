@@ -32,6 +32,11 @@
 
     <!-- Status Banner -->
     <div id="status-banner" class="status-banner status-info">Bereit.</div>
+    <div class="world-format">
+      <label for="world-format">Weltformat</label>
+      <select id="world-format" disabled></select>
+      <span id="world-format-change" role="status"></span>
+    </div>
 
     <!-- Main Editor Grid Layout -->
     <div class="editor-main-layout">
@@ -39,6 +44,12 @@
       <main class="editor-canvas-column">
         <div class="canvas-wrapper">
           <canvas id="editor-canvas" width="640" height="360"></canvas>
+        </div>
+        <div id="preview-controls" hidden>
+          <label for="preview-verb">Vorschauverb</label>
+          <select id="preview-verb"></select>
+          <select id="preview-action-choice" aria-label="Vorschauaktion" hidden></select>
+          <span id="preview-result" role="status"></span>
         </div>
         <div class="editor-hint-bar">
           💡 <strong>Tipp:</strong> Klicke auf eine Kante, um sie zu teilen und neue Bodenpunkte herauszuziehen. Klicke auf Punkte, Spawns oder Ausgänge, um deren Eigenschaften im Inspektor zu bearbeiten.

@@ -654,3 +654,14 @@
 .object-panel button { margin-top: 10px; width: 100%; padding: 7px; border-radius: 4px; cursor: pointer; }
 .object-panel input:focus, .object-panel select:focus { outline: 2px solid #63b3ed; }
 .object-panel [hidden] { display: none; }
+.interaction-panel fieldset { min-width: 0; margin: 12px 0 0; border: 1px solid #4a5568; border-radius: 4px; }
+.interaction-panel legend { color: #e2e8f0; padding: 0 5px; }
+.interaction-panel input[type="checkbox"] { display: inline; width: auto; margin: 0 0 0 8px; }
+.object-panel [role="alert"], #world-format-change { color: #feb2b2; }
+.world-format { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 8px 0; }
+.world-format select, #preview-verb, #preview-action-choice {
+  padding: 4px 7px; border: 1px solid #4a5568; border-radius: 4px;
+  background: #1a202c; color: #edf2f7;
+}
+#preview-controls { margin: 8px 0; }
+#preview-controls:not([hidden]) { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }

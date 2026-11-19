@@ -9,7 +9,7 @@ internal static class EditorPreviewEndpoints
     {
         group.MapPost("/preview-path", (PreviewPathRequest request, IEditorService editor, IPathfindingService paths) =>
         {
-            var validation = editor.ValidateRoom(request.Room);
+            var validation = editor.ValidateRoom(request.Room, request.TargetFormat);
             if (!validation.IsValid) return Results.BadRequest(new { errors = validation.Errors });
             var definition = request.Room.ToRoomDefinition();
             var navigation = new ObjectNavigation(new PreviewRoomService([definition]), _ => request.States ?? []);
@@ -20,30 +20,58 @@ internal static class EditorPreviewEndpoints
         });
         group.MapPost("/preview-action", (PreviewActionRequest request, IEditorService editor, IPathfindingService paths) =>
         {
-            var drafts = editor.ListRooms().Where(r => !string.Equals(r.Id, request.Room.Id, StringComparison.OrdinalIgnoreCase))
-                .Select(r => editor.GetRoom(r.Id)!).Append(request.Room).ToList();
-            var validation = editor.ValidateWorld(drafts);
-            if (!validation.IsValid) return Results.BadRequest(new { errors = validation.Errors });
-            var definitions = drafts.Select(r => r.ToRoomDefinition()).ToList();
-            var position = new Point2D(request.Position.X, request.Position.Y);
-            if (!request.Room.ToRoomDefinition().Geometry.IsWalkable(position))
-                return Results.BadRequest(new { errors = new[] { "Invalid preview footpoint." } });
-            var manager = new RoomSessionManager(new PreviewRoomService(definitions), paths);
-            try { manager.RestorePreview(request.States ?? []); }
-            catch (ArgumentException ex) { return Results.BadRequest(new { errors = new[] { ex.Message } }); }
-            var joined = manager.JoinRoom("preview", request.Room.Id, "Tester", new(request.Position.X, request.Position.Y));
-            if (!joined.Success) return Results.BadRequest(new { errors = new[] { joined.Error } });
-            var result = manager.RequestObjectAction("preview", new(request.Room.Id, request.ObjectId, request.ActionId, 0));
-            var states = definitions.Select(r => new PreviewObjectStates(r.Id, manager.PreviewStates(r))).ToList();
-            return Results.Ok(new { success = result.Success, error = result.Error, snapshot = manager.GetSnapshot("preview"), states });
+            var command = new PreviewCommand(request.Room, request.Position, request.States, request.RoomId, request.TargetFormat);
+            return Run(editor, paths, command, (manager, activeRoom) =>
+            {
+                var result = manager.RequestObjectAction("preview", new(activeRoom, request.ObjectId, request.ActionId, 0));
+                return (result.Success, result.Error, result.ErrorCode);
+            });
         });
+        group.MapPost("/preview-exit", (PreviewExitRequest request, IEditorService editor, IPathfindingService paths) =>
+        {
+            var command = new PreviewCommand(request.Room, request.Position, request.States, request.RoomId, request.TargetFormat);
+            return Run(editor, paths, command, (manager, _) =>
+            {
+                var result = manager.ChangeRoom("preview", request.ExitId);
+                return (result.Success, result.Error, null);
+            });
+        });
+        group.MapPost("/preview-snapshot", (PreviewCommand command, IEditorService editor, IPathfindingService paths) =>
+            Run(editor, paths, command, (_, _) => (true, null, null)));
+    }
+
+    private static IResult Run(IEditorService editor, IPathfindingService paths, PreviewCommand command,
+        Func<RoomSessionManager, string, (bool Success, string? Error, string? ErrorCode)> run)
+    {
+        var drafts = editor.WorldWithDraft(command.Room);
+        var validation = editor.ValidateWorld(drafts, command.TargetFormat);
+        if (!validation.IsValid) return Results.BadRequest(new { errors = validation.Errors });
+        var definitions = drafts.Select(r => r.ToRoomDefinition()).ToList();
+        var roomId = command.RoomId ?? command.Room.Id;
+        var position = new Point2D(command.Position.X, command.Position.Y);
+        if (definitions.Find(room => room.Id == roomId)?.Geometry.IsWalkable(position) != true)
+            return Results.BadRequest(new { errors = new[] { "Invalid preview footpoint." } });
+        var manager = new RoomSessionManager(new PreviewRoomService(definitions), paths);
+        try { manager.RestorePreview(command.States ?? []); }
+        catch (ArgumentException ex) { return Results.BadRequest(new { errors = new[] { ex.Message } }); }
+        var joined = manager.JoinRoom("preview", roomId, "Tester", position);
+        if (!joined.Success) return Results.BadRequest(new { errors = new[] { joined.Error } });
+        var result = run(manager, roomId);
+        var states = definitions.Select(room => new PreviewObjectStates(room.Id, manager.PreviewStates(room))).ToList();
+        return Results.Ok(new { success = result.Success, error = result.Error, errorCode = result.ErrorCode,
+            snapshot = manager.GetSnapshot("preview"), states });
     }
 
     private static bool ValidStates(RoomDefinition room, IReadOnlyList<ObjectStateDto> states) =>
         states.Select(s => s.ObjectId).Distinct().Count() == states.Count && states.All(s =>
             room.Objects?.Any(o => o.Id == s.ObjectId && o.Interaction?.States.Any(v => v.Id == s.StateId) == true) == true);
 
-    internal sealed record PreviewPathRequest(RoomYamlDto Room, PointDto Start, PointDto Target, IReadOnlyList<ObjectStateDto>? States = null);
+    internal sealed record PreviewPathRequest(RoomYamlDto Room, PointDto Start, PointDto Target,
+        IReadOnlyList<ObjectStateDto>? States = null, string? TargetFormat = null);
     internal sealed record PreviewActionRequest(RoomYamlDto Room, PointDto Position, string ObjectId, string ActionId,
-        IReadOnlyList<PreviewObjectStates>? States = null);
+        IReadOnlyList<PreviewObjectStates>? States = null, string? RoomId = null, string? TargetFormat = null);
+    internal sealed record PreviewExitRequest(RoomYamlDto Room, PointDto Position, string ExitId,
+        IReadOnlyList<PreviewObjectStates>? States = null, string? RoomId = null, string? TargetFormat = null);
+    private sealed record PreviewCommand(RoomYamlDto Room, PointDto Position,
+        IReadOnlyList<PreviewObjectStates>? States, string? RoomId, string? TargetFormat);
 }

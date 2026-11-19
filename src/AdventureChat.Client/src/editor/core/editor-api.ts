@@ -4,7 +4,20 @@ import type {
   RoomYamlDto,
   RoomView
 } from './editor-types.js';
-import type { ObjectStateDto, PreviewObjectStates, RoomSnapshotDto } from '../../types.js';
+import type { ObjectActionResultDto, ObjectStateDto, Point, PreviewObjectStates, RoomSnapshotDto } from '../../types.js';
+
+interface PreviewLocation {
+  room: RoomView;
+  position: Point;
+  roomId: string;
+  states: readonly PreviewObjectStates[];
+  targetFormat?: string;
+}
+
+export interface PreviewResult extends ObjectActionResultDto {
+  snapshot: RoomSnapshotDto;
+  states: PreviewObjectStates[];
+}
 
 export interface ValidationResponse {
   valid: boolean;
@@ -15,6 +28,7 @@ export interface SaveRoomResponse {
   success: boolean;
   roomId?: string;
   errors: string[];
+  formatVersion?: string | null;
 }
 
 export interface UploadBackgroundResponse {
@@ -39,28 +53,46 @@ export class EditorApi {
   }
 
   private static async authorToken(): Promise<string> {
+    return (await this.status()).token;
+  }
+
+  public static async status(): Promise<{ token: string; formatVersion?: string | null }> {
     const response = await this.request('/api/editor/status');
     if (!response.ok) throw new Error(`Autorenmodus nicht verfügbar: HTTP ${response.status}`);
-    const status = await response.json() as { token: string };
-    return status.token;
+    return response.json();
   }
-  public static async previewPath(room: RoomView, start: { x: number; y: number }, target: { x: number; y: number }, states: ReadonlyArray<ObjectStateDto> = []): Promise<{ success: boolean; waypoints: { x: number; y: number }[] | null }> {
+  public static async previewPath(room: RoomView, start: Point, target: Point,
+    states: readonly ObjectStateDto[] = [], targetFormat?: string): Promise<{ success: boolean; waypoints: Point[] | null }> {
     const response = await this.request('/api/editor/preview-path', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Author-Token': await this.authorToken() },
-      body: JSON.stringify({ room, start, target, states })
+      body: JSON.stringify({ room, start, target, states, targetFormat })
     });
     if (!response.ok) return { success: false, waypoints: null };
     return response.json();
   }
 
-  public static async previewAction(room: RoomView, position: { x: number; y: number }, objectId: string, actionId: string,
-    states: ReadonlyArray<PreviewObjectStates>): Promise<{ success: boolean; error: string | null; snapshot: RoomSnapshotDto; states: PreviewObjectStates[] }> {
-    const response = await this.request('/api/editor/preview-action', {
+  public static previewAction(location: PreviewLocation, objectId: string, actionId: string): Promise<PreviewResult> {
+    return this.previewCommand('action', { ...location, objectId, actionId });
+  }
+
+  public static previewExit(location: PreviewLocation, exitId: string): Promise<PreviewResult> {
+    return this.previewCommand('exit', { ...location, exitId });
+  }
+
+  public static previewSnapshot(location: PreviewLocation): Promise<PreviewResult> {
+    return this.previewCommand('snapshot', location);
+  }
+
+  private static async previewCommand(command: 'action' | 'exit' | 'snapshot', body: object): Promise<PreviewResult> {
+    const response = await this.request(`/api/editor/preview-${command}`, {
       method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Author-Token': await this.authorToken() },
-      body: JSON.stringify({ room, position, objectId, actionId, states })
+      body: JSON.stringify(body)
     });
-    if (!response.ok) throw new Error('Die Vorschauaktion konnte nicht geprüft werden.');
+    if (!response.ok) {
+      const result = await response.json() as { errors?: string[] };
+      throw new Error(result.errors?.join(' ') ?? 'Der Vorschau-Befehl konnte nicht geprüft werden.');
+    }
     return response.json();
   }
 
@@ -80,8 +112,10 @@ export class EditorApi {
     return (await res.json()) as RoomYamlDto;
   }
 
-  public static async validateRoom(room: RoomView): Promise<ValidationResponse> {
-    const res = await this.request('/api/editor/validate', {
+  public static async validateRoom(room: RoomView, targetFormat?: string): Promise<ValidationResponse> {
+    const query = new URLSearchParams({ includeWorld: 'true' });
+    if (targetFormat) query.set('targetFormat', targetFormat);
+    const res = await this.request(`/api/editor/validate?${query}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Author-Token': await this.authorToken() },
       body: JSON.stringify(room)
@@ -117,8 +151,9 @@ export class EditorApi {
     return (await res.json()) as ValidationResponse;
   }
 
-  public static async saveRoom(room: RoomView): Promise<SaveRoomResponse> {
-    const res = await this.request(`/api/editor/rooms/${encodeURIComponent(room.id)}`, {
+  public static async saveRoom(room: RoomView, upgradeFrom?: string): Promise<SaveRoomResponse> {
+    const query = upgradeFrom ? `?upgradeFrom=${encodeURIComponent(upgradeFrom)}` : '';
+    const res = await this.request(`/api/editor/rooms/${encodeURIComponent(room.id)}${query}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Author-Token': await this.authorToken() },
       body: JSON.stringify(room)

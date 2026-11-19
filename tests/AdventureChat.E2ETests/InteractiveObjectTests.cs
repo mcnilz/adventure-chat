@@ -6,6 +6,102 @@ namespace AdventureChat.E2ETests;
 public class InteractiveObjectTests
 {
     [Test]
+    public async Task Editor_AuthorsAndReopensObjectStatesAndActions()
+    {
+        await using var server = new TestServerFixture(authoring: true, foregroundWorld: true);
+        var source = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../../tests/Fixtures/interactions"));
+        var world = Path.Combine(server.TempRoot, "world");
+        foreach (var file in Directory.GetFiles(source, "*", SearchOption.AllDirectories))
+        {
+            var destination = Path.Combine(world, Path.GetRelativePath(source, file));
+            Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+            File.Copy(file, destination);
+        }
+        await server.StartAsync();
+        using var playwright = await Playwright.CreateAsync();
+        await using var browser = await playwright.Chromium.LaunchAsync(new() { Headless = true });
+        var page = await browser.NewPageAsync();
+        page.SetDefaultTimeout(6000);
+        await page.GotoAsync(server.BaseUrl + "/editor.html?worldId=interactions");
+        await page.Locator("#object-list").SelectOptionAsync("chair");
+        await page.GetByRole(AriaRole.Button, new() { Name = "Zustand hinzufügen", Exact = true }).ClickAsync();
+        var stateName = page.GetByLabel("Zustandsname", new() { Exact = true });
+        await stateName.FillAsync("Zweite Sitzposition");
+        await stateName.PressAsync("Tab");
+        var stateX = page.GetByLabel("Zustand X", new() { Exact = true });
+        await stateX.FillAsync("280");
+        await page.GetByRole(AriaRole.Button, new() { Name = "Aktion hinzufügen", Exact = true }).ClickAsync();
+        await page.GetByLabel("Verb", new() { Exact = true }).SelectOptionAsync("open");
+        var actionId = page.GetByLabel("Aktions-ID", new() { Exact = true });
+        var independentId = await actionId.InputValueAsync();
+        await actionId.FillAsync("push");
+        await actionId.PressAsync("Tab");
+        await Assertions.Expect(actionId).ToHaveValueAsync(independentId);
+        await Assertions.Expect(actionId).ToHaveAttributeAsync("aria-invalid", "true");
+        await page.GetByLabel("Zielzustand", new() { Exact = true }).SelectOptionAsync(new SelectOptionValue { Label = "Zweite Sitzposition" });
+        await page.GetByRole(AriaRole.Button, new() { Name = "Zustand löschen", Exact = true }).ClickAsync();
+        await Assertions.Expect(page.GetByRole(AriaRole.Alert)).ToContainTextAsync("in einer Aktion");
+        await page.GetByRole(AriaRole.Button, new() { Name = "Verknüpfung hinzufügen", Exact = true }).ClickAsync();
+        await page.GetByLabel("Zielobjekt", new() { Exact = true }).SelectOptionAsync("next/gate");
+        await page.GetByLabel("Verknüpfter Zustand", new() { Exact = true }).SelectOptionAsync("open");
+        await page.Locator("#btn-save").ClickAsync();
+        await Assertions.Expect(page.Locator("#status-banner")).ToContainTextAsync("erfolgreich atomar gespeichert");
+        await page.ReloadAsync();
+        await page.Locator("#object-list").SelectOptionAsync("chair");
+        await page.GetByLabel("Zustand ansehen", new() { Exact = true }).SelectOptionAsync(new SelectOptionValue { Label = "Zweite Sitzposition" });
+        await Assertions.Expect(stateX).ToHaveValueAsync("280");
+        var yaml = File.ReadAllText(Path.Combine(world, "rooms", "hall.yaml"));
+        Assert.That(yaml, Does.Contain("name: Öffnen"));
+        Assert.That(yaml, Does.Contain("object: gate"));
+
+        var roomFile = Path.Combine(world, "rooms", "hall.yaml");
+        var manifestFile = Path.Combine(world, "world.yaml");
+        var originalRoom = File.ReadAllBytes(roomFile);
+        var originalManifest = File.ReadAllBytes(manifestFile);
+        var otherRoom = Path.Combine(world, "rooms", "next.yaml");
+        var originalOtherRoom = File.ReadAllBytes(otherRoom);
+        await page.GetByLabel("Ausgang sperren: Nebenraum", new() { Exact = true }).CheckAsync();
+        await page.GetByRole(AriaRole.Button, new() { Name = "Hindernis hinzufügen", Exact = true }).ClickAsync();
+        await page.Locator("#btn-save").ClickAsync();
+        await Assertions.Expect(page.Locator("#status-banner")).ToContainTextAsync("Validierungsfehler");
+        Assert.That(File.ReadAllBytes(manifestFile), Is.EqualTo(originalManifest));
+        Assert.That(File.ReadAllBytes(roomFile), Is.EqualTo(originalRoom));
+
+        await page.GetByLabel("Weltformat", new() { Exact = true }).SelectOptionAsync("1.8.0");
+        await Assertions.Expect(page.Locator("#world-format-change")).ToContainTextAsync("1.6.0 auf 1.8.0");
+        var pointX = page.GetByLabel("Punkt 1 X", new() { Exact = true });
+        var oldX = (await pointX.InputValueAsync())!;
+        await pointX.FillAsync("-5");
+        await pointX.PressAsync("Tab");
+        await page.Locator("#btn-save").ClickAsync();
+        await Assertions.Expect(page.Locator("#status-banner")).ToContainTextAsync("Validierungsfehler");
+        Assert.That(File.ReadAllBytes(manifestFile), Is.EqualTo(originalManifest));
+        Assert.That(File.ReadAllBytes(roomFile), Is.EqualTo(originalRoom));
+        await Assertions.Expect(pointX).ToHaveValueAsync("-5");
+        await Assertions.Expect(page.GetByRole(AriaRole.Group, new() { Name = "Hindernis hindernis-1", Exact = true }))
+            .ToHaveAttributeAsync("aria-invalid", "true");
+        await pointX.FillAsync(oldX);
+        await pointX.PressAsync("Tab");
+        if (OperatingSystem.IsWindows())
+        {
+            using var lockedRoom = new FileStream(roomFile, FileMode.Open, FileAccess.Read, FileShare.Read);
+            await page.Locator("#btn-save").ClickAsync();
+            await Assertions.Expect(page.Locator("#status-banner")).ToContainTextAsync("Validierungsfehler");
+            Assert.That(File.ReadAllBytes(manifestFile), Is.EqualTo(originalManifest));
+            Assert.That(File.ReadAllBytes(roomFile), Is.EqualTo(originalRoom));
+        }
+        await page.Locator("#btn-save").ClickAsync();
+        await Assertions.Expect(page.Locator("#status-banner")).ToContainTextAsync("erfolgreich atomar gespeichert");
+        Assert.That(File.ReadAllText(manifestFile), Does.Contain("formatVersion: 1.8.0"));
+        Assert.That(File.ReadAllBytes(otherRoom), Is.EqualTo(originalOtherRoom));
+        await page.ReloadAsync();
+        await Assertions.Expect(page.GetByLabel("Weltformat", new() { Exact = true })).ToHaveValueAsync("1.8.0");
+        await page.Locator("#object-list").SelectOptionAsync("chair");
+        await page.GetByLabel("Zustand ansehen", new() { Exact = true }).SelectOptionAsync(new SelectOptionValue { Label = "Zweite Sitzposition" });
+        await Assertions.Expect(page.GetByLabel("Ausgang sperren: Nebenraum", new() { Exact = true })).ToBeCheckedAsync();
+        await Assertions.Expect(pointX).ToHaveValueAsync(oldX);
+    }
+    [Test]
     public async Task InterruptedApproach_ResetsVerbAndSpeaksLocally()
     {
         await using var server = new TestServerFixture(foregroundWorld: true);
@@ -271,6 +367,18 @@ public class InteractiveObjectTests
         await a.GetByRole(AriaRole.Button, new() { Name = "Benutzen", Exact = true }).ClickAsync();
         await ClickAt(a, 370, 220);
         await a.GetByRole(AriaRole.Button, new() { Name = "Einschalten", Exact = true }).ClickAsync();
+        await b.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.room.objects.find(o => o.id === 'gate').position.x === 260");
+        var close = b.GetByRole(AriaRole.Button, new() { Name = "Schließen", Exact = true });
+        await close.FocusAsync();
+        await close.PressAsync("Enter");
+        await ClickAt(b, 290, 230);
+        await b.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.room.objects.find(o => o.id === 'gate').position.x === 200");
+        await b.GetByRole(AriaRole.Button, new() { Name = "Öffnen", Exact = true }).ClickAsync();
+        var gate = b.Locator("#game-canvas");
+        var gateBounds = (await gate.BoundingBoxAsync())!;
+        await gate.HoverAsync(new() { Position = new Position { X = (float)(230 * gateBounds.Width / 640), Y = (float)(230 * gateBounds.Height / 360) } });
+        Assert.That(await b.Locator("#action-text").InnerTextAsync(), Is.EqualTo("Öffne Tor"));
+        await ClickAt(b, 230, 230);
         await b.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.room.objects.find(o => o.id === 'gate').position.x === 260");
     }
 

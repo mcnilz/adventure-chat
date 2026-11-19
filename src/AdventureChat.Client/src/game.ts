@@ -1,4 +1,5 @@
-import { DEFAULT_ROOM, EXIT_TRIGGER_DISTANCE, SPEECH_BUBBLE_DURATION } from './constants.js';
+import { DEFAULT_ROOM, SPEECH_BUBBLE_DURATION } from './constants.js';
+import { withinExitReach } from './input/exit-hit.js';
 import { InputHandler } from './input/input-handler.js';
 import { actionsForVerb } from './input/object-action.js';
 import { ObjectActionFlow } from './input/object-action-flow.js';
@@ -31,6 +32,7 @@ export class AdventureGame {
   public onConnectionStatusChanged?: (status: 'connected' | 'connecting' | 'disconnected') => void;
   public onRoomChanged?: (room: RoomDefinition) => void;
   public onActionChanged?: (actionText: string) => void;
+  public onActionFeedback?: (text: string) => void;
   public onWorldUnavailable?: (message: string) => void;
   public onObjectsChanged?: () => void;
   public onActionChoices?: (actions: ReadonlyArray<{ readonly id: string; readonly name: string }>, choose: (id: string) => void) => void;
@@ -103,7 +105,11 @@ export class AdventureGame {
         revision: this.state.objectRevision, stateOf: id => this.state.objectStates.get(id) }),
       point => this.setTarget(point),
       (room, object, action, revision) => this.networkClient.requestObjectAction(room, object, action, revision),
-      error => { if (error) this.speakLocally(error); this.selectVerb('walk'); }
+      error => {
+        if (error) this.speakLocally(error);
+        this.selectVerb('walk');
+        this.onActionFeedback?.(error ?? 'Aktion ausgeführt.');
+      }
     );
 
     this.inputHandler = new InputHandler(
@@ -152,14 +158,19 @@ export class AdventureGame {
           else if (actions.length === 1) await execute(actions[0]!.id);
           else this.onActionChoices?.(actions, id => { void execute(id); });
         },
-        onUnavailableTarget: () => { this.speakLocally('Das geht nicht.'); this.selectVerb('walk'); },
-        onCanvasAction: () => { this.objectWalkToken++; this.objectActionFlow.cancel(); this.onClearActionChoices?.(); },
+        onUnavailableTarget: () => {
+          this.speakLocally('Das geht nicht.');
+          this.selectVerb('walk');
+          this.onActionFeedback?.('Das geht nicht.');
+        },
+        onCanvasAction: () => { this.objectWalkToken++; this.objectActionFlow.cancel(); this.onClearActionChoices?.(); this.onActionFeedback?.(''); },
       },
       () => this.state.room,
       () => this.state.character.position,
       () => this.renderer.camera.offset,
       () => this.verb,
-      point => this.renderer.objectAt(point)
+      point => this.renderer.objectAt(point),
+      id => this.state.objectStates.get(id)
     );
   }
 
@@ -167,6 +178,7 @@ export class AdventureGame {
     this.objectWalkToken++;
     this.objectActionFlow.cancel();
     this.verb = verb;
+    this.onActionFeedback?.('');
     this.onVerbSelected?.(verb);
     this.inputHandler.updateVerb();
   }
@@ -389,11 +401,8 @@ export class AdventureGame {
 
     // Check if local character finished walking to an exit
     if (this.state.pendingExit && this.state.character.state === 'idle') {
-      const dist = Math.hypot(
-        this.state.character.position.x - this.state.pendingExit.position.x,
-        this.state.character.position.y - this.state.pendingExit.position.y
-      );
-      if (dist <= (this.state.pendingExit.radius ?? EXIT_TRIGGER_DISTANCE) + 5 && !this.exitRequestInFlight && performance.now() >= this.nextExitAttempt) {
+      if (withinExitReach(this.state.pendingExit, this.state.character.position) &&
+        !this.exitRequestInFlight && performance.now() >= this.nextExitAttempt) {
         const exitToTrigger = this.state.pendingExit;
         this.exitRequestInFlight = true;
         void this.changeRoom(exitToTrigger.id).then((success) => {

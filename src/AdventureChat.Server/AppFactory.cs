@@ -177,6 +177,7 @@ public static class AppFactory
             {
                 enabled = editorService.IsEditorEnabled,
                 schemaUrl = "/schemas/room.schema.json",
+                formatVersion = editorService.FormatVersion,
                 token = antiforgery.GetAndStoreTokens(context).RequestToken
             });
         });
@@ -228,9 +229,19 @@ public static class AppFactory
             }
         });
 
-        editorGroup.MapPost("/validate", (RoomYamlDto dto, IEditorService editorService) =>
+        editorGroup.MapPost("/validate", (RoomYamlDto dto, string? targetFormat, bool? includeWorld, IEditorService editorService) =>
         {
-            var result = editorService.ValidateRoom(dto);
+            ValidationResult result;
+            try
+            {
+                result = includeWorld is true
+                    ? editorService.ValidateWorld(editorService.WorldWithDraft(dto), targetFormat)
+                    : editorService.ValidateRoom(dto, targetFormat);
+            }
+            catch (Exception error) when (error is IOException or InvalidOperationException or UnauthorizedAccessException)
+            {
+                result = ValidationResult.Failure(error.Message);
+            }
             return Results.Ok(new
             {
                 valid = result.IsValid,
@@ -313,8 +324,10 @@ public static class AppFactory
             {
                 var selectedId = context.Request.Query["worldId"].ToString();
                 var runtime = catalog.Find(string.IsNullOrEmpty(selectedId) ? world?.Id ?? "" : selectedId);
-                var reset = runtime?.Package.FormatVersion is "1.6.0" or "1.7.0" or "1.8.0";
-                var result = reset ? runtime!.Sessions.SaveRoomAndReset(() => editorService.SaveRoom(dto)) : editorService.SaveRoom(dto);
+                var upgradeFrom = context.Request.Query["upgradeFrom"].FirstOrDefault();
+                var result = runtime is null
+                    ? editorService.SaveRoom(dto, upgradeFrom)
+                    : runtime.Sessions.SaveRoomAndReset(() => editorService.SaveRoom(dto, upgradeFrom));
                 if (!result.Success)
                 {
                     return Results.BadRequest(new
@@ -324,14 +337,15 @@ public static class AppFactory
                     });
                 }
 
-                if (reset)
-                    foreach (var room in runtime!.Rooms.GetAllRooms())
+                if (runtime?.Package.FormatVersion is "1.6.0" or "1.7.0" or "1.8.0")
+                    foreach (var room in runtime.Rooms.GetAllRooms())
                         await hub.Clients.Group($"world:{runtime.Package.Id}:room:{room.Id.ToLowerInvariant()}").SendAsync("WorldReset");
 
                 return Results.Ok(new
                 {
                     success = true,
-                    roomId = result.RoomId
+                    roomId = result.RoomId,
+                    formatVersion = editorService.FormatVersion
                 });
             }
             catch (ArgumentException ex)

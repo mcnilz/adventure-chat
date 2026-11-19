@@ -1,12 +1,19 @@
 import { loadCharacterCatalog } from '../../network/character-catalog.js';
-import { EditorApi } from '../core/editor-api.js';
+import { EditorApi, type PreviewResult } from '../core/editor-api.js';
 import type { RoomView } from '../core/editor-types.js';
 import { RoomRenderer } from '../../rendering/renderer.js';
 import { assignPathToCharacter, updateCharacterMovement } from '../../simulation/movement.js';
-import type { Character, PreviewObjectStates, RoomDefinition } from '../../types.js';
+import type { Character, Point, PreviewObjectStates, RoomDefinition, RoomExit } from '../../types.js';
 import { applyObjectAppearances } from '../../state/object-appearance.js';
+import { actionsForVerb } from '../../input/object-action.js';
+import { ObjectActionFlow } from '../../input/object-action-flow.js';
+import { exitAt, withinExitReach } from '../../input/exit-hit.js';
+import { objectUsePoints, nearestUsePoints } from '../../input/object-use-points.js';
+import { EditorPreviewControls } from '../ui/editor-preview-controls.js';
 
 export class EditorPreview {
+  private readonly controls = new EditorPreviewControls(() => this.cancelCommand());
+  private readonly actionFlow: ObjectActionFlow;
   private previewRenderer: RoomRenderer | null = null;
   private previewCharacter: Character | null = null;
   private previewAnimationId: number | null = null;
@@ -14,20 +21,48 @@ export class EditorPreview {
   private isRunning = false;
   private requestRevision = 0;
   private objectStates: ReadonlyArray<PreviewObjectStates> = [];
+  private room: RoomView | null = null;
+  private draft: RoomView | null = null;
+  private targetFormat: string | undefined;
+  private pendingExit: RoomExit | null = null;
+  private exits: readonly RoomExit[] = [];
+  private initialSnapshot: Promise<void> | null = null;
 
-  public constructor(private readonly canvas: HTMLCanvasElement) {}
+  public constructor(private readonly canvas: HTMLCanvasElement) {
+    this.actionFlow = new ObjectActionFlow(
+      () => ({
+        roomId: this.room?.id ?? '',
+        position: this.previewCharacter?.position ?? { x: 0, y: 0 },
+        idle: this.previewCharacter?.state === 'idle',
+        revision: 0,
+        stateOf: id => this.currentStates().find(state => state.objectId === id)?.stateId
+      }),
+      point => this.walk(point),
+      (_, objectId, actionId) => this.executeAction(objectId, actionId),
+      error => this.tell(error ?? 'Aktion ausgeführt.')
+    );
+  }
 
   public get cameraOffset(): number { return this.previewRenderer?.camera.offset ?? 0; }
+  public get activeRoom(): RoomView | null { return this.room; }
 
   public isActive(): boolean {
     return this.isRunning;
   }
 
-  public start(roomDef: RoomDefinition): void {
+  public start(roomDef: RoomDefinition, draft: RoomView, targetFormat?: string): void {
     this.isRunning = true;
+    this.room = this.draft = structuredClone(draft);
+    this.targetFormat = targetFormat;
+    this.controls.open(draft.name);
+    const blockedExitIds = new Set(roomDef.objects?.flatMap(object => {
+      const interaction = object.interaction;
+      return interaction?.states.find(state => state.id === interaction.initialState)?.blockedExits?.map(id => id.toLowerCase()) ?? [];
+    }));
+    this.exits = roomDef.exits?.filter(exit => !blockedExitIds.has(exit.id.toLowerCase())) ?? [];
     this.objectStates = [{ roomId: roomDef.id, states: (roomDef.objects ?? []).flatMap(o =>
       o.interaction ? [{ objectId: o.id, stateId: o.interaction.initialState }] : []) }];
-    this.previewRenderer = new RoomRenderer(this.canvas, roomDef);
+    this.previewRenderer = new RoomRenderer(this.canvas, { ...roomDef, exits: this.exits });
 
     // Initial character spawn
     const defaultSpawn = roomDef.spawnPoint ?? { x: 320, y: 300 };
@@ -57,50 +92,154 @@ export class EditorPreview {
     }).catch(() => { /* Preview keeps its loading fallback if content is temporarily unavailable. */ });
     this.lastFrameTime = performance.now();
     this.loop();
+    const room = this.room;
+    const states = this.objectStates;
+    this.initialSnapshot = EditorApi.previewSnapshot(this.location())
+      .then(result => { if (this.room === room && this.objectStates === states) this.renderSnapshot(result); })
+      .catch(error => { if (this.room === room && this.objectStates === states) this.tell(error.message); });
   }
 
   public stop(): void {
+    this.cancelCommand();
     this.isRunning = false;
-    this.requestRevision++;
+    this.controls.close();
     if (this.previewAnimationId !== null) {
       cancelAnimationFrame(this.previewAnimationId);
       this.previewAnimationId = null;
     }
     this.previewRenderer = null;
     this.previewCharacter = null;
+    this.room = this.draft = null;
+    this.initialSnapshot = null;
   }
 
-  public async handleCanvasClick(logicalX: number, logicalY: number, room: RoomView): Promise<void> {
-    if (!this.previewCharacter || !this.isRunning) return;
-    const revision = ++this.requestRevision;
-    // Freeze at the request start so the returned route has the same footpoint.
-    const start = { ...this.previewCharacter.position };
+  public async handleCanvasClick(logicalX: number, logicalY: number): Promise<void> {
+    if (!this.previewCharacter || !this.room) return;
+    this.cancelCommand();
+    const revision = this.requestRevision;
+    await this.initialSnapshot;
+    if (revision !== this.requestRevision) return;
+    const point = { x: logicalX, y: logicalY };
+    const verb = this.controls.selectedVerb();
+    const exit = exitAt(this.exits, point);
+    const object = this.previewRenderer?.objectAt(point);
+    if (object && verb !== 'walk' && (verb || object.interaction)) {
+      const state = this.currentStates().find(item => item.objectId === object.id)?.stateId;
+      const actions = actionsForVerb(object, state, verb || 'use');
+      const execute = (id: string | null) => this.actionFlow.start(this.room!.id, object, id, state);
+      if (!verb || actions.length <= 1) await execute(actions[0]?.id ?? null);
+      else this.controls.offerActions(actions, id => { if (revision === this.requestRevision) void execute(id); });
+      return;
+    }
+    if (verb && verb !== 'walk') { this.tell('Das geht nicht.'); return; }
+    if (exit) {
+      if (withinExitReach(exit, this.previewCharacter.position)) {
+        await this.enterExit(exit);
+        return;
+      }
+      const result = await this.walk(exit.position);
+      if (revision !== this.requestRevision) return;
+      if (result.accepted) this.pendingExit = exit;
+      else this.tell('Der Ausgang ist derzeit nicht erreichbar.');
+      return;
+    }
+    if (verb === 'walk' && object && (object.interaction || object.usePoints?.length)) {
+      const origin = this.previewCharacter.position;
+      for (const target of nearestUsePoints(objectUsePoints(object, origin), origin)) {
+        const result = await this.walk(target);
+        if (result.accepted || revision !== this.requestRevision) return;
+      }
+      this.tell('Der Weg zum Objekt ist nicht erreichbar.');
+      return;
+    }
+    await this.walk(point);
+  }
+
+  private cancelCommand(): void {
+    this.requestRevision++;
+    this.pendingExit = null;
+    this.actionFlow.cancel();
+    this.controls.clearChoice();
+    if (!this.previewCharacter) return;
     this.previewCharacter.target = null;
     this.previewCharacter.waypoints = [];
     this.previewCharacter.state = 'idle';
+  }
+
+  private async walk(target: Point): Promise<{ accepted: boolean }> {
+    const character = this.previewCharacter;
+    const room = this.room;
+    const revision = this.requestRevision;
+    if (!character || !room) return { accepted: false };
     try {
-      const states = this.objectStates.find(s => s.roomId === room.id)?.states ?? [];
-      const object = this.previewRenderer?.objectAt({ x: logicalX, y: logicalY });
-      const stateId = states.find(s => s.objectId === object?.id)?.stateId;
-      const action = object?.interaction?.actions.find(a => a.from === stateId);
-      if (object && action) {
-        const result = await EditorApi.previewAction(room, start, object.id, action.id, this.objectStates);
-        if (!this.isRunning || revision !== this.requestRevision) return;
-        this.objectStates = result.states;
-        const definition = result.snapshot.room;
-        if (definition) this.previewRenderer?.updateRoomState({ ...definition,
-          backgroundUrl: EditorApi.backgroundUrl(definition.backgroundUrl),
-          objects: applyObjectAppearances(definition.objects ?? [], result.snapshot.objectStates ?? []).map(o => ({ ...o, image: EditorApi.backgroundUrl(o.image) })) });
-        this.previewCharacter.speechBubble = { text: result.error ?? 'Aktion ausgeführt.', startTime: performance.now(), duration: 4000 };
-        return;
-      }
-      const result = await EditorApi.previewPath(room, start, { x: logicalX, y: logicalY }, states);
-      if (!this.isRunning || revision !== this.requestRevision) return;
-      this.previewRenderer?.addClickMarker(logicalX, logicalY, result.success ? 'valid' : 'invalid');
-      if (result.success && result.waypoints) assignPathToCharacter(this.previewCharacter, result.waypoints);
+      const result = await EditorApi.previewPath(room, character.position, target, this.currentStates(), this.targetFormat);
+      if (revision !== this.requestRevision) return { accepted: false };
+      this.previewRenderer?.addClickMarker(target.x, target.y, result.success ? 'valid' : 'invalid');
+      if (result.success && result.waypoints) assignPathToCharacter(character, result.waypoints);
+      return { accepted: result.success };
     } catch {
-      if (this.isRunning && revision === this.requestRevision) this.previewRenderer?.addClickMarker(logicalX, logicalY, 'invalid');
+      if (revision === this.requestRevision) this.previewRenderer?.addClickMarker(target.x, target.y, 'invalid');
+      return { accepted: false };
     }
+  }
+
+  private currentStates() {
+    return this.objectStates.find(state => state.roomId === this.room?.id)?.states ?? [];
+  }
+
+  private location() {
+    return {
+      room: this.draft!, roomId: this.room!.id, position: this.previewCharacter!.position, states: this.objectStates,
+      ...(this.targetFormat ? { targetFormat: this.targetFormat } : {})
+    };
+  }
+
+  private async executeAction(objectId: string, actionId: string) {
+    const revision = this.requestRevision;
+    try {
+      const result = await EditorApi.previewAction(this.location(), objectId, actionId);
+      if (revision === this.requestRevision) this.renderSnapshot(result);
+      return result;
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : String(error) };
+    }
+  }
+
+  private async enterExit(exit: RoomExit): Promise<void> {
+    const revision = this.requestRevision;
+    try {
+      const result = await EditorApi.previewExit(this.location(), exit.id);
+      if (revision !== this.requestRevision) return;
+      if (!result.success) { this.tell(result.error ?? 'Der Ausgang ist derzeit gesperrt.'); return; }
+      const room = result.snapshot.roomId === this.draft?.id ? this.draft : await EditorApi.fetchRoom(result.snapshot.roomId);
+      if (revision !== this.requestRevision || !room) return;
+      this.room = room;
+      this.renderSnapshot(result, true);
+      this.tell(`Raum: ${room.name}`);
+    } catch (error) {
+      if (revision === this.requestRevision) this.tell(error instanceof Error ? error.message : String(error));
+    }
+  }
+
+  private renderSnapshot(result: PreviewResult, crossedExit = false): void {
+    this.objectStates = result.states;
+    const definition = result.snapshot.room;
+    const character = this.previewCharacter;
+    if (!definition || !character) return;
+    this.exits = definition.exits ?? [];
+    const room = { ...definition, backgroundUrl: EditorApi.backgroundUrl(definition.backgroundUrl),
+      objects: applyObjectAppearances(definition.objects ?? [], result.snapshot.objectStates ?? [])
+        .map(object => ({ ...object, image: EditorApi.backgroundUrl(object.image) })) };
+    if (crossedExit) {
+      character.position = result.snapshot.players.find(player => player.sessionId === result.snapshot.yourSessionId)?.position ?? room.spawnPoint;
+      character.speed = room.walkSpeed ?? 130;
+      this.previewRenderer?.setRoom(room);
+    } else this.previewRenderer?.updateRoomState(room);
+  }
+
+  private tell(text: string): void {
+    this.controls.result(text);
+    if (this.previewCharacter) this.previewCharacter.speechBubble = { text, startTime: performance.now(), duration: 4000 };
   }
 
   private loop = (): void => {
@@ -112,6 +251,12 @@ export class EditorPreview {
 
     if (this.previewCharacter) {
       updateCharacterMovement(this.previewCharacter, dt);
+      this.actionFlow.update();
+      if (this.previewCharacter.state === 'idle' && this.pendingExit) {
+        const exit = this.pendingExit;
+        this.pendingExit = null;
+        void this.enterExit(exit);
+      }
     }
 
     if (this.previewRenderer && this.previewCharacter) {

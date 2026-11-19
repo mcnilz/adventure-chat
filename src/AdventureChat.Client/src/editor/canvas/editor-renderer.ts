@@ -48,7 +48,8 @@ export class EditorRenderer {
     hoveredEdge: HoveredEdge | null = null,
     hoveredEntity: { type: 'spawn' | 'exit'; id: string } | null = null,
     dragOffset: { dx: number; dy: number } | null = null,
-    cameraOffset = 0
+    cameraOffset = 0,
+    stateObstacles: readonly { readonly points: ReadonlyArray<RoomPointDto> }[] = []
   ): void {
     const { ctx, canvas } = this;
     resizeCanvas(canvas, { ...room.size, viewport: room.viewport ?? null });
@@ -113,6 +114,10 @@ export class EditorRenderer {
           dragOffset
         );
       }
+    }
+    for (const [index, obstacle] of stateObstacles.entries()) {
+      EditorDrawUtils.drawPolygon(ctx, obstacle.points, 'rgba(246, 173, 85, 0.3)', '#f6ad55',
+        'obstacle', index, { type: null }, null, null, null);
     }
 
     // 5. Highlight Hovered Edge & Split Indicator

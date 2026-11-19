@@ -4,7 +4,8 @@ import type { EditorState } from '../core/editor-state.js';
 import type {
   EditorTool,
   HoveredEdge,
-  RoomPointDto
+  RoomPointDto,
+  RoomView
 } from '../core/editor-types.js';
 
 export interface CanvasInputCallbacks {
@@ -30,7 +31,8 @@ export class EditorCanvasInput {
     private readonly getTool: () => EditorTool,
     private readonly isPreviewActive: () => boolean,
     private readonly onPreviewClick: (logicalX: number, logicalY: number) => void,
-    private readonly getCameraOffset: () => number = () => 0
+    private readonly getCameraOffset: () => number = () => 0,
+    private readonly getPreviewRoom: () => RoomView | null = () => null
   ) {
     this.bindEvents();
   }
@@ -62,7 +64,7 @@ export class EditorCanvasInput {
 
   public screenToLogical(evt: MouseEvent): RoomPointDto {
     const rect = this.canvas.getBoundingClientRect();
-    const room = this.state.getRoom();
+    const room = this.getPreviewRoom() ?? this.state.getRoom();
     const point = screenToRoom(evt.clientX, evt.clientY, rect,
       { ...room.size, viewport: room.viewport ?? null }, this.getCameraOffset());
 

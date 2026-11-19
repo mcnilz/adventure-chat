@@ -9,6 +9,7 @@ namespace AdventureChat.Server.Services;
 
 public sealed record WorldPackage(string Root, string Id, string Name, string FormatVersion, string ContentVersion, string StartRoom, string StartSpawn)
 {
+    public string FormatVersion { get; private set; } = FormatVersion;
     public string? DefaultCharacterId { get; init; }
     public IReadOnlyList<CharacterDefinition> Characters { get; init; } = Array.Empty<CharacterDefinition>();
 
@@ -16,9 +17,13 @@ public sealed record WorldPackage(string Root, string Id, string Name, string Fo
     {
         root = Path.GetFullPath(root);
         var file = SafePath(root, "world.yaml", true);
+        return ReadManifest(root, file, ReadYaml(file));
+    }
+
+    internal static WorldPackage ReadManifest(string root, string file, string yaml)
+    {
         try
         {
-            var yaml = ReadYaml(file);
             var deserializer = new DeserializerBuilder().WithDuplicateKeyChecking().WithAttemptingUnquotedStringTypeDeserialization().Build();
             var raw = deserializer.Deserialize<Dictionary<object, object>>(yaml);
             var version = raw.TryGetValue("formatVersion", out var value) ? value?.ToString() : null;
@@ -44,11 +49,22 @@ public sealed record WorldPackage(string Root, string Id, string Name, string Fo
 
     public void EnsureManifestUnchanged()
     {
-        var current = Load(Root);
-        if (current with { Characters = Characters } != this || !current.Characters.SequenceEqual(Characters)) throw new InvalidOperationException($"World '{Id}' manifest changed; restart before editing.");
+        lock (this)
+        {
+            var current = Load(Root);
+            if (current with { Characters = Characters } != this || !current.Characters.SequenceEqual(Characters))
+                throw new InvalidOperationException($"World '{Id}' manifest changed; restart before editing.");
+        }
     }
 
     public IReadOnlyList<AdventureChat.Server.Models.RoomYamlDto> LoadRooms()
+    {
+        lock (this) return LoadRoomsFromDisk();
+    }
+
+    internal void AdoptFormat(string version) => FormatVersion = version;
+
+    private IReadOnlyList<AdventureChat.Server.Models.RoomYamlDto> LoadRoomsFromDisk()
     {
         EnsureManifestUnchanged();
         var directory = SafePath(Root, "rooms");

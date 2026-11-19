@@ -4,7 +4,7 @@
 
 **Blocked by:** keine; Tickets 01–17 sind done.
 
-**Status:** ready-for-human
+**Status:** done
 
 ## Auftrag und vorgeschlagene Detailentscheidungen
 
@@ -62,6 +62,6 @@ Lokale Spielansicht: http://127.0.0.1:54236/ (separater Spielprozess ohne Autore
 2. Fenster deutlich vergrößern. „Auf Fenstergröße“ klicken: die gesamte Oberfläche wächst bis zur verfügbaren Höhe oder Breite. Fenster in diesem Modus erneut verkleinern und vergrößern. „Normalgröße“ begrenzt wieder auf die bisherige Größe.
 3. In beiden Modi auf den Boden klicken, eine Nachricht senden und einen Raum wechseln. Zielklicks müssen passen, Chat und Weltwahl bleiben erreichbar. Lesbarkeit und Pixelartwirkung beurteilen.
 
-Menschliche Abnahme ausstehend. Keine Abnahme aus automatisierten Tests abgeleitet.
+19.11.2026: Die Abnahmeansicht wurde mit dem geprüften Build aus Ticket 21 und der Referenzwelt unter http://127.0.0.1:55218/ neu gestartet und per HTTP geprüft (200). Der Benutzer hat Ticket 18 ausdrücklich abgenommen („Ticket 18 abgenommen“).
 
 Lokaler Implementierungscommit: `Fit complete game surface to browser window (ticket 18)`; kein Push.

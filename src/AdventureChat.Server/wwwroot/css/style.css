@@ -91,6 +91,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 12px;
   padding: 0 16px;
   user-select: none;
 }
@@ -104,9 +105,18 @@ body {
   letter-spacing: 0.5px;
 }
 
+#action-feedback:empty { display: none; }
+#action-feedback {
+  color: #ddd1a2;
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 #verb-bar {
   display: grid;
-  grid-template-columns: repeat(2, 130px);
+  grid-template-columns: repeat(3, 130px);
   gap: 2px 8px;
   padding: 6px 16px;
   background: #070a13;

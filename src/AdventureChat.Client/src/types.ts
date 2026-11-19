@@ -91,9 +91,16 @@ export interface ObjectInteraction {
  readonly usePoint?: Point | null;
  readonly useRadius: number;
  readonly states: ReadonlyArray<ObjectAppearance>;
- readonly actions: ReadonlyArray<{ readonly id: string; readonly name: string; readonly from: string; readonly to: string }>;
+ readonly actions: ReadonlyArray<ObjectAction>;
 }
-export type InteractionVerb = 'walk' | 'pull' | 'push' | 'use';
+export interface ObjectAction {
+ readonly id: string;
+ readonly name: string;
+ readonly from: string;
+ readonly to: string;
+ readonly effects?: ReadonlyArray<{ readonly room: string; readonly object: string; readonly state: string }> | null;
+}
+export type InteractionVerb = 'walk' | 'open' | 'close' | 'pull' | 'push' | 'use';
 export interface ObjectAppearance {
  readonly obstacles?: ReadonlyArray<{ readonly id: string; readonly points: ReadonlyArray<Point> }> | null;
  readonly blockedExits?: ReadonlyArray<string> | null;

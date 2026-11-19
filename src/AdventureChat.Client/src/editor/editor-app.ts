@@ -1,5 +1,7 @@
 import { EditorObjects } from './ui/editor-objects.js';
 import { applyObjectAppearances } from '../state/object-appearance.js';
+import { blocksExit } from './core/editor-interaction-references.js';
+import { roomWithSelectedAppearance } from './core/editor-state-view.js';
 import { EditorCamera } from './canvas/editor-camera.js';
 import { EditorApi } from './core/editor-api.js';
 import { EditorState } from './core/editor-state.js';
@@ -12,6 +14,7 @@ import { EditorPreview } from './canvas/editor-preview.js';
 import { EditorRenderer } from './canvas/editor-renderer.js';
 import { EditorBackgroundModal, type BackgroundModalElements } from './ui/editor-background-modal.js';
 import { EditorExitDialog, type ExitDialogElements } from './ui/editor-exit-dialog.js';
+import { EditorFormat } from './ui/editor-format.js';
 import { EditorInspector, type InspectorElements } from './ui/editor-inspector.js';
 import { EditorSidebarForm, type SidebarFormElements } from './ui/editor-sidebar-form.js';
 import { EditorToolbar, type ToolbarElements } from './ui/editor-toolbar.js';
@@ -23,6 +26,7 @@ export interface EditorElements extends ToolbarElements, SidebarFormElements, In
 
 export class EditorApp {
   private readonly objectPanel: EditorObjects;
+  private readonly format: EditorFormat;
   private readonly camera: EditorCamera;
   private readonly state: EditorState;
   private readonly editorRenderer: EditorRenderer;
@@ -45,6 +49,7 @@ export class EditorApp {
     private readonly elements: EditorElements
   ) {
     this.state = new EditorState();
+    this.format = new EditorFormat();
     canvas.addEventListener("object-loaded", () => this.render());
     this.camera = new EditorCamera(canvas, () => this.render());
     this.editorRenderer = new EditorRenderer(this.canvas, () => this.render());
@@ -116,8 +121,9 @@ export class EditorApp {
       },
       () => this.currentTool,
       () => this.mode === 'preview',
-      (x, y) => void this.preview.handleCanvasClick(x, y, this.state.getRoom()),
-      () => this.mode === 'preview' ? this.preview.cameraOffset : this.camera.camera.offset
+      (x, y) => void this.preview.handleCanvasClick(x, y),
+      () => this.mode === 'preview' ? this.preview.cameraOffset : this.camera.camera.offset,
+      () => this.preview.activeRoom
     );
 
     window.addEventListener('beforeunload', (e) => {
@@ -134,9 +140,11 @@ export class EditorApp {
   }
 
   public async init(): Promise<void> {
+    await this.format.init();
     await this.bgModal.loadBackgroundsOverview();
     await this.exitDialog.initRooms();
     await this.loadRoomList();
+    await this.refreshObjectReferences();
   }
 
   public getState(): EditorState {
@@ -201,6 +209,7 @@ export class EditorApp {
       }
       if (this.mode === 'preview') this.toggleMode();
       this.state.setRoom(room);
+      this.format.resetSelection();
       this.loadedRoomId = room.id;
       this.elements.roomSelect.value = room.id;
       this.syncAllViews();
@@ -224,6 +233,7 @@ export class EditorApp {
     def.name = 'Neuer Raum';
 
     this.state.setRoom(def);
+    this.format.resetSelection();
     this.loadedRoomId = null;
     this.elements.roomSelect.value = '';
     this.syncAllViews();
@@ -234,7 +244,7 @@ export class EditorApp {
 
   public async saveRoom(): Promise<boolean> {
     if (this.saving) return false;
-    if (!this.form.validateDimensions()) return false;
+    if (!this.form.validateDimensions() || !this.objectPanel.interactions.validateFields()) return false;
     this.state.updateProperties(this.form.readEdit());
     this.form.setUnsaved(this.state.isDirty());
     this.form.clearValidationErrors();
@@ -244,13 +254,16 @@ export class EditorApp {
     this.setStatus(`Speichere Raum '${room.id}'...`, 'info');
     this.saving = true;
     this.elements.btnSave.disabled = true;
+    this.format.setSaving(true);
 
     try {
-      const result = await EditorApi.saveRoom(room);
+      const result = await EditorApi.saveRoom(room, this.format.upgradeFrom());
+      if (result.success && result.formatVersion !== undefined) this.format.showVersion(result.formatVersion);
       if (!this.state.isCurrentDraft(save)) return result.success;
       if (!result.success) {
         const errors = result.errors.length > 0 ? result.errors : ['Speichern fehlgeschlagen.'];
         this.form.showValidationErrors(errors);
+        this.objectPanel.interactions.reportValidation(errors);
         this.setStatus('Validierungsfehler beim Speichern.', 'error');
         return false;
       }
@@ -263,6 +276,7 @@ export class EditorApp {
       if (!this.state.isCurrentDraft(save)) return true;
       this.exitDialog.updateCachedRoom(room);
       await this.exitDialog.refreshRooms();
+      await this.refreshObjectReferences();
       if (!this.state.isCurrentDraft(save)) return true;
       const remaining = this.state.isDirty() ? ' Weitere Änderungen sind noch ungespeichert.' : '';
       this.setStatus(`Raum '${room.name}' (${room.id}) erfolgreich atomar gespeichert!${remaining}`, 'success');
@@ -273,11 +287,12 @@ export class EditorApp {
     } finally {
       this.saving = false;
       this.elements.btnSave.disabled = false;
+      this.format.setSaving(false);
     }
   }
 
   public async validateRoom(): Promise<boolean> {
-    if (!this.form.validateDimensions()) return false;
+    if (!this.form.validateDimensions() || !this.objectPanel.interactions.validateFields()) return false;
     this.state.updateProperties(this.form.readEdit());
     this.form.setUnsaved(this.state.isDirty());
     this.form.clearValidationErrors();
@@ -286,13 +301,14 @@ export class EditorApp {
     this.setStatus('Validiere Raum-Definition...', 'info');
 
     try {
-      const result = await EditorApi.validateRoom(room);
+      const result = await EditorApi.validateRoom(room, this.format.targetVersion());
       if (result.valid) {
         this.form.clearValidationErrors();
         this.setStatus('✅ Validierung erfolgreich! Raumgeometrie und Schema sind gültig.', 'success');
         return true;
       } else {
         this.form.showValidationErrors(result.errors);
+        this.objectPanel.interactions.reportValidation(result.errors);
         this.setStatus(`⚠️ Validierungsfehler: ${result.errors.length} Problem(e) gefunden.`, 'error');
         return false;
       }
@@ -307,13 +323,14 @@ export class EditorApp {
     this.setStatus('Validiere alle Räume und Übergänge der Welt...', 'info');
 
     try {
-      const result = await EditorApi.validateWorld();
+      const result = await EditorApi.validateRoom(this.state.getRoom(), this.format.targetVersion());
       if (result.valid) {
         this.form.clearValidationErrors();
         this.setStatus('✅ Weltweit gültig! Alle Räume, Ausgänge und Ziel-Spawns sind konsistent.', 'success');
         return true;
       } else {
         this.form.showValidationErrors(result.errors);
+        this.objectPanel.interactions.reportValidation(result.errors);
         this.setStatus(`⚠️ Welt-Validierung: ${result.errors.length} Problem(e) gefunden.`, 'error');
         return false;
       }
@@ -332,7 +349,7 @@ export class EditorApp {
       const room = this.state.toRoomDefinition();
       const states = (room.objects ?? []).flatMap(o => o.interaction ? [{ objectId: o.id, stateId: o.interaction.initialState }] : []);
       const objects = applyObjectAppearances(room.objects ?? [], states).map(o => ({ ...o, image: EditorApi.backgroundUrl(o.image) }));
-      this.preview.start({ ...room, objects, backgroundUrl: EditorApi.backgroundUrl(room.backgroundUrl) });
+      this.preview.start({ ...room, objects, backgroundUrl: EditorApi.backgroundUrl(room.backgroundUrl) }, this.state.getRoom(), this.format.targetVersion());
     } else {
       this.mode = 'edit';
       this.toolbar.updateModeButton('edit');
@@ -343,6 +360,12 @@ export class EditorApp {
   }
 
   public deleteSelected(): void {
+    if (!this.objectPanel.canDeleteSelected()) return;
+    const selection = this.state.getSelection();
+    if (selection.type === 'exit' && selection.exitId && blocksExit(this.state.getRoom(), selection.exitId)) {
+      this.setStatus('Der Ausgang wird in einem Objektzustand gesperrt.', 'error');
+      return;
+    }
     const deleted = this.state.deleteSelected();
     if (deleted) {
       this.syncStateAndRender();
@@ -354,26 +377,40 @@ export class EditorApp {
     this.camera.configure(this.state.toRoomDefinition(), false);
 
     this.objectPanel.update();
-    this.editorRenderer.setBackground(EditorApi.backgroundUrl(this.state.getRoom().background));
+    const room = this.state.getRoom();
+    const selection = this.state.getSelection();
+    const state = this.objectPanel.interactions.activeAppearance();
+    this.editorRenderer.setBackground(EditorApi.backgroundUrl(room.background));
     this.editorRenderer.render(
-      this.state.getRoom(),
-      this.state.getSelection(),
+      roomWithSelectedAppearance(room, selection, state),
+      selection,
       this.canvasInput.getMouseLogicalPos(),
       this.canvasInput.getDragPos(),
       this.canvasInput.getHoveredVertex(),
       this.canvasInput.getHoveredEdge(),
       this.canvasInput.getHoveredEntity(),
       this.canvasInput.getDragOffset(),
-      this.camera.camera.offset
+      this.camera.camera.offset,
+      state?.obstacles ?? []
     );
   }
 
   private handleInspectorInput(): void {
-    const edit = this.inspector.readEdit(this.state.getSelection().type);
+    const selection = this.state.getSelection();
+    const edit = this.inspector.readEdit(selection.type);
     if (edit) {
+      if (edit.type === 'exit' && selection.exitId && edit.id !== selection.exitId && blocksExit(this.state.getRoom(), selection.exitId)) {
+        this.setStatus('Die Ausgangs-ID wird in einem Objektzustand verwendet.', 'error');
+        return;
+      }
       this.state.updateSelected(edit);
       this.syncStateAndRender();
     }
+  }
+
+  private async refreshObjectReferences(): Promise<void> {
+    try { await this.objectPanel.interactions.refreshReferences(); }
+    catch (error) { this.objectPanel.interactions.report(`Zielobjekte konnten nicht geladen werden: ${String(error)}`); }
   }
 
   private confirmDiscard(): boolean {

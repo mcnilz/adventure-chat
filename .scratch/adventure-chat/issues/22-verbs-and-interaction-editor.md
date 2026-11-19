@@ -2,9 +2,9 @@
 
 **What to build:** Spieler wählen klassische Adventure-Verben und kombinieren sie mit einem Objekt zu einem sichtbaren Satz wie „Öffne Tür“. Autoren konfigurieren dieselben Zustände, Aktionen, direkten Verknüpfungen und Hindernisse vollständig im Browsereditor und prüfen sie in der gemeinsamen Vorschau.
 
-**Blocked by:** [20](20-shared-object-actions.md), [21](21-state-dependent-navigation.md) sowie 18 müssen done sein; 06, 15 und 17 sind done. 18 ist derzeit ready-for-human und bleibt bis zur ausdrücklichen Abnahme ein Blocker für die abschließende Oberflächenintegration.
+**Blocked by:** [20](20-shared-object-actions.md), [21](21-state-dependent-navigation.md), [18](18-responsive-game-scaling.md), 06, 15 und 17 sind done. Paketfreigabe am 19.11.2026 erfolgt.
 
-**Status:** draft
+**Status:** ready-for-human
 
 ## Auftrag und Freigabegrenze
 
@@ -37,12 +37,38 @@ Am 10.11.2026 als Paket aus Verbenbedienung und Editor zur Planung bestätigt. K
 
 Typcheck, Clientbuild und vollständige einschlägige Suite. Automatisierung ersetzt keine menschliche Beurteilung des klassischen Bediengefühls, der Verständlichkeit der Sätze und des Editors. Keine neue direkte Abhängigkeit vorausgesetzt.
 
-## Offene Detailentscheidungen vor Paketfreigabe
+## Vorgeschlagene Detailentscheidungen zur Paketfreigabe
 
-Exakte Anordnung/Größe der Verbenleiste, deutschsprachige Beschriftungen/Objektnamen für korrekte Satzbildung, Standardverb und Zurücksetzen nach Aktion; Trefferregel bei transparenten/überlappenden Objekten und Markierung zulässiger Ziele. Verhalten aus der Ferne aus 20 übernehmen. Versionierungsdialog und Umgang mit Lösch-/Umbenennungsreferenzen festlegen. Keine automatische vollständige Sprachgrammatik oder Lokalisierungsplattform einführen.
+- Vorhandene Leiste links unter dem Spielfeld um „Öffnen“ und „Schließen“ ergänzen und mit der Gesamtoberfläche skalieren. Verb per Maus oder fokussiertem Button wählen, dann Objekt anklicken. Die Statuszeile zeigt die kurze deutsche Befehlsform mit dem vom Autor vergebenen Namen, etwa „Öffne Tür“. „Gehe zu“ bleibt Standard und wird nach Erfolg oder Ablehnung wieder aktiv. Das Hinlaufen und die lokale Rückmeldung aus 20 bleiben erhalten.
+- Der Editor bietet die unterstützten Verben als Auswahl an und belegt passende bestehende Aktionsnamen vor. Aktions-IDs bleiben unabhängig. Deutsche und englische Aktionsbezeichnungen werden nach dem bisherigen Zuordnungsprinzip erkannt. Bei mehreren passenden Aktionen bleibt die vorhandene Auswahl verfügbar.
+- Bei Objektaktionen gewinnt das oberste sichtbare Objekt in Zeichenreihenfolge. Vollständig transparente Pixel geben den Treffer frei. Beim Gehen hat ein Ausgang Vorrang, wenn er an dieser Stelle nutzbar ist. Die Statuszeile zeigt den Kandidaten und kennzeichnet, ob die Aktion im aktuellen Zustand verfügbar ist.
+- Für die vollständige Bearbeitung einschließlich Hindernissen und Ausgangssperren wählt der Autor bei einer älteren Welt ausdrücklich das unterstützte Format 1.8.0. Der Editor zeigt die geplante Änderung am Weltmanifest. Die Welt wird vor dem Schreiben gemeinsam validiert. Bei einem Fehler bleiben gültige Dateien und der Entwurf erhalten. Ältere Welten lassen sich in ihrer bisherigen Formatversion öffnen und speichern.
+- Löschen und Umbenennen referenzierter Einträge bleiben gesperrt, bis ihre Verknüpfungen im Editor angepasst sind. Die Vorschau nutzt die gemeinsamen Spielregeln und startet bei jedem Neustart mit den Anfangszuständen des Entwurfs.
 
 ## Stand / Abnahme
+
+19.11.2026: Der Benutzer hat Paketumfang, Detailentscheidungen und öffentliche Testgrenzen mit „ja“ freigegeben.
+
+19.11.2026: Die ausdrückliche Abnahme von Ticket 18 hat den letzten Blocker aufgehoben.
 
 12.11.2026: Benutzerfeedback zieht eine erste Verbenleiste mit direkter Objektwahl in die Nacharbeit zu Ticket 20 vor. Die vollständige Editor-, Vorschau- und Navigationsintegration dieses Tickets bleibt gesondert geplant; der bisherige Blocker 18 ist dadurch nicht abgenommen.
 
 10.11.2026: draft, ausschließlich geplant. Vor Umsetzung Paketumfang und Testgrenzen bestätigen lassen.
+
+## Umsetzung und Prüfnachweise
+
+- Das Spiel nutzt die bestehende Verbenleiste und den autoritativen Aktionsablauf. Öffnen/Schließen, aktueller Objektsatz, Verfügbarkeit und Rückmeldung sind eingebunden. Der Editor bearbeitet vorhandene Aktionsnamen und IDs getrennt. Er weist neue widersprüchliche Zuordnungen an den betroffenen Feldern ab und erhält bestehende Zuordnungen über Namen oder IDs.
+- Der Editor bearbeitet Anfangszustände, Darstellung, Bedienpunkte, Aktionen, direkte Wirkungen, Hindernisse und Ausgangssperren. „Raum prüfen“ und „Welt prüfen“ beziehen den Entwurf in die gemeinsame Weltvalidierung ein. Die Vorschau verwendet den gemeinsamen Renderer und dieselben Regeln für Wege, Ausgänge und Aktionen. Beim Neustart lädt sie wieder die Anfangszustände des Entwurfs.
+- Das Upgrade auf 1.8.0 verwendet den veröffentlichten Vertrag. Es validiert den bestehenden Inhalt und den Entwurf, dann ersetzt es Manifest und bearbeitete Raumdatei. Ein fehlgeschlagener Dateiaustausch stellt das bisherige Manifest wieder her. Bei einem abrupten Prozessabbruch zwischen den Ersetzungen bleibt die Welt ladbar, da auch der bisherige Raum gegen 1.8.0 geprüft wurde. Einen Prozessabbruch hat die Suite nicht simuliert.
+- Gezielte Browserprüfungen decken Szenenklicks mit zwei Spielern, Verben per Tastatur, Editor-Roundtrip und Referenzschutz, unter Windows den fehlgeschlagenen Dateiaustausch sowie Vorschauaktionen, Raumwechsel und Neustart ab. Die Spielansicht und der Raumeditor wurden auf der lokalen Abnahmeinstanz gesichtet. Beide Seiten liefern HTTP 200.
+- Typcheck und Clientbuild bestanden. Vier gezielte Browserfälle am endgültigen Stand grün. Abschließende Vollsuite mit **329 bestandenen Tests** (221 Server, 108 Browser), 0 Warnungen. Standards- und Spezifikationsreview durch separate Reviewer. Beanstandete Verbzuordnung, unsichtbare Ausgangssperren, Entwurfsprüfung, Fehlermarkierung und Vorschaustart wurden korrigiert und gezielt nachgeprüft.
+- Keine neue Formatversion oder Abhängigkeit. Die Verben verwenden bestehende Datenfelder und die bisherigen Zuordnungen. Veröffentlichte Schemas, Testwelten und Referenzinhalte sind im Diff unverändert. Die Protokolle und die lokale Abnahmekopie liegen in `.scratch/adventure-chat/evidence/22`.
+- Lokaler Implementierungscommit „Complete verb controls and interaction authoring (ticket 22)“. Menschliche Abnahme ausstehend.
+
+## Manuelle Abnahme
+
+1. [Spiel](http://127.0.0.1:55222/) in zwei Fenstern öffnen und „Navigationstest“ betreten. „Öffnen“ wählen, auf einen roten Türflügel in der Raummitte zeigen und „Öffne Tür“ prüfen. Anklicken und in beiden Fenstern die offene Tür beobachten. Mit der Tab-Taste „Schließen“ fokussieren und per Eingabetaste wählen. Nach der Aktion muss „Gehe zu“ aktiv sein. Dasselbe bei kleinerer Fenstergröße wiederholen.
+2. [Editor für den Navigationstest](http://127.0.0.1:55222/editor.html?worldId=navigation) öffnen, `door` wählen und in „Zustand ansehen“ zwischen „Geschlossen“ und „Offen“ wechseln. Türposition, Hindernis und Ausgangssperre vergleichen. Die Raum-Vorschau startet geschlossen. Mit dem Vorschauverb „Öffnen“ öffnen, mit „Gehe zu“ durch den freigegebenen Ausgang rechts gehen und wieder zurückkehren. Nach „Bearbeiten“ und Neustart der Vorschau ist der Ausgang erneut gesperrt.
+3. [Editor für die Interaktions-Testwelt](http://127.0.0.1:55222/editor.html?worldId=interactions) öffnen. Bei `switch` die Aktion und das Ziel `gate` im Nebenraum ansehen. Bei `chair` einen zusätzlichen Zustand anlegen und Position/Verbauswahl ausprobieren. Zum Test des Formatwechsels ein Zustandshindernis hinzufügen, oben bewusst 1.8.0 wählen, den Hinweis zum Manifest prüfen, speichern und neu laden.
+
+Die Abnahmeumgebung enthält separate Kopien der synthetischen Testwelten. Dort gespeicherte Änderungen bleiben in diesen Kopien. Die Szenengestaltung der Referenzwelt ist Teil von Ticket 23.

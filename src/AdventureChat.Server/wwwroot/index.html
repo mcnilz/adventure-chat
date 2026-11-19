@@ -16,9 +16,12 @@
       <canvas id="game-canvas" width="640" height="360"></canvas>
       <div id="action-bar" class="action-bar">
         <span id="action-text" class="action-text" role="status">Gehe zu</span>
+        <span id="action-feedback" role="status"></span>
       </div>
       <nav id="verb-bar" aria-label="Verben">
         <button type="button" data-verb="walk" aria-pressed="true">Gehe zu</button>
+        <button type="button" data-verb="open" aria-pressed="false">Öffnen</button>
+        <button type="button" data-verb="close" aria-pressed="false">Schließen</button>
         <button type="button" data-verb="pull" aria-pressed="false">Ziehen</button>
         <button type="button" data-verb="push" aria-pressed="false">Drücken</button>
         <button type="button" data-verb="use" aria-pressed="false">Benutzen</button>

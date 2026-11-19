@@ -55,6 +55,10 @@ async function initialize(): Promise<void> {
   game.onActionChanged = (text) => {
     chatUi.setActionText(text);
   };
+  const actionFeedback = document.getElementById('action-feedback');
+  game.onActionFeedback = text => {
+    if (actionFeedback) actionFeedback.textContent = text;
+  };
 
   chatUi.setConnectionStatus(game.connectionStatus);
 

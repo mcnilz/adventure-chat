@@ -16,13 +16,15 @@ public sealed record UploadBackgroundResult(bool Success, string? Name = null, s
 public interface IEditorService
 {
     bool IsEditorEnabled { get; }
+    string? FormatVersion { get; }
     IReadOnlyList<RoomSummaryDto> ListRooms();
     RoomYamlDto? GetRoom(string roomId);
     string? GetRoomRawYaml(string roomId);
-    ValidationResult ValidateRoom(RoomYamlDto dto);
+    ValidationResult ValidateRoom(RoomYamlDto dto, string? targetFormat = null);
     ValidationResult ValidateWorld();
-    ValidationResult ValidateWorld(IReadOnlyList<RoomYamlDto> rooms);
-    SaveRoomResult SaveRoom(RoomYamlDto dto);
+    ValidationResult ValidateWorld(IReadOnlyList<RoomYamlDto> rooms, string? targetFormat = null);
+    IReadOnlyList<RoomYamlDto> WorldWithDraft(RoomYamlDto draft);
+    SaveRoomResult SaveRoom(RoomYamlDto dto, string? upgradeFrom = null);
     BackgroundsOverviewDto ListBackgrounds();
     UploadBackgroundResult SaveBackground(string fileName, Stream content);
 }
@@ -35,6 +37,9 @@ public sealed class EditorService : IEditorService
     private readonly IRoomService _roomService;
     private readonly bool _editorEnabled;
     private readonly WorldPackage? _world;
+    private readonly string? _startupFormat;
+    private readonly Lazy<IRoomValidator> _targetValidator = new(() =>
+        new RoomValidator(WorldPackage.FindSchema("room.schema.json", EditorFormatUpgrade.Target)));
 
     public EditorService(
         IContentPathProvider pathProvider,
@@ -50,9 +55,12 @@ public sealed class EditorService : IEditorService
         _roomService = roomService;
         _editorEnabled = editorEnabled;
         _world = world;
+        _startupFormat = world?.FormatVersion;
     }
 
     public bool IsEditorEnabled => _editorEnabled;
+    public string? FormatVersion => _world?.FormatVersion;
+    private IRoomValidator Validator => FormatVersion == _startupFormat ? _validator : _targetValidator.Value;
 
     public IReadOnlyList<RoomSummaryDto> ListRooms()
     {
@@ -125,15 +133,17 @@ public sealed class EditorService : IEditorService
         return null;
     }
 
-    public ValidationResult ValidateRoom(RoomYamlDto dto)
+    public ValidationResult ValidateRoom(RoomYamlDto dto, string? targetFormat = null)
     {
-        var result = _validator.Validate(dto);
+        if (!SupportsTargetFormat(targetFormat)) return ValidationResult.Failure("Unsupported editor target format.");
+        var validator = targetFormat is null ? Validator : _targetValidator.Value;
+        var result = validator.Validate(dto);
         if (!result.IsValid || _world is null) return result;
         try
         {
             var yaml = _yamlSerializer.Serialize(dto);
             var json = YamlJsonConverter.Convert(yaml);
-            var schema = _validator.ValidateJson(json);
+            var schema = validator.ValidateJson(json);
             if (!schema.IsValid) return schema;
             _world.ValidateBackground(dto);
             return result;
@@ -145,21 +155,28 @@ public sealed class EditorService : IEditorService
     {
         try
         {
-            var rooms = ListRooms().Select(summary => GetRoom(summary.Id)).OfType<RoomYamlDto>().ToList();
-            return ValidateWorld(rooms);
+            return ValidateWorld(ReadRooms());
         }
         catch (Exception ex) { return ValidationResult.Failure(ex.Message); }
     }
 
-    public ValidationResult ValidateWorld(IReadOnlyList<RoomYamlDto> rooms)
+    public IReadOnlyList<RoomYamlDto> WorldWithDraft(RoomYamlDto draft) =>
+        ReadRooms().Where(room => !string.Equals(room.Id, draft.Id, StringComparison.OrdinalIgnoreCase)).Append(draft).ToList();
+
+    private IReadOnlyList<RoomYamlDto> ReadRooms() =>
+        _world?.LoadRooms() ?? ListRooms().Select(summary => GetRoom(summary.Id)).OfType<RoomYamlDto>().ToList();
+
+    public ValidationResult ValidateWorld(IReadOnlyList<RoomYamlDto> rooms, string? targetFormat = null)
     {
-        var result = _validator.ValidateWorld(rooms);
+        if (!SupportsTargetFormat(targetFormat)) return ValidationResult.Failure("Unsupported editor target format.");
+        var validator = targetFormat is null ? Validator : _targetValidator.Value;
+        var result = validator.ValidateWorld(rooms);
         if (!result.IsValid || _world is null) return result;
         try
         {
             foreach (var room in rooms)
             {
-                var validation = ValidateRoom(room);
+                var validation = ValidateRoom(room, targetFormat);
                 if (!validation.IsValid) return validation;
             }
             var start = rooms.SingleOrDefault(r => string.Equals(r.Id, _world.StartRoom, StringComparison.Ordinal));
@@ -170,13 +187,26 @@ public sealed class EditorService : IEditorService
         catch (Exception ex) { return ValidationResult.Failure(ex.Message); }
     }
 
-    public SaveRoomResult SaveRoom(RoomYamlDto dto)
+    private bool SupportsTargetFormat(string? targetFormat) =>
+        targetFormat is null || (_world is not null && targetFormat == EditorFormatUpgrade.Target);
+
+    public SaveRoomResult SaveRoom(RoomYamlDto dto, string? upgradeFrom = null)
     {
         if (!_editorEnabled)
         {
             return new SaveRoomResult(false, ["Authoring / editor mode is disabled on this server instance."]);
         }
 
+        if (_world is not null)
+        {
+            lock (_world) return SaveRoomCore(dto, upgradeFrom);
+        }
+        return SaveRoomCore(dto, upgradeFrom);
+    }
+
+    private SaveRoomResult SaveRoomCore(RoomYamlDto dto, string? upgradeFrom)
+    {
+        if (upgradeFrom is not null) return UpgradeAndSaveRoom(dto, upgradeFrom);
         var validation = ValidateRoom(dto);
         if (!validation.IsValid)
         {
@@ -195,13 +225,15 @@ public sealed class EditorService : IEditorService
                 {
                     var oldYaml = WorldPackage.ReadYaml(targetFile);
                     var json = YamlJsonConverter.Convert(oldYaml);
-                    var oldValidation = _validator.ValidateJson(json);
+                    var oldValidation = Validator.ValidateJson(json);
                     if (!oldValidation.IsValid) return new SaveRoomResult(false, ["Existing room has an unsupported or invalid format; refusing to overwrite it."]);
                 }
             }
             catch (Exception ex) { return new SaveRoomResult(false, [$"Cannot safely save room: {ex.Message}"]); }
         }
-        var canonicalYaml = _yamlSerializer.Serialize(dto);
+        var serializer = FormatVersion == _startupFormat ? _yamlSerializer : new RoomYamlSerializer(
+            WorldPackage.FindSchema("room.schema.json", EditorFormatUpgrade.Target), _pathProvider.GetRoomsDirectory());
+        var canonicalYaml = serializer.Serialize(dto);
 
         var tempFile = targetFile + "." + Guid.NewGuid().ToString("N") + ".tmp";
         try
@@ -211,10 +243,7 @@ public sealed class EditorService : IEditorService
             File.Move(tempFile, targetFile, overwrite: true);
 
             // Update in-memory room service
-            var room = dto.ToRoomDefinition();
-            if (_world is not null && string.Equals(room.Id, _world.StartRoom, StringComparison.OrdinalIgnoreCase))
-                room = room with { SpawnPoint = room.GetSpawnPosition(_world.StartSpawn) };
-            _roomService.RegisterOrUpdateRoom(room);
+            RegisterRoom(dto.ToRoomDefinition());
 
             return new SaveRoomResult(true, Array.Empty<string>(), dto.Id);
         }
@@ -226,6 +255,32 @@ public sealed class EditorService : IEditorService
             }
             return new SaveRoomResult(false, [$"Failed to save room: {ex.Message}"]);
         }
+    }
+
+    private SaveRoomResult UpgradeAndSaveRoom(RoomYamlDto dto, string upgradeFrom)
+    {
+        if (_world is null) return new(false, ["Ein Formatwechsel erfordert ein Weltpaket."]);
+        try
+        {
+            var existing = _world.LoadRooms();
+            if (existing.Any(room => room.Id != dto.Id && string.Equals(room.Id, dto.Id, StringComparison.OrdinalIgnoreCase)))
+                return new(false, ["Die Groß-/Kleinschreibung einer gespeicherten Raum-ID kann nicht geändert werden."]);
+            var candidates = existing.Where(r => !string.Equals(r.Id, dto.Id, StringComparison.OrdinalIgnoreCase)).Append(dto).ToList();
+            if (!candidates.Any(room => room.Id == _world.StartRoom && room.Spawns.Any(spawn => spawn.Id == _world.StartSpawn)))
+                return new(false, ["Der Startpunkt der Welt muss erhalten bleiben."]);
+            var target = _pathProvider.GetRoomFilePath(dto.Id);
+            EditorFormatUpgrade.Save(_world, upgradeFrom, target, dto, existing, candidates);
+            RegisterRoom(dto.ToRoomDefinition());
+            return new(true, [], dto.Id);
+        }
+        catch (Exception ex) { return new(false, [$"Formatwechsel fehlgeschlagen: {ex.Message}"]); }
+    }
+
+    private void RegisterRoom(RoomDefinition room)
+    {
+        if (_world is not null && string.Equals(room.Id, _world.StartRoom, StringComparison.OrdinalIgnoreCase))
+            room = room with { SpawnPoint = room.GetSpawnPosition(_world.StartSpawn) };
+        _roomService.RegisterOrUpdateRoom(room);
     }
 
     public BackgroundsOverviewDto ListBackgrounds()

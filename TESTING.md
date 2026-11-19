@@ -52,6 +52,8 @@ Ticket 21 am 12.11.2026 mit „ja“ für die im Paketvorschlag genannten Entsch
 
 Ticket 20 wurde am 12.11.2026 einschließlich der unten genannten Grenzen bestätigt. Die Grenzen der weiteren Pakete bleiben vor ihrer Umsetzung zu bestätigen.
 
+Ticket 22 wurde am 19.11.2026 für Browser/Canvas und Editor sowie die öffentlichen Inhalts- und SignalR-Grenzen bestätigt. Die Browserabläufe prüfen Verben mit zwei Spielern, Speichern und Neuladen von Zuständen, Aktionen und Verknüpfungen, einen ausdrücklich gewählten Formatwechsel mit Fehlerfällen sowie isolierte Vorschauaktionen und Raumwechsel. Bediengefühl und Satzverständlichkeit bleiben menschliche Abnahme.
+
 | Paket | Vorgeschlagene öffentliche Grenzen / Schwerpunkt | Ausdrückliche Grenze |
 | --- | --- | --- |
 | [20](.scratch/adventure-chat/issues/20-shared-object-actions.md) | Inhalts-Laden/Speichern, echte SignalR-Kommandos, Browser/Canvas: reversible Zustände, atomare direkte Wirkungen, Konkurrenz, Snapshots, Weltisolation, Neustart | Keine privaten Sperren/Zustandscontainer testen; keine Script-Ausführung oder Persistenz zusichern. |

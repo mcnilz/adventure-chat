@@ -1,8 +1,10 @@
 import { EditorApi } from '../core/editor-api.js';
 import type { EditorState } from '../core/editor-state.js';
 import type { RoomObjectDto } from '../core/editor-types.js';
+import { EditorInteractions } from './editor-interactions.js';
 
 export class EditorObjects {
+  public readonly interactions: EditorInteractions;
   private displayedObject: RoomObjectDto | undefined;
   private readonly root = document.createElement('section');
   private readonly list = document.createElement('select');
@@ -53,8 +55,11 @@ export class EditorObjects {
       upload.value='';
     };
     const remove = document.createElement('button'); remove.className='btn-danger'; remove.id='object-delete'; remove.textContent='Objekt löschen';
-    remove.onclick=()=>{state.deleteSelected();changed();};
+    remove.onclick=()=>{
+      if (this.canDeleteSelected() && state.deleteSelected()) changed();
+    };
     this.form.append(images,upload,remove);
+    this.interactions = new EditorInteractions(this.form, state, changed);
     document.querySelector('.editor-sidebar')!.prepend(this.root);
   }
 
@@ -65,6 +70,7 @@ export class EditorObjects {
 
   public update(): void {
     const object=this.selected();
+    this.interactions.update(object);
     this.list.replaceChildren(new Option('Objekt auswählen…',''));
     for(const item of this.state.getRoom().objects ?? []) this.list.append(new Option(item.id,item.id));
     this.list.value=object?.id ?? ''; this.form.hidden=!object;
@@ -77,6 +83,13 @@ export class EditorObjects {
     this.displayedObject = object;
   }
 
+  public canDeleteSelected(): boolean {
+    const object = this.selected();
+    if (!object || !this.interactions.isReferenced(object.id)) return true;
+    this.interactions.report('Das Objekt ist Ziel einer Verknüpfung.');
+    return false;
+  }
+
   private apply(): void {
     const object=this.selected(); if(!object) return;
     const value=(key:string)=>this.fields.get(key)!.value;
@@ -87,6 +100,10 @@ export class EditorObjects {
       size: { width: Number(value('width')), height: Number(value('height')) },
       depthY: Number(value('depthY'))
     };
+    if (edited.id !== object.id && this.interactions.isReferenced(object.id)) {
+      this.interactions.report('Die Objekt-ID wird in einer Verknüpfung verwendet.');
+      return;
+    }
     if (!this.state.updateObject(object.id, edited)) {
       this.error('Eindeutige ID und ganze Raumkoordinaten erforderlich; Größe muss in den Raum passen.');
       return;
