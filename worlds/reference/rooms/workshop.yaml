@@ -184,7 +184,7 @@ objects:
         - { id: ready, name: Bereit, image: assets/images/workshop-lift-up.png, position: { x: 482, y: 65 }, size: { width: 27, height: 28 }, depthY: 93 }
       actions:
         - id: raise
-          name: Anheben
+          name: Drücken
           from: ready
           to: ready
           effects: [{ room: workshop, object: lift-plate, state: raised }]
@@ -202,7 +202,7 @@ objects:
         - { id: ready, name: Bereit, image: assets/images/workshop-lift-down.png, position: { x: 517, y: 65 }, size: { width: 27, height: 28 }, depthY: 93 }
       actions:
         - id: lower
-          name: Absenken
+          name: Drücken
           from: ready
           to: ready
           effects: [{ room: workshop, object: lift-plate, state: lowered }]

@@ -204,4 +204,4 @@ Im Editor der separat gestarteten Weltkopie **Werkstatt** wählen. In der Objekt
 
 ## Hubtisch in der Werkstatt (Ticket 25)
 
-Mit **Benutzen** auf die grüne oder rote Pfeiltaste an der rechten Rückwand klicken. Beide Tasten bewegen dieselbe Tischplatte. Im Editor unter **Werkstatt → Hubtischplatte → Sichtbare Übergänge** lassen sich die zwei Richtungen einzeln bearbeiten. Die Referenzwelt 5.0.0 verwendet dafür Weltformat 1.9.0. Herkunft der Grafiken und Abnahmeschritte stehen in der [Grafikdokumentation](worlds/reference/ART-PROVENANCE.md) und in [Ticket 25](.scratch/adventure-chat/issues/25-object-state-transitions.md).
+Mit **Drücken** oder **Benutzen** auf die grüne oder rote Pfeiltaste an der rechten Rückwand klicken. Beide Tasten bewegen dieselbe Tischplatte. Im Editor unter **Werkstatt → Hubtischplatte → Sichtbare Übergänge** lassen sich die zwei Richtungen einzeln bearbeiten. Die Referenzwelt 5.0.1 verwendet dafür Weltformat 1.9.0. Herkunft der Grafiken und Abnahmeschritte stehen in der [Grafikdokumentation](worlds/reference/ART-PROVENANCE.md) und in [Ticket 25](.scratch/adventure-chat/issues/25-object-state-transitions.md).

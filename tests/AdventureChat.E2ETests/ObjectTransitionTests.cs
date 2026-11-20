@@ -66,8 +66,10 @@ public class ObjectTransitionTests
         await Enter(after);
         await AtHeight(after, 179);
 
-        await Task.WhenAll(PressButton(a, 495), PressButton(b, 495));
+        await Task.WhenAll(PressButton(a, 495, "Benutzen"), PressButton(b, 495, "Benutzen"));
         await Task.WhenAll(AtHeight(a, 134), AtHeight(b, 134));
+        await PressButton(b, 530, "Benutzen");
+        await Task.WhenAll(AtHeight(a, 179), AtHeight(b, 179));
     }
 
     [Test]
@@ -146,9 +148,9 @@ public class ObjectTransitionTests
             """, x);
     }
 
-    private static async Task PressButton(IPage page, int x)
+    private static async Task PressButton(IPage page, int x, string verb = "Drücken")
     {
-        await page.GetByRole(AriaRole.Button, new() { Name = "Benutzen", Exact = true }).ClickAsync();
+        await page.GetByRole(AriaRole.Button, new() { Name = verb, Exact = true }).ClickAsync();
         await ClickCanvas(page, x, 79);
     }
 

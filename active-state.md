@@ -1,5 +1,5 @@
 # Aktueller Stand
-Revision 72 · 20.11.2026.
+Revision 73 · 20.11.2026.
 
 ## Vorhanden
 - [x] Gespräch in Spezifikation, Architektur, Autorenformat und Tickets überführt.
@@ -32,7 +32,7 @@ Revision 72 · 20.11.2026.
 - [ ] Git-Repository und endgültiger Projektname festgelegt.
 
 ## Aktives Ticket
-- **Ticket 25: ready-for-human.** Am 20.11.2026 bestätigt, umgesetzt und geprüft. Zwei Hubtasten bewegen dieselbe Platte in der Werkstatt. Der Raumeditor konfiguriert beide Richtungen separat. Der Server übernimmt geprüfte Zielgeometrie sofort und sperrt Gegenaktionen während der Fahrt. Weltformat 1.9.0, Referenzinhalt 5.0.0. Typcheck, Build und Vollsuite mit 348 Tests (234 Server, 114 Browser) bestanden. Beide Reviews nach Korrekturen ohne offene Befunde, 112 ältere Dateien unverändert. Lokaler Commit `Animate configured object state transitions (ticket 25)`. Abnahmekopie http://127.0.0.1:56682/ und Schritte in [Ticket 25](.scratch/adventure-chat/issues/25-object-state-transitions.md).
+- **Ticket 25: ready-for-human für den Nachtrag.** Der Benutzer hat den Stand aus `f79734e` am 20.11.2026 mit „funktioniert“ abgenommen. Beide Hubtasten unterstützen auf seinen Wunsch jetzt **Drücken** und **Benutzen**. Referenzinhalt 5.0.1, Weltformat 1.9.0. Nachtrag im Browsertest rot und danach insgesamt 15 gezielte Tests grün (12 Server, drei Browser). Die ursprüngliche Vollsuite mit 348 Tests und die beiden Reviews stehen im [Ticket 25](.scratch/adventure-chat/issues/25-object-state-transitions.md). Die aktualisierte Abnahmekopie läuft auf http://127.0.0.1:56682/.
 - **Ticket 23: done.** Am 20.11.2026 einschließlich Nacharbeit ausdrücklich mit „abgenommen“ bestätigt. Nach Sichtfeedback endet die Gartenfläche vor dem Eingang. Holztür und Gitter sitzen in der Rückwand der Werkstatt und führen als getrennte offene Ausgänge zum Garten. Der Gartenweg ist hinter dem Gitter sichtbar. Format 1.8.0, Inhalt 4.0.0. Typcheck, Build und Vollsuite mit 339 Tests (227 Server, 112 Browser) bestanden. Beide Ausgänge und der Figurenmaßstab wurden im Browser geprüft. Umsetzungscommit `484bfad`, Nachtragscommit `3bd73c1`. Abnahmekopie auf http://127.0.0.1:50081/ und Belege im [Ticket 23](.scratch/adventure-chat/issues/23-interactive-reference-examples.md).
 - **Ticket 22: done.** Am 19.11.2026 freigegeben und umgesetzt (Commit 7cd9fd3). Nacharbeit am 20.11.: erkennbare Pixelgrafiken und Bedienpunkte am Objekt. Türrahmen fest in der Steinwand, geschlossener Zustand sperrt den Ausgang in der Türöffnung, offener gibt ihn frei. Neuer Browsertest prüft Hinlaufen und Raumwechsel in Spiel und Vorschau. Typcheck/Build, Sichtprüfung und Vollsuite mit 330 Tests (221 Server, 109 Browser), 0 Warnungen. Keine Änderungen an Schemata oder älteren Referenzfixtures. Abnahme auf http://127.0.0.1:55224/ mit separaten Weltkopien. Details und Schritte im [Ticket 22](.scratch/adventure-chat/issues/22-verbs-and-interaction-editor.md). Einschließlich Nacharbeit (Commit c8be2e8) am 20.11.2026 ausdrücklich mit „abgenommen“ bestätigt.
 - **Epic 24 und Tickets 26–32: draft.** [Das lokale Epic](.scratch/adventure-chat/issues/24-interactive-worlds-epic.md) plant wiederverwendbare Objektübergänge, Figurenanimationen, NPC-Dialoge, Wege, Führungen und optionale gezielte NPC-Reaktionen. Schreibtisch, Sitzplatz, Tafel und Klingel sind Abnahmebeispiele. Jede neue Funktion bekommt im eigenen Paket ein leicht erreichbares Beispiel in der Referenzwelt. Vorhandene Räume haben Vorrang, ein Startraum mit direkten Zugängen ist eine Option. Die übrigen Umsetzungspakete stehen je Paket zur Freigabe aus.
@@ -56,7 +56,7 @@ Revision 72 · 20.11.2026.
 - Ticket 10 ist `done`, ausdrücklich am 04.11.2026 abgenommen („abegnommen“), Implementierungscommit `28e3b7f`. Tickets 01–09 bleiben `done`; dokumentierte Reviewpunkte von Ticket 09 bleiben offen.
 
 ## Nächste Aktion
-Ticket 25 an der lokalen Abnahmekopie sichten und ausdrücklich abnehmen. Die nächsten Pakete warten auf ihre jeweilige Freigabe.
+Den Bediennachtrag zu Ticket 25 in der lokalen Abnahmekopie sichten. Die nächsten Pakete warten auf ihre jeweilige Freigabe.
 
 Lokaler Abnahmeeditor unter http://127.0.0.1:54235/editor.html?worldId=reference bleibt als bisherige Abnahmeumgebung dokumentiert (zuletzt protokollierter PID 71432; Programmkopie und Weltpfad im Ticket); für Ticket 20 weder neu gestartet noch erneut auf Erreichbarkeit geprüft. Gespeicherte Benutzeränderungen in dieser Kopie erhalten; .scratch/foreground-demo unangetastet.
 
