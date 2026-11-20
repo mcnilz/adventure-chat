@@ -13,6 +13,8 @@ walkable:
 obstacles:
   - id: table-floor
     points: [{ x: 110, y: 174 }, { x: 209, y: 174 }, { x: 209, y: 189 }, { x: 110, y: 189 }]
+  - id: lift-floor
+    points: [{ x: 469, y: 215 }, { x: 574, y: 215 }, { x: 574, y: 224 }, { x: 469, y: 224 }]
 exits:
   - id: to-garden
     position: { x: 49, y: 118 }
@@ -146,4 +148,62 @@ objects:
           from: open
           to: closed
           effects: [{ room: workshop, object: switch, state: off }]
-notes: Bei geöffnetem Tor kann eine Figur am unteren Rand der Schwelle (389,115) stehen. Ausschalten wird dann abgelehnt. Sichere Warteposition vor dem Tor (389,159).
+  - id: lift-base
+    image: assets/images/workshop-lift-base.png
+    position: { x: 465, y: 132 }
+    size: { width: 112, height: 92 }
+    depthY: 224
+  - id: lift-plate
+    image: assets/images/workshop-lift-plate.png
+    position: { x: 465, y: 177 }
+    size: { width: 112, height: 24 }
+    depthY: 224
+    interaction:
+      name: Hubtischplatte
+      initialState: lowered
+      usePoint: { x: 521, y: 240 }
+      useRadius: 20
+      states:
+        - { id: lowered, name: Unten, image: assets/images/workshop-lift-plate.png, position: { x: 465, y: 177 }, size: { width: 112, height: 24 }, depthY: 224 }
+        - { id: raised, name: Oben, image: assets/images/workshop-lift-plate.png, position: { x: 465, y: 132 }, size: { width: 112, height: 24 }, depthY: 224 }
+      actions: []
+      transitions:
+        - { from: lowered, to: raised, durationMs: 1800 }
+        - { from: raised, to: lowered, durationMs: 1400 }
+  - id: lift-up
+    image: assets/images/workshop-lift-up.png
+    position: { x: 482, y: 65 }
+    size: { width: 27, height: 28 }
+    depthY: 93
+    interaction:
+      name: Hubtaste Auf
+      initialState: ready
+      usePoint: { x: 495, y: 116 }
+      useRadius: 24
+      states:
+        - { id: ready, name: Bereit, image: assets/images/workshop-lift-up.png, position: { x: 482, y: 65 }, size: { width: 27, height: 28 }, depthY: 93 }
+      actions:
+        - id: raise
+          name: Anheben
+          from: ready
+          to: ready
+          effects: [{ room: workshop, object: lift-plate, state: raised }]
+  - id: lift-down
+    image: assets/images/workshop-lift-down.png
+    position: { x: 517, y: 65 }
+    size: { width: 27, height: 28 }
+    depthY: 93
+    interaction:
+      name: Hubtaste Ab
+      initialState: ready
+      usePoint: { x: 530, y: 116 }
+      useRadius: 24
+      states:
+        - { id: ready, name: Bereit, image: assets/images/workshop-lift-down.png, position: { x: 517, y: 65 }, size: { width: 27, height: 28 }, depthY: 93 }
+      actions:
+        - id: lower
+          name: Absenken
+          from: ready
+          to: ready
+          effects: [{ room: workshop, object: lift-plate, state: lowered }]
+notes: Bei geöffnetem Tor kann eine Figur am unteren Rand der Schwelle (389,115) stehen. Ausschalten wird dann abgelehnt. Sichere Warteposition vor dem Tor (389,159). Die beiden Hubtasten rechts bewegen dieselbe Tischplatte.

@@ -27,7 +27,7 @@ Status (20.11.2026): Tickets 01–23 sind menschlich abgenommen und done. Das ne
 | [22 (done)](.scratch/adventure-chat/issues/22-verbs-and-interaction-editor.md) | Verben mit Objektsatz und vollständige Konfiguration im Browsereditor | 20, 21, 18; 06, 15, 17 (done) |
 | [23 (done)](.scratch/adventure-chat/issues/23-interactive-reference-examples.md) | Tür, Stuhl und Schalter/Tor als erreichbare gemeinsame Referenzdemo | 20, 21, 22, 19 (done), menschlich abgenommen am 20.11.2026 |
 | [24 (draft)](.scratch/adventure-chat/issues/24-interactive-worlds-epic.md) | Epic für konfigurierbare Figureninteraktionen und NPCs | Planung frei, Umsetzung über 25–32 |
-| [25 (draft)](.scratch/adventure-chat/issues/25-object-state-transitions.md) | Sichtbare Übergänge zwischen konfigurierten Objektzuständen | 21, 22 |
+| [25 (ready-for-human)](.scratch/adventure-chat/issues/25-object-state-transitions.md) | Sichtbare Übergänge zwischen konfigurierten Objektzuständen | 21, 22 |
 | [26 (draft)](.scratch/adventure-chat/issues/26-character-animations-for-object-actions.md) | Gehaltene Posen und kurze Figurenanimationen je Objektaktion | 21, 22 |
 | [27 (draft)](.scratch/adventure-chat/issues/27-npc-dialogue.md) | NPC mit „Spreche mit“ ansprechen und Antwort wählen | 22 |
 | [28 (draft)](.scratch/adventure-chat/issues/28-state-dependent-dialogue.md) | Gespräch verändert sich mit dem Objektzustand | 20, 27 |

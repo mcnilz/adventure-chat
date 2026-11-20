@@ -60,10 +60,10 @@ Geplant sind optionale Raumangaben für Draufsicht und feste Figurengröße, hor
 | Weltformat | Raumformat | Unterstützung |
 | --- | --- | --- |
 | `1.0.0` | `legacy-1`, Raum-`version: 1` | Lesen und Schreiben |
-| `1.1.0`–`1.8.0` | `legacy-1`, Raum-`version: 1` | Lesen und Schreiben für jede ausdrücklich veröffentlichte Minor-Version |
+| `1.1.0`–`1.9.0` | `legacy-1`, Raum-`version: 1` | Lesen und Schreiben für jede ausdrücklich veröffentlichte Minor-Version |
 | andere | beliebig | ausdrücklich abgelehnt |
 
-Das Manifest verwendet `formatVersion`, `id`, `name`, `contentVersion`, `startRoom`, `startSpawn` und `roomFormat`. `rooms` und `assets/images` sind paketrelative Verzeichnisse. Dateiname und Raum-ID stimmen überein; Hintergründe sind vollständige PNG-Dateien mit passenden Abmessungen; PNG-Dateien sind auf 64 MiB, ihre dekodierten Bilddaten auf 128 MiB und einzelne YAML-Dateien auf 1 MiB begrenzt. Absolute Pfade, `..` und symbolische Links/Junctions werden abgewiesen. Der Editor schreibt ausschließlich `version: 1`, prüft vorhandene Dateien vor Überschreiben und ändert keine Manifestversion. Schema-Bündel und ihre lokalen Referenzen bleiben nach Veröffentlichung unverändert. Die ursprünglichen Legacy-Dateien und das ursprüngliche Schema bleiben als Referenz erhalten. `1.0.0` ist die erstmalige Veröffentlichung des Weltvertrags, keine Umdeutung des ganzzahligen Raumversionsfeldes; daher ist kein früheres Weltformat umzuversionieren. Weitere Formatänderungen folgen den Regeln im Kompatibilitätsvertrag.
+Das Manifest verwendet `formatVersion`, `id`, `name`, `contentVersion`, `startRoom`, `startSpawn` und `roomFormat`. `rooms` und `assets/images` sind paketrelative Verzeichnisse. Dateiname und Raum-ID stimmen überein; Hintergründe sind vollständige PNG-Dateien mit passenden Abmessungen; PNG-Dateien sind auf 64 MiB, ihre dekodierten Bilddaten auf 128 MiB und einzelne YAML-Dateien auf 1 MiB begrenzt. Absolute Pfade, `..` und symbolische Links/Junctions werden abgewiesen. Der Editor schreibt ausschließlich `version: 1`, prüft vorhandene Dateien vor Überschreiben und behält beim normalen Speichern die Manifestversion bei. Schema-Bündel und ihre lokalen Referenzen bleiben nach Veröffentlichung unverändert. Die ursprünglichen Legacy-Dateien und das ursprüngliche Schema bleiben als Referenz erhalten. `1.0.0` ist die erstmalige Veröffentlichung des Weltvertrags, keine Umdeutung des ganzzahligen Raumversionsfeldes; daher ist kein früheres Weltformat umzuversionieren. Weitere Formatänderungen folgen den Regeln im Kompatibilitätsvertrag.
 
 ## Horizontaler Ausschnitt seit Weltformat 1.2.0
 Das optionale Raumobjekt `viewport` enthält ganzzahlige positive `width` und `height` sowie `scrollMode: horizontal`. `height` entspricht `size.height`. Ohne Feld bleibt die vollständige Darstellung erhalten; wirksame Breite ist min(Raumbreite, Ausschnittsbreite). Es verändert keine Geometrie, Laufgeschwindigkeit oder Figurengröße. Schema-Bündel: `schemas/world/1.2.0/`; Schemahinweis entsprechend auf `1.2.0/room.schema.json` richten. Ältere Bündel bleiben unverändert.
@@ -167,4 +167,18 @@ Nach Erfolg bleiben weiterhin gültige Wege bestehen. Ungültige Wege werden ab 
 
 Die Editorvorschau prüft Wege, Objektaktionen und Ausgänge mit denselben Serverregeln wie das Spiel. Mit „Automatisch“ probiert ein Objektklick die erste verfügbare Aktion. Über die Verbauswahl lässt sich eine konkrete Aktion testen. Die Vorschau verwendet den Raumdraft beim Start und isolierte Objektzustände, die nach einem Raumwechsel erhalten bleiben. Ein Neustart der Vorschau setzt sie auf die Anfangszustände zurück. Synthetisches Beispiel: `tests/Fixtures/navigation`.
 
-Ältere Weltpakete behalten beim Speichern ihr Format. Wer ein älteres Paket auf 1.8.0 aktualisieren möchte, wählt das Zielformat ausdrücklich im Editor. Vor dem Schreiben prüft der Server Manifest, vorhandene Räume und den Entwurf mit dem Zielvertrag. Speichern aktualisiert das Manifest und den bearbeiteten Raum. Übrige Raumdateien bleiben unverändert.
+Ältere Weltpakete behalten beim Speichern ihr Format. Für eine Aktualisierung auf 1.8.0 oder 1.9.0 wird das höhere Zielformat ausdrücklich im Editor gewählt. Vor dem Schreiben prüft der Server Manifest, vorhandene Räume und den Entwurf mit dem Zielvertrag. Speichern aktualisiert das Manifest und den bearbeiteten Raum. Übrige Raumdateien bleiben unverändert.
+
+### Sichtbare Objektübergänge ab 1.9.0
+
+Ein Objekt kann unter `interaction.transitions` 1–64 gerichtete Übergänge angeben. `from` und `to` benennen zwei verschiedene Zustände desselben Objekts. Pro Richtung ist ein Eintrag erlaubt. Das PNG und die Zielgröße sind für beide Zustände gleich, die Positionen verschieden. Die Darstellung interpoliert Position und Tiefenlinie linear in der angegebenen Zeit von 100 bis 5000 ganzen Millisekunden.
+
+```yaml
+transitions:
+  - { from: lowered, to: raised, durationMs: 1800 }
+  - { from: raised, to: lowered, durationMs: 1400 }
+```
+
+Eine bestätigte eigene Aktion oder direkte Verknüpfung startet den zum bisherigen und neuen Zustand passenden Übergang. Das Zielobjekt kann bei vorhandenen Übergängen mit `actions: []` ausschließlich über Verknüpfungen bedient werden. Der Server übernimmt den Zielzustand samt Geometrie sofort nach der Sicherheitsprüfung. Solange die Darstellung läuft, lehnt er Aktionen mit einer erneuten Zustandsänderung desselben Objekts vollständig ab. Erneutes Setzen desselben Zustands startet keine weitere Bewegung. Beim Eintritt liefert der Snapshot den bereits verstrichenen Anteil einer laufenden Bewegung. Eine Richtung ohne Eintrag springt wie bisher direkt zum neuen Erscheinungsbild.
+
+Format 1.9.0 ist eine additive Minor-Version. Bisher gültige Dateien behalten ohne `transitions` ihre Semantik. Das neue Offline-Bündel liegt unter `schemas/world/1.9.0/`.

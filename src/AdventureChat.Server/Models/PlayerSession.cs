@@ -94,7 +94,8 @@ public record RoomSnapshotDto(
     IReadOnlyList<ObjectStateDto>? ObjectStates = null
 );
 
-public record ObjectStateDto(string ObjectId, string StateId);
+public record ObjectTransitionDto(string From, long StartedAtMs, int DurationMs, int ElapsedMs);
+public record ObjectStateDto(string ObjectId, string StateId, ObjectTransitionDto? Transition = null);
 public record ObjectStatesChangedDto(string RoomId, long Revision, IReadOnlyList<ObjectStateDto> States,
     RoomGeometryDto? Geometry = null, IReadOnlyList<RoomExitDto>? Exits = null,
     IReadOnlyList<PlayerDto>? Players = null, IReadOnlyList<string>? StoppedSessions = null);

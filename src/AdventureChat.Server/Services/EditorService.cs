@@ -24,7 +24,7 @@ public interface IEditorService
     ValidationResult ValidateWorld();
     ValidationResult ValidateWorld(IReadOnlyList<RoomYamlDto> rooms, string? targetFormat = null);
     IReadOnlyList<RoomYamlDto> WorldWithDraft(RoomYamlDto draft);
-    SaveRoomResult SaveRoom(RoomYamlDto dto, string? upgradeFrom = null);
+    SaveRoomResult SaveRoom(RoomYamlDto dto, string? upgradeFrom = null, string? targetFormat = null);
     BackgroundsOverviewDto ListBackgrounds();
     UploadBackgroundResult SaveBackground(string fileName, Stream content);
 }
@@ -38,8 +38,8 @@ public sealed class EditorService : IEditorService
     private readonly bool _editorEnabled;
     private readonly WorldPackage? _world;
     private readonly string? _startupFormat;
-    private readonly Lazy<IRoomValidator> _targetValidator = new(() =>
-        new RoomValidator(WorldPackage.FindSchema("room.schema.json", EditorFormatUpgrade.Target)));
+    private readonly Lazy<IRoomValidator> _navigationValidator = FormatValidator(EditorFormatUpgrade.Target);
+    private readonly Lazy<IRoomValidator> _transitionValidator = FormatValidator(EditorFormatUpgrade.TransitionTarget);
 
     public EditorService(
         IContentPathProvider pathProvider,
@@ -60,7 +60,18 @@ public sealed class EditorService : IEditorService
 
     public bool IsEditorEnabled => _editorEnabled;
     public string? FormatVersion => _world?.FormatVersion;
-    private IRoomValidator Validator => FormatVersion == _startupFormat ? _validator : _targetValidator.Value;
+    private static Lazy<IRoomValidator> FormatValidator(string version) =>
+        new(() => new RoomValidator(WorldPackage.FindSchema("room.schema.json", version)));
+
+    private IRoomValidator ValidatorFor(string? target) =>
+        (target ?? FormatVersion) switch
+        {
+            var version when version == _startupFormat => _validator,
+            EditorFormatUpgrade.TransitionTarget => _transitionValidator.Value,
+            _ => _navigationValidator.Value
+        };
+
+    private IRoomValidator Validator => ValidatorFor(null);
 
     public IReadOnlyList<RoomSummaryDto> ListRooms()
     {
@@ -136,7 +147,7 @@ public sealed class EditorService : IEditorService
     public ValidationResult ValidateRoom(RoomYamlDto dto, string? targetFormat = null)
     {
         if (!SupportsTargetFormat(targetFormat)) return ValidationResult.Failure("Unsupported editor target format.");
-        var validator = targetFormat is null ? Validator : _targetValidator.Value;
+        var validator = ValidatorFor(targetFormat);
         var result = validator.Validate(dto);
         if (!result.IsValid || _world is null) return result;
         try
@@ -169,7 +180,7 @@ public sealed class EditorService : IEditorService
     public ValidationResult ValidateWorld(IReadOnlyList<RoomYamlDto> rooms, string? targetFormat = null)
     {
         if (!SupportsTargetFormat(targetFormat)) return ValidationResult.Failure("Unsupported editor target format.");
-        var validator = targetFormat is null ? Validator : _targetValidator.Value;
+        var validator = ValidatorFor(targetFormat);
         var result = validator.ValidateWorld(rooms);
         if (!result.IsValid || _world is null) return result;
         try
@@ -188,9 +199,9 @@ public sealed class EditorService : IEditorService
     }
 
     private bool SupportsTargetFormat(string? targetFormat) =>
-        targetFormat is null || (_world is not null && targetFormat == EditorFormatUpgrade.Target);
+        targetFormat is null || (_world is not null && EditorFormatUpgrade.CanUpgrade(_world.FormatVersion, targetFormat));
 
-    public SaveRoomResult SaveRoom(RoomYamlDto dto, string? upgradeFrom = null)
+    public SaveRoomResult SaveRoom(RoomYamlDto dto, string? upgradeFrom = null, string? targetFormat = null)
     {
         if (!_editorEnabled)
         {
@@ -199,14 +210,15 @@ public sealed class EditorService : IEditorService
 
         if (_world is not null)
         {
-            lock (_world) return SaveRoomCore(dto, upgradeFrom);
+            lock (_world) return SaveRoomCore(dto, upgradeFrom, targetFormat);
         }
-        return SaveRoomCore(dto, upgradeFrom);
+        return SaveRoomCore(dto, upgradeFrom, targetFormat);
     }
 
-    private SaveRoomResult SaveRoomCore(RoomYamlDto dto, string? upgradeFrom)
+    private SaveRoomResult SaveRoomCore(RoomYamlDto dto, string? upgradeFrom, string? targetFormat)
     {
-        if (upgradeFrom is not null) return UpgradeAndSaveRoom(dto, upgradeFrom);
+        if (upgradeFrom is not null) return UpgradeAndSaveRoom(dto, upgradeFrom, targetFormat ?? EditorFormatUpgrade.Target);
+        if (targetFormat is not null) return new(false, ["Ein Formatwechsel erfordert die bisherige Weltformatversion."]);
         var validation = ValidateRoom(dto);
         if (!validation.IsValid)
         {
@@ -232,7 +244,7 @@ public sealed class EditorService : IEditorService
             catch (Exception ex) { return new SaveRoomResult(false, [$"Cannot safely save room: {ex.Message}"]); }
         }
         var serializer = FormatVersion == _startupFormat ? _yamlSerializer : new RoomYamlSerializer(
-            WorldPackage.FindSchema("room.schema.json", EditorFormatUpgrade.Target), _pathProvider.GetRoomsDirectory());
+            WorldPackage.FindSchema("room.schema.json", FormatVersion!), _pathProvider.GetRoomsDirectory());
         var canonicalYaml = serializer.Serialize(dto);
 
         var tempFile = targetFile + "." + Guid.NewGuid().ToString("N") + ".tmp";
@@ -257,7 +269,7 @@ public sealed class EditorService : IEditorService
         }
     }
 
-    private SaveRoomResult UpgradeAndSaveRoom(RoomYamlDto dto, string upgradeFrom)
+    private SaveRoomResult UpgradeAndSaveRoom(RoomYamlDto dto, string upgradeFrom, string targetFormat)
     {
         if (_world is null) return new(false, ["Ein Formatwechsel erfordert ein Weltpaket."]);
         try
@@ -269,7 +281,7 @@ public sealed class EditorService : IEditorService
             if (!candidates.Any(room => room.Id == _world.StartRoom && room.Spawns.Any(spawn => spawn.Id == _world.StartSpawn)))
                 return new(false, ["Der Startpunkt der Welt muss erhalten bleiben."]);
             var target = _pathProvider.GetRoomFilePath(dto.Id);
-            EditorFormatUpgrade.Save(_world, upgradeFrom, target, dto, existing, candidates);
+            EditorFormatUpgrade.Save(_world, upgradeFrom, targetFormat, target, dto, existing, candidates);
             RegisterRoom(dto.ToRoomDefinition());
             return new(true, [], dto.Id);
         }

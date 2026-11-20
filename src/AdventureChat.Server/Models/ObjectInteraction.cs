@@ -8,6 +8,14 @@ public sealed class ObjectInteraction
     public double UseRadius { get; set; }
     public List<ObjectState> States { get; set; } = [];
     public List<ObjectAction> Actions { get; set; } = [];
+    public List<ObjectTransition>? Transitions { get; set; }
+}
+
+public sealed class ObjectTransition
+{
+    public string From { get; set; } = "";
+    public string To { get; set; } = "";
+    public int DurationMs { get; set; }
 }
 
 public sealed class ObjectState

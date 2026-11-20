@@ -5,6 +5,7 @@ import type { EditorState } from '../core/editor-state.js';
 import type { RoomObjectDto, RoomView } from '../core/editor-types.js';
 import { editObjectAction } from './editor-action-fields.js';
 import { editObjectState, unusedId } from './editor-state-fields.js';
+import { editObjectTransitions } from './editor-transition-fields.js';
 import { InteractionFields, updateInteractionForm } from './interaction-fields.js';
 
 export class EditorInteractions {
@@ -78,10 +79,11 @@ export class EditorInteractions {
       if (roomId && roomId !== this.roomId) return false;
       if (objectId && objectId !== this.object?.id) return false;
       if (objectIndex && this.state.getRoom().objects?.[Number(objectIndex)]?.id !== this.object?.id) return false;
-      return /objects?\b|states?\b|use points|blockedexits/i.test(error);
+      return /objects?\b|states?\b|use points|blockedexits|transitions?/i.test(error);
     });
     const detail = relevant.find(error => /initial state|initialState|obstacle|blockedexits|use radius|useRadius|use points|target state|duplicate target/i.test(error))
       ?? relevant[0] ?? '';
+    if (/transitions?/i.test(detail)) { this.report(relevant.join(' '), undefined, 'object-transitions'); return; }
     const state = /\bstate '([^']+)'/i.exec(detail)?.[1];
     if (state && this.stateId !== state) { this.report(relevant.join(' ')); return; }
     const obstacle = /\bobstacle '([^']+)'/i.exec(detail)?.[1];
@@ -144,6 +146,7 @@ export class EditorInteractions {
     this.editUsePoints(fields, object, interaction);
     const states = interaction.states.map(state => [state.id, state.name] as const);
     fields.select('Anfangszustand', interaction.initialState, states, initialState => update({ ...interaction, initialState }));
+    editObjectTransitions(fields, interaction, update);
     this.editStates(fields, object, interaction, update);
     this.editActions(fields, object, interaction, update);
     fields.button('Interaktion entfernen', () => {
@@ -192,17 +195,18 @@ export class EditorInteractions {
     if (!active) return;
     const replace = (next: ObjectAppearance) => update({ ...interaction, states: states.map(state => state === active ? next : state) });
     const referenced = () => interaction.initialState === active.id || interaction.actions.some(action => referencesState(action, active.id)) ||
+      interaction.transitions?.some(transition => transition.from === active.id || transition.to === active.id) ||
       this.isReferenced(object.id, active.id);
     group.text('Zustands-ID', active.id, id => {
       if (id === active.id) return;
       if (!id || states.some(state => state.id === id)) { this.report('Die Zustands-ID muss eindeutig sein.', 'Zustands-ID'); return; }
-      if (referenced()) { this.report('Der Zustand wird als Anfangszustand, in einer Aktion oder in einer Verknüpfung verwendet.', 'Zustands-ID'); return; }
+      if (referenced()) { this.report('Der Zustand wird als Anfangszustand, in einer Aktion, einer Verknüpfung oder einem Übergang verwendet.', 'Zustands-ID'); return; }
       this.stateId = id;
       replace({ ...active, id });
     });
     editObjectState(group, active, this.state.getRoom(), replace);
     if (states.length > 1) group.button('Zustand löschen', () => {
-      if (referenced()) { this.report('Der Zustand wird als Anfangszustand, in einer Aktion oder in einer Verknüpfung verwendet.'); return; }
+      if (referenced()) { this.report('Der Zustand wird als Anfangszustand, in einer Aktion, einer Verknüpfung oder einem Übergang verwendet.'); return; }
       update({ ...interaction, states: states.filter(state => state !== active) });
     });
   }
@@ -226,7 +230,7 @@ export class EditorInteractions {
     editObjectAction(group, action, interaction, this.state.getRoom().id, object.id, this.rooms(),
       next => update({ ...interaction, actions: actions.map((item, i) => i === index ? next : item) }),
       (message, field) => this.report(message, field));
-    if (actions.length > 1) group.button('Aktion löschen', () =>
+    if (actions.length > 1 || interaction.transitions?.length) group.button('Aktion löschen', () =>
       update({ ...interaction, actions: actions.filter((_, i) => i !== index) }));
   }
 

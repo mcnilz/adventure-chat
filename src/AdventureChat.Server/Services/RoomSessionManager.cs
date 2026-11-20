@@ -26,7 +26,7 @@ public partial class RoomSessionManager : IRoomSessionManager
         _roomService = roomService;
         _pathfinder = pathfinder;
         _clock = clock ?? TimeProvider.System;
-        _interactions = new ObjectInteractionRuntime(roomService);
+        _interactions = new ObjectInteractionRuntime(roomService, _clock);
         _navigation = new ObjectNavigation(roomService, _interactions.States);
     }
 

@@ -151,8 +151,11 @@ export class EditorApi {
     return (await res.json()) as ValidationResponse;
   }
 
-  public static async saveRoom(room: RoomView, upgradeFrom?: string): Promise<SaveRoomResponse> {
-    const query = upgradeFrom ? `?upgradeFrom=${encodeURIComponent(upgradeFrom)}` : '';
+  public static async saveRoom(room: RoomView, upgradeFrom?: string, targetFormat?: string): Promise<SaveRoomResponse> {
+    const params = new URLSearchParams();
+    if (upgradeFrom) params.set('upgradeFrom', upgradeFrom);
+    if (targetFormat) params.set('targetFormat', targetFormat);
+    const query = params.size ? `?${params}` : '';
     const res = await this.request(`/api/editor/rooms/${encodeURIComponent(room.id)}${query}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Author-Token': await this.authorToken() },

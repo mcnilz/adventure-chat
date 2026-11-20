@@ -2,10 +2,11 @@ import { actorHeightAt } from './depth-scale.js';
 import { ObjectRenderer, compareObjectDepth } from './object-renderer.js';
 import { HorizontalCamera, resizeCanvas } from './camera.js';
 import { CLICK_MARKER_DURATION } from '../constants.js';
-import type { Character, Point, RoomDefinition, RoomExit, RoomObject } from '../types.js';
+import type { Character, Point, RenderedRoom, RoomExit, RoomObject } from '../types.js';
 import { CharacterRenderer } from './character-renderer.js';
 import { OverlayRenderer, type ClickMarker } from './overlay-renderer.js';
 import { SpeechBubbleRenderer } from './speech-bubble-renderer.js';
+import { continueObjectMovements, objectAtTime } from '../simulation/object-movement.js';
 
 export { type ClickMarker } from './overlay-renderer.js';
 
@@ -26,7 +27,7 @@ export class RoomRenderer {
 
   public constructor(
     private readonly canvas: HTMLCanvasElement,
-    private room: RoomDefinition
+    private room: RenderedRoom
   ) {
     const context = this.canvas.getContext('2d');
     if (!context) {
@@ -50,7 +51,7 @@ export class RoomRenderer {
     this.hoveredExit = exit;
   }
 
-  public setRoom(newRoom: RoomDefinition): void {
+  public setRoom(newRoom: RenderedRoom): void {
     this.room = newRoom;
     this.cameraInitialized = false;
     if (!this.backgroundImage.src.endsWith(newRoom.backgroundUrl)) {
@@ -63,14 +64,20 @@ export class RoomRenderer {
     this.room = { ...this.room, objects };
   }
 
-  public updateRoomState(room: RoomDefinition): void {
-    this.room = room;
+  public updateRoomState(room: RenderedRoom): void {
+    this.room = room.objects
+      ? { ...room, objects: continueObjectMovements(room.objects, this.room.objects ?? []) }
+      : room;
     this.hoveredExit = null;
   }
 
   public objectAt(point: Point): RoomObject | undefined {
-    return [...(this.room.objects ?? [])].sort(compareObjectDepth).reverse()
+    return this.objectsAtTime(performance.now()).reverse()
       .find(object => this.objects.containsVisiblePixel(object, point));
+  }
+
+  private objectsAtTime(now: number): RoomObject[] {
+    return (this.room.objects ?? []).map(object => objectAtTime(object, now)).sort(compareObjectDepth);
   }
 
   public addClickMarker(x: number, y: number, type: 'valid' | 'invalid'): void {
@@ -134,7 +141,7 @@ export class RoomRenderer {
 
     // Objects win over actors behind their line; actors win at equality.
     allCharacters.sort((a, b) => a.position.y - b.position.y);
-    const objects = [...(room.objects ?? [])].sort(compareObjectDepth);
+    const objects = this.objectsAtTime(now);
     let index = 0;
     for (const char of allCharacters) {
       while (index < objects.length && objects[index]!.depthY <= char.position.y) {

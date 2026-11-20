@@ -15,7 +15,7 @@ internal static class ObjectInteractionValidation
         }
     }
 
-    public static void ValidateRoom(RoomYamlDto room, bool supported, bool supportsUsePoints, List<string> errors)
+    public static void ValidateRoom(RoomYamlDto room, bool supported, bool supportsUsePoints, bool supportsTransitions, List<string> errors)
     {
         var geometry = new RoomGeometry(
             new Polygon(room.Walkable[0].Points.Select(p => new Point2D(p.X, p.Y)).ToList()),
@@ -65,6 +65,36 @@ internal static class ObjectInteractionValidation
             }
             if (!double.IsFinite(interaction.UseRadius) || interaction.UseRadius <= 0 || interaction.UseRadius > 200)
                 errors.Add($"Object '{obj.Id}': use radius must be within 0–200.");
+            ValidateTransitions(obj.Id, interaction, supportsTransitions, errors);
+        }
+    }
+
+    private static void ValidateTransitions(string objectId, ObjectInteraction interaction, bool supported, List<string> errors)
+    {
+        if (interaction.Transitions is not { } transitions)
+        {
+            if (supported && interaction.Actions.Count == 0) errors.Add($"Object '{objectId}': an object without actions requires transitions.");
+            return;
+        }
+        if (!supported) errors.Add($"Object '{objectId}': transitions require format 1.9.0.");
+        if (transitions.Count is < 1 or > 64) errors.Add($"Object '{objectId}': declare 1–64 transitions.");
+        var pairs = new HashSet<(string, string)>();
+        foreach (var transition in transitions)
+        {
+            if (transition is null || !pairs.Add((transition.From, transition.To)))
+            {
+                errors.Add($"Object '{objectId}': each transition direction must be unique.");
+                continue;
+            }
+            var from = interaction.States.Find(s => s?.Id == transition.From);
+            var to = interaction.States.Find(s => s?.Id == transition.To);
+            if (from?.Position is null || to?.Position is null || from.Id == to.Id)
+                errors.Add($"Object '{objectId}': transition requires two distinct existing states.");
+            else if (from.Image != to.Image || from.Size?.Width != to.Size?.Width || from.Size?.Height != to.Size?.Height ||
+                (from.Position.X == to.Position.X && from.Position.Y == to.Position.Y))
+                errors.Add($"Object '{objectId}': transition states require different positions and the same image and size.");
+            if (transition.DurationMs is < 100 or > 5000)
+                errors.Add($"Object '{objectId}': transition duration must be 100–5000 ms.");
         }
     }
 

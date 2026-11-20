@@ -6,18 +6,22 @@ namespace AdventureChat.Server.Services;
 internal static class EditorFormatUpgrade
 {
     public const string Target = "1.8.0";
+    public const string TransitionTarget = "1.9.0";
 
-    public static void Save(WorldPackage world, string sourceVersion, string roomFile, RoomYamlDto room,
+    public static bool CanUpgrade(string source, string target) =>
+        target is Target or TransitionTarget && Version.Parse(source) < Version.Parse(target);
+
+    public static void Save(WorldPackage world, string sourceVersion, string targetVersion, string roomFile, RoomYamlDto room,
         IReadOnlyList<RoomYamlDto> existing, IReadOnlyList<RoomYamlDto> candidates)
     {
-        if (world.FormatVersion != sourceVersion || sourceVersion == Target)
+        if (world.FormatVersion != sourceVersion || !CanUpgrade(sourceVersion, targetVersion))
             throw new InvalidOperationException("Das Weltformat hat sich geändert. Bitte den Editor neu laden.");
 
         var manifest = WorldPackage.SafePath(world.Root, "world.yaml", true);
         var original = WorldPackage.ReadYaml(manifest);
-        var targetManifest = ChangeVersion(original);
+        var targetManifest = ChangeVersion(original, targetVersion);
         _ = WorldPackage.ReadManifest(world.Root, manifest, targetManifest);
-        var schema = WorldPackage.FindSchema("room.schema.json", Target);
+        var schema = WorldPackage.FindSchema("room.schema.json", targetVersion);
         var serializer = new RoomYamlSerializer(schema, Path.GetDirectoryName(roomFile));
         var validator = new RoomValidator(schema);
         var yaml = serializer.Serialize(room);
@@ -27,8 +31,8 @@ internal static class EditorFormatUpgrade
             RequireValid(validator.ValidateJson(YamlJsonConverter.Convert(content)));
         }
         RequireValid(validator.ValidateWorld(existing));
-        RequireValid(validator.ValidateJson(YamlJsonConverter.Convert(yaml)));
         RequireValid(validator.ValidateWorld(candidates));
+        RequireValid(validator.ValidateJson(YamlJsonConverter.Convert(yaml)));
         world.ValidateBackground(room);
 
         // The existing rooms were validated against the target schema. Replacing
@@ -47,7 +51,7 @@ internal static class EditorFormatUpgrade
                 File.Move(backup, manifest, overwrite: true);
                 throw;
             }
-            world.AdoptFormat(Target);
+            world.AdoptFormat(targetVersion);
             DeleteQuietly(backup);
         }
         finally
@@ -57,7 +61,7 @@ internal static class EditorFormatUpgrade
         }
     }
 
-    private static string ChangeVersion(string original)
+    private static string ChangeVersion(string original, string targetVersion)
     {
         var yaml = new YamlStream();
         yaml.Load(new StringReader(original));
@@ -65,7 +69,7 @@ internal static class EditorFormatUpgrade
         var node = mapping.Children[new YamlScalarNode("formatVersion")];
         var before = checked((int)node.Start.Index);
         var after = checked((int)node.End.Index);
-        return original[..before] + Target + original[after..];
+        return original[..before] + targetVersion + original[after..];
     }
 
     private static void RequireValid(ValidationResult result)

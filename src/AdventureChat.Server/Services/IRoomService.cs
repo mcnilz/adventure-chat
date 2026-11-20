@@ -221,7 +221,7 @@ public sealed class RoomService : IRoomService
         ObjectInteraction? ConvertInteraction(ObjectInteraction? interaction) => interaction is null ? null : new ObjectInteraction
         {
             Name = interaction.Name, InitialState = interaction.InitialState, UsePoint = interaction.UsePoint,
-            UseRadius = interaction.UseRadius, Actions = interaction.Actions,
+            UseRadius = interaction.UseRadius, Actions = interaction.Actions, Transitions = interaction.Transitions,
             States = interaction.States.Select(s => new ObjectState
             {
                 Id = s.Id, Name = s.Name, Image = Asset(s.Image), Position = s.Position, Size = s.Size, DepthY = s.DepthY,

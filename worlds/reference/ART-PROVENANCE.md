@@ -52,3 +52,7 @@ Aus dem lokalen 887 × 1774 PNG wurde der Alpharand zugeschnitten und die Spielf
 Für die Rückwand der Werkstatt wurde der Hintergrund mit durchgehenden Bodenfliesen übernommen. Die integrierte Bildbearbeitung hat die bestehende offene Tür als dunklen Durchgang mit sichtbarer Schwelle nachgezeichnet. So scheint in der Öffnung keine Mauer durch. Geschlossene Tür und offene Vorlage stammen aus Ticket 22. Die offene Spielfassung `workshop-door-open.png` wurde vom Original (793 × 1983) auf 40 × 100 Pixel zugeschnitten und skaliert. Original und Bildauftrag liegen lokal unter `.scratch/adventure-chat/evidence/23/`.
 
 `workshop-gate-view.png` zeigt die Öffnung in der Rückwand hinter dem vorhandenen Gitter. Die integrierte Bilderstellung verwendete den Garten als Vorlage für Mondlicht und Pflaster und den Werkstatthintergrund als Stilvorlage. Die Spielgrafik wurde vom Original (1217 × 1293) auf 72 × 76 Pixel skaliert und liegt als gemeinsame Ebene hinter beiden Gitterzuständen. Das Original und der Bildauftrag liegen lokal im selben Belegordner.
+
+## Hubtisch · Ticket 25
+
+Die Tischplatte (112 × 24), das Gestell (112 × 92) und die beiden Pfeiltasten (je 27 × 28) sind neu gezeichnete Pixelgrafiken aus einfachen Formen in der Werkstattpalette. Sie wurden mit dem vorhandenen PNG-Helfer erzeugt und liegen fertig unter `assets/images/workshop-lift-*.png`. Es wurden keine Drittquellen oder neuen Abhängigkeiten verwendet.

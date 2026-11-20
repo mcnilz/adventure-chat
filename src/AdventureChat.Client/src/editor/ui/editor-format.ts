@@ -1,6 +1,6 @@
 import { EditorApi } from '../core/editor-api.js';
 
-const INTERACTION_FORMAT = '1.8.0';
+const UPGRADE_FORMATS = ['1.8.0', '1.9.0'];
 
 export class EditorFormat {
   private readonly selector = document.querySelector<HTMLSelectElement>('#world-format')!;
@@ -18,7 +18,9 @@ export class EditorFormat {
   public showVersion(version: string | null): void {
     this.version = version;
     this.selector.replaceChildren(new Option(version ?? 'Legacy', version ?? ''));
-    if (version && version !== INTERACTION_FORMAT) this.selector.add(new Option(INTERACTION_FORMAT, INTERACTION_FORMAT));
+    for (const target of UPGRADE_FORMATS) {
+      if (version && target.localeCompare(version, 'en', { numeric: true }) > 0) this.selector.add(new Option(target, target));
+    }
     this.selector.disabled = this.selector.options.length < 2;
     this.showChange();
   }
@@ -28,7 +30,7 @@ export class EditorFormat {
   }
 
   public targetVersion(): string | undefined {
-    return this.upgradeFrom() ? INTERACTION_FORMAT : undefined;
+    return this.upgradeFrom() ? this.selector.value : undefined;
   }
 
   public setSaving(saving: boolean): void {
@@ -43,7 +45,7 @@ export class EditorFormat {
   private showChange(): void {
     const from = this.upgradeFrom();
     this.hint.textContent = from
-      ? `Beim Speichern wird in world.yaml das Weltformat von ${from} auf ${INTERACTION_FORMAT} geändert.`
+      ? `Beim Speichern wird in world.yaml das Weltformat von ${from} auf ${this.selector.value} geändert.`
       : '';
   }
 }

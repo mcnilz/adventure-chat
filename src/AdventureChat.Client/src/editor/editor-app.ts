@@ -257,7 +257,7 @@ export class EditorApp {
     this.format.setSaving(true);
 
     try {
-      const result = await EditorApi.saveRoom(room, this.format.upgradeFrom());
+      const result = await EditorApi.saveRoom(room, this.format.upgradeFrom(), this.format.targetVersion());
       if (result.success && result.formatVersion !== undefined) this.format.showVersion(result.formatVersion);
       if (!this.state.isCurrentDraft(save)) return result.success;
       if (!result.success) {

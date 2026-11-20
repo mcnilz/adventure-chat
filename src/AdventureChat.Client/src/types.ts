@@ -85,6 +85,10 @@ export interface RoomObject {
  readonly usePoints?: ReadonlyArray<Point> | null;
 }
 
+export interface RenderedRoomObject extends RoomObject {
+ readonly movement?: ObjectMovement | null;
+}
+
 export interface ObjectInteraction {
  readonly name: string;
  readonly initialState: string;
@@ -92,6 +96,18 @@ export interface ObjectInteraction {
  readonly useRadius: number;
  readonly states: ReadonlyArray<ObjectAppearance>;
  readonly actions: ReadonlyArray<ObjectAction>;
+ readonly transitions?: ReadonlyArray<ObjectTransition> | null;
+}
+export interface ObjectTransition {
+ readonly from: string;
+ readonly to: string;
+ readonly durationMs: number;
+}
+export interface ObjectMovement {
+ readonly from: ObjectAppearance;
+ readonly startedAtMs: number;
+ readonly startTime: number;
+ readonly durationMs: number;
 }
 export interface ObjectAction {
  readonly id: string;
@@ -111,7 +127,16 @@ export interface ObjectAppearance {
  readonly size: { readonly width: number; readonly height: number };
  readonly depthY: number;
 }
-export interface ObjectStateDto { readonly objectId: string; readonly stateId: string }
+export interface ObjectStateDto {
+ readonly objectId: string;
+ readonly stateId: string;
+ readonly transition?: {
+  readonly from: string;
+  readonly startedAtMs: number;
+  readonly durationMs: number;
+  readonly elapsedMs: number;
+ } | null;
+}
 export interface PreviewObjectStates { readonly roomId: string; readonly states: ReadonlyArray<ObjectStateDto> }
 export interface ObjectStatesChangedDto {
  readonly roomId: string;
@@ -145,6 +170,10 @@ export interface RoomDefinition {
   readonly spawns?: ReadonlyArray<RoomSpawn>;
   readonly exits?: ReadonlyArray<RoomExit>;
 }
+
+export type RenderedRoom = Omit<RoomDefinition, 'objects'> & {
+  objects?: ReadonlyArray<RenderedRoomObject> | null;
+};
 
 export interface ChatMessageDto {
   readonly messageId: string;
