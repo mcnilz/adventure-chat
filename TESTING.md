@@ -54,6 +54,8 @@ Ticket 20 wurde am 12.11.2026 einschließlich der unten genannten Grenzen bestä
 
 Ticket 22 wurde am 19.11.2026 für Browser/Canvas und Editor sowie die öffentlichen Inhalts- und SignalR-Grenzen bestätigt. Die Browserabläufe prüfen Verben mit zwei Spielern, Speichern und Neuladen von Zuständen, Aktionen und Verknüpfungen, einen ausdrücklich gewählten Formatwechsel mit Fehlerfällen sowie isolierte Vorschauaktionen und Raumwechsel. Bediengefühl und Satzverständlichkeit bleiben menschliche Abnahme.
 
+Ticket 23 wurde am 20.11.2026 für öffentliche Inhalts- und Navigationsprüfungen und echte Browserabläufe in einer isolierten Referenzweltkopie bestätigt. Dazu gehören Gegenaktionen mit zwei Teilnehmern, Wegsperren, Laufstopp, sichere Ablehnung, späterer Eintritt, Raumrückkehr, Wiederverbindung, Weltneustart und Speichern, Neuladen und Aktionen im Editor. Alte Referenzfixtures, Tour und Weltisolation laufen als Regression mit. Grafik und Bediengefühl bleiben menschliche Abnahme.
+
 | Paket | Vorgeschlagene öffentliche Grenzen / Schwerpunkt | Ausdrückliche Grenze |
 | --- | --- | --- |
 | [20](.scratch/adventure-chat/issues/20-shared-object-actions.md) | Inhalts-Laden/Speichern, echte SignalR-Kommandos, Browser/Canvas: reversible Zustände, atomare direkte Wirkungen, Konkurrenz, Snapshots, Weltisolation, Neustart | Keine privaten Sperren/Zustandscontainer testen; keine Script-Ausführung oder Persistenz zusichern. |

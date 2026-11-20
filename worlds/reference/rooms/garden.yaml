@@ -8,6 +8,7 @@ spawns:
   - { id: from-depth-demos, position: { x: 540, y: 330 } }
   - { id: entry, position: { x: 112, y: 320 } }
   - { id: from-lounge, position: { x: 84, y: 304 } }
+  - { id: from-workshop, position: { x: 471, y: 328 } }
 walkable:
   - id: floor
     points: [{ x: 26, y: 304 }, { x: 112, y: 280 }, { x: 244, y: 276 }, { x: 408, y: 276 }, { x: 446, y: 280 }, { x: 616, y: 290 }, { x: 616, y: 348 }, { x: 26, y: 348 }]
@@ -20,6 +21,11 @@ objects:
     position: { x: 252, y: 216 }
     size: { width: 155, height: 93 }
     depthY: 310
+  - id: workshop-entrance
+    image: assets/images/workshop-garden-entrance.png
+    position: { x: 425, y: 112 }
+    size: { width: 94, height: 174 }
+    depthY: 286
 exits:
   - id: to-depth-demos
     position: { x: 540, y: 330 }
@@ -32,4 +38,10 @@ exits:
     bounds: { x: 24, y: 110, width: 82, height: 192 }
     label: Lounge
     target: { room: lounge, spawn: from-garden }
+  - id: to-workshop
+    position: { x: 472, y: 294 }
+    radius: 16
+    bounds: { x: 425, y: 112, width: 94, height: 174 }
+    label: Werkstatt
+    target: { room: workshop, spawn: entry }
 notes: Tisch hinten bei (330,278), davor bei (330,330). Kollision am Bodenfußabdruck; Tischplatte überragt ihn.

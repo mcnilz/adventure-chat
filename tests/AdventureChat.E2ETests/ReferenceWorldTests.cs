@@ -156,7 +156,8 @@ public class ReferenceWorldTests
                 const room=await (await fetch('/api/worlds/reference/rooms/'+id)).json();
                 for(const appearance of catalog.characters) for(const y of [id==='lounge'?258:278,330]) {
                   const canvases=[document.createElement('canvas'),document.createElement('canvas')];
-                  const renderers=[new RoomRenderer(canvases[0],room),new RoomRenderer(canvases[1],{...room,objects:[]})];
+                  const withoutTable = { ...room, objects: room.objects.filter(object => object.id !== 'table') };
+                  const renderers=[new RoomRenderer(canvases[0],room),new RoomRenderer(canvases[1],withoutTable)];
                   const c={id:'x',name:'',position:{x:330,y},facing:'down',state:'idle',walkFrame:0,appearance};
                   for(let i=0;i<2;i++)renderers[i].render(c);
                   results.push(() => {

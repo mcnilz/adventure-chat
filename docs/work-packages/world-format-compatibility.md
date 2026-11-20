@@ -120,7 +120,7 @@ Ticket 20 erweitert die ausdrückliche Unterstützung um 1.6.0 und nach Benutzer
 | Nachtrag 20: mehrere Bedienpunkte | 1.7.0 | Optionale Punktliste; alter Einzelpunkt bleibt gültig. Eigenes Bündel; keine Änderung veröffentlichter Schemata. |
 | 21: Hindernisse und Ausgangssperren | 1.8.0 nach 1.7.0 | Weitere optionale Minor-Erweiterung; keine Änderung alter Fußpunkt-/Bodenregeln ohne neue Angaben. Eigenes Bündel. |
 | 22: Verben und Editor | keine weitere geplant | Bereits veröffentlichte Verträge bedienen/erhalten. Neues Feld oder neue Interpretation würde erneut eine Versionsentscheidung benötigen. Kein stilles Hochstufen alter Welten. |
-| 23: Referenzbeispiele | Format aus 21, geplant 1.8.0 | Inhaltsversion unabhängig begründen: aktuell reference 3.0.0; additive Szene bei Erhalt aller Zusagen Minor, geänderte bestehende Navigations-/Spawnsemantik Major. |
+| 23: Referenzbeispiele | Veröffentlichtes Format 1.8.0 aus 21 | Inhalt 3.1.0 ergänzt die Werkstatt mit Übergängen und einem Rückkehrspawn. Die bisherigen Laufbereiche, Ausgänge, Spawns und Defaults behalten ihre Bedeutung. Ältere Testwelten verwenden weiterhin ihre eigenen Formate. |
 
 Versionsnummern bei Paketfreigabe gegen den tatsächlichen Stand prüfen. Eine spätere andere Reihenfolge darf keinen veröffentlichten Vertrag verändern. Bis Implementierung und Prüfung akzeptiert kein Server diese geplanten Versionen allein wegen dieses Dokuments.
 

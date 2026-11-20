@@ -30,3 +30,21 @@ Die finalen Sheets sind 512×384, vier Spalten/drei Reihen rechts/hinten/vorne, 
 `scripts/build-reference-art.ps1` kopiert die fünf fertigen Tourbilder bytegleich ins Spiel und rekonstruiert weiter die unveränderten früheren Referenzbilder. Kein Generator oder zusätzliche Bibliothek ist beim Anwendungsbuild erforderlich. `generate-depth-art.js` schreibt ausschließlich nach map/scroll. Keine neue direkte Abhängigkeit.
 
 Inhalt **3.0.0** statt 2.1.0: Neue Laufpolygone/Hindernisse und an die sichtbaren Wege verschobene Spawns/Ausgänge machen frühere Platzierungen teilweise ungültig. Stabile IDs und Verbindungen, Perspektiven, Raum-/Ausschnittgrößen, Höhen, Tiefenfaktoren und Geschwindigkeiten bleiben erhalten. Format **1.5.0**, dessen Interpretation und alle veröffentlichten Schemas bleiben unverändert. Unveränderte ältere Fixtures prüfen die Abwärtskompatibilität; dies ist eine neue Inhaltsausgabe, kein neues Autorenformat.
+
+## Werkstatt · Ticket 23
+
+Acht Werkstattgrafiken sind bytegleiche Spielkopien der projektinternen Pixelzeichnungen aus der abgenommenen Testwelt von Ticket 22 (Commit `c8be2e8`). Für Ticket 23 wurden die Motive als Raumobjekte neu platziert und teilweise im vorhandenen Renderer skaliert. Der Tisch verwendet die vorhandene Spielgrafik `garden-table.png`. Die PNG-Originale liegen weiterhin in den beiden [Testwelten von Ticket 22](../../tests/Fixtures/interaction-review/) und die bisherigen Referenzbilder behalten ihre Herkunft.
+
+| Spielgrafik | Original unter `tests/Fixtures/interaction-review` |
+| --- | --- |
+| `workshop.png` | `navigation/assets/images/background.png` |
+| `workshop-door-closed.png`, `workshop-door-open.png` | `navigation/assets/images/door-closed.png`, `door-open.png` |
+| `workshop-chair.png` | `navigation/assets/images/wooden-chair.png` |
+| `workshop-switch-off.png`, `workshop-switch-on.png` | `interactions/assets/images/switch-off.png`, `switch-on.png` |
+| `workshop-gate-closed.png`, `workshop-gate-open.png` | `interactions/assets/images/gate-closed.png`, `gate-open.png` |
+
+Die Kopien übernehmen den vorhandenen Rechte- und Lizenzstand der Projektgrafiken. Für diese Motive kamen keine Drittquellen oder zusätzlichen Lizenzen hinzu. Die fertigen Spielkopien gehören zum Weltpaket und liegen als PNG im Repository.
+
+`workshop-garden-entrance.png` ist eine Überarbeitung desselben Holztürmotivs für den Garten. Der Auftrag an die integrierte Bildbearbeitung war eine geschlossene, erwachsenengroße Eichentür mit Brettern und Eisenbeschlägen. Die abgenommene niedrige Gartenmauer gab grauen Stein, Efeu und warmes Licht am linken Rand vor. Die Werkstatttür aus Ticket 22 war die Motivvorlage und der bestehende Gartenhintergrund die Stilreferenz. Die Einfassung bildet einen eigenen hohen Bogen. Der Hintergrund der Spielgrafik ist transparent.
+
+Aus dem lokalen 887 × 1774 PNG wurde der Alpharand zugeschnitten und die Spielfassung auf 94 × 174 Pixel verkleinert. Das vollständige Original liegt lokal unter `.scratch/adventure-chat/evidence/23/garden-entrance-art-original.png`. Die veröffentlichte Spielfassung enthält die fertigen Pixel und benötigt keine Bilderzeugung beim Start. Die Figuren verwenden im Garten weiterhin 128 Pixel hohe Rahmen.
