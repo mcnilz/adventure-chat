@@ -1,5 +1,5 @@
 # Umsetzungsplan
-Status (19.11.2026): Tickets 01–18, 20 und 21 sind menschlich abgenommen und done. Tickets 19 und 22 sind ready-for-human. Ticket 23 und das neue Epic mit seinen Paketen 24–32 stehen auf draft. Tatsächliche Implementierungs- und Testbelege stehen im jeweiligen Ticket und in active-state.md.
+Status (20.11.2026): Tickets 01–18, 20 und 21 sind menschlich abgenommen und done. Tickets 19 und 22 sind ready-for-human. Ticket 23 und das neue Epic mit seinen Paketen 24–32 stehen auf draft. Tatsächliche Implementierungs- und Testbelege stehen im jeweiligen Ticket und in active-state.md.
 
 | Ticket | Vorführbares Ergebnis | Blocked by |
 | --- | --- | --- |

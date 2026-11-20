@@ -1,0 +1,7 @@
+formatVersion: 1.6.0
+id: interactions
+name: Interaktions-Testwelt
+contentVersion: 1.0.1
+roomFormat: legacy-1
+startRoom: hall
+startSpawn: entry

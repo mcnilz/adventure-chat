@@ -7,6 +7,55 @@ namespace AdventureChat.E2ETests;
 public class DynamicNavigationPreviewTests
 {
     [Test]
+    public async Task ReviewDoor_ApproachesAndUnlocksTheDoorwayInGameAndPreview()
+    {
+        await using var server = DynamicNavigationTests.CreateServer("interaction-review/navigation");
+        await server.StartAsync();
+        using var playwright = await Playwright.CreateAsync();
+        await using var browser = await playwright.Chromium.LaunchAsync(new() { Headless = true });
+        var game = await browser.NewPageAsync();
+        await game.GotoAsync(server.BaseUrl);
+        await game.ClickAsync("#world-enter");
+        await game.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__?.connectionStatus === 'connected'");
+        await DynamicNavigationTests.ClickCanvas(game, 300, 275);
+        Assert.That(await game.EvaluateAsync<string>("window.__ADVENTURE_GAME__.room.id"), Is.EqualTo("hall"));
+        Assert.That(await game.EvaluateAsync<int>("window.__ADVENTURE_GAME__.room.exits.length"), Is.Zero);
+        await game.GetByRole(AriaRole.Button, new() { Name = "Öffnen", Exact = true }).ClickAsync();
+        await DynamicNavigationTests.ClickCanvas(game, 290, 250);
+        await game.WaitForFunctionAsync("""
+            () => {
+              const game = window.__ADVENTURE_GAME__;
+              return game.character.state === 'walk' || game.room.exits.length > 0;
+            }
+            """, null, new() { Timeout = 5000 });
+        Assert.That(await game.EvaluateAsync<int>("window.__ADVENTURE_GAME__.room.exits.length"), Is.Zero,
+            "The door opened before the player approached it.");
+        await game.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.room.exits.length === 1");
+        Assert.That(await game.EvaluateAsync<double>("window.__ADVENTURE_GAME__.character.position.x"), Is.InRange(240, 270));
+        var door = await game.EvaluateAsync<JsonElement>("window.__ADVENTURE_GAME__.room.objects.find(object => object.id === 'door')");
+        Assert.That(door.GetProperty("image").GetString(), Does.EndWith("/door-open.png"));
+        Assert.That(door.GetProperty("position").GetProperty("x").GetInt32(), Is.EqualTo(280));
+        await DynamicNavigationTests.ClickCanvas(game, 300, 275);
+        await game.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.room.id === 'next'", null, new() { Timeout = 6000 });
+
+        var editor = await browser.NewPageAsync();
+        await editor.GotoAsync(server.BaseUrl + "/editor.html?worldId=navigation");
+        await editor.Locator("#object-list option[value=door]").WaitForAsync(new() { State = WaitForSelectorState.Attached });
+        await editor.ClickAsync("#btn-toggle-mode");
+        await editor.GetByLabel("Vorschauverb").SelectOptionAsync("open");
+        var first = editor.WaitForResponseAsync(response => response.Url.Contains("/preview-path") || response.Url.Contains("/preview-action"));
+        var action = editor.WaitForResponseAsync(response => response.Url.Contains("/preview-action"));
+        await DynamicNavigationTests.ClickCanvas(editor, 290, 250);
+        Assert.That((await first).Url, Does.Contain("/preview-path"));
+        var arrival = JsonDocument.Parse((await action).Request.PostData!).RootElement.GetProperty("position");
+        Assert.That(arrival.GetProperty("x").GetDouble(), Is.InRange(240, 270));
+        await Assertions.Expect(editor.Locator("#preview-result")).ToHaveTextAsync("Aktion ausgeführt.");
+        await editor.GetByLabel("Vorschauverb").SelectOptionAsync("walk");
+        await DynamicNavigationTests.ClickCanvas(editor, 300, 275);
+        await Assertions.Expect(editor.Locator("#preview-result")).ToHaveTextAsync("Raum: Nebenraum");
+    }
+
+    [Test]
     public async Task Preview_UsesServerGeometryAndActionsWithoutChangingDraftOrLiveWorld()
     {
         await using var server = DynamicNavigationTests.CreateServer(); await server.StartAsync();

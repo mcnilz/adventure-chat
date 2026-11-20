@@ -1,0 +1,17 @@
+version: 1
+id: next
+name: Nebenraum
+background: assets/images/side-room.png
+size: {width: 640, height: 360}
+perspective: top-down
+spawns: [{id: entry, position: {x: 146, y: 300}}]
+walkable:
+  - id: floor
+    points: [{x: 10, y: 100}, {x: 630, y: 100}, {x: 630, y: 350}, {x: 10, y: 350}]
+exits:
+  - id: back
+    position: {x: 100, y: 300}
+    radius: 18
+    bounds: {x: 80, y: 200, width: 40, height: 102}
+    label: Dynamische Durchgänge
+    target: {room: hall, spawn: right}

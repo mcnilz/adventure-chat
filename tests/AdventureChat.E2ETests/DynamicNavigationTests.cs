@@ -52,10 +52,10 @@ public class DynamicNavigationTests
         Assert.That(await b.EvaluateAsync<int>("window.__ADVENTURE_GAME__.room.exits.length"), Is.EqualTo(1));
     }
 
-    internal static TestServerFixture CreateServer()
+    internal static TestServerFixture CreateServer(string fixture = "navigation")
     {
         var server = new TestServerFixture(authoring: true, foregroundWorld: true);
-        var source = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../../tests/Fixtures/navigation"));
+        var source = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../../tests/Fixtures", fixture));
         foreach (var file in Directory.GetFiles(source, "*", SearchOption.AllDirectories))
         {
             var destination = Path.Combine(server.TempRoot, "world", Path.GetRelativePath(source, file));
