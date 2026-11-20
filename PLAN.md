@@ -1,5 +1,5 @@
 # Umsetzungsplan
-Status (20.11.2026): Tickets 01–22 sind menschlich abgenommen und done. Ticket 23 steht zur menschlichen Abnahme bereit. Das neue Epic und seine Pakete 24–32 stehen auf draft. Tatsächliche Implementierungs- und Testbelege stehen im jeweiligen Ticket und in active-state.md.
+Status (20.11.2026): Tickets 01–23 sind menschlich abgenommen und done. Das neue Epic und seine Pakete 24–32 stehen auf draft. Tatsächliche Implementierungs- und Testbelege stehen im jeweiligen Ticket und in active-state.md.
 
 | Ticket | Vorführbares Ergebnis | Blocked by |
 | --- | --- | --- |
@@ -25,7 +25,7 @@ Status (20.11.2026): Tickets 01–22 sind menschlich abgenommen und done. Ticket
 | [20 (done)](.scratch/adventure-chat/issues/20-shared-object-actions.md) | Zwei Spieler ändern gemeinsame Objektzustände samt direkten atomaren Verknüpfungen | 09, 10, 15 (done); menschlich abgenommen am 12.11.2026 |
 | [21 (done)](.scratch/adventure-chat/issues/21-state-dependent-navigation.md) | Tür-/Stuhlhindernisse und laufende Wege folgen sicher dem Zustand | 20 |
 | [22 (done)](.scratch/adventure-chat/issues/22-verbs-and-interaction-editor.md) | Verben mit Objektsatz und vollständige Konfiguration im Browsereditor | 20, 21, 18; 06, 15, 17 (done) |
-| [23 (ready-for-human)](.scratch/adventure-chat/issues/23-interactive-reference-examples.md) | Tür, Stuhl und Schalter/Tor als erreichbare gemeinsame Referenzdemo | 20, 21, 22, 19 (done) |
+| [23 (done)](.scratch/adventure-chat/issues/23-interactive-reference-examples.md) | Tür, Stuhl und Schalter/Tor als erreichbare gemeinsame Referenzdemo | 20, 21, 22, 19 (done), menschlich abgenommen am 20.11.2026 |
 | [24 (draft)](.scratch/adventure-chat/issues/24-interactive-worlds-epic.md) | Epic für konfigurierbare Figureninteraktionen und NPCs | Planung frei, Umsetzung über 25–32 |
 | [25 (draft)](.scratch/adventure-chat/issues/25-object-state-transitions.md) | Sichtbare Übergänge zwischen konfigurierten Objektzuständen | 21, 22 |
 | [26 (draft)](.scratch/adventure-chat/issues/26-character-animations-for-object-actions.md) | Gehaltene Posen und kurze Figurenanimationen je Objektaktion | 21, 22 |
@@ -43,7 +43,7 @@ Die Reihenfolge 01–07 ist die empfohlene serielle Umsetzung. Ticket 06 hängt 
 
 ## Neue Planung 20–23 · 10.11.2026
 
-Die vier Erweiterungspakete aus SPEC.md sind angelegt; Ticket 20 wurde separat umgesetzt und abgenommen, Ticket 21 danach separat einschließlich Sicherheitsregel umgesetzt und am 12.11.2026 mit „funktioniert“ abgenommen. Serielle Reihenfolge: **20 → 21 → 22 → 23**. Ticket 18 wurde am 19.11.2026 abgenommen. Ticket 22 wurde am 20.11.2026 einschließlich Nacharbeit abgenommen. Ticket 19 wurde am 20.11.2026 abgenommen. Ticket 23 wurde am 20.11.2026 freigegeben, umgesetzt und geprüft und steht zur menschlichen Abnahme bereit. Kein anderes Paket automatisch beginnen und keine parallele Umsetzung ableiten.
+Die vier Erweiterungspakete aus SPEC.md sind angelegt; Ticket 20 wurde separat umgesetzt und abgenommen, Ticket 21 danach separat einschließlich Sicherheitsregel umgesetzt und am 12.11.2026 mit „funktioniert“ abgenommen. Serielle Reihenfolge: **20 → 21 → 22 → 23**. Ticket 18 wurde am 19.11.2026 abgenommen. Ticket 22 wurde am 20.11.2026 einschließlich Nacharbeit abgenommen. Ticket 19 wurde am 20.11.2026 abgenommen. Ticket 23 wurde am 20.11.2026 einschließlich Nacharbeit abgenommen. Kein anderes Paket automatisch beginnen und keine parallele Umsetzung ableiten.
 
 20 liefert nach Benutzerfeedback bereits eine erste klassische Verbenleiste mit Objektklick, Zustandsdarstellung und Mehrspielerkommandos; 21 ergänzt sichere Navigation; 22 vervollständigt das Autorenwerkzeug und die spätere Interaktionsintegration; 23 integriert erst danach Referenzinhalte. Datenverträge: 1.6.0 für Objektaktionen, 1.7.0 für mehrere Bedienpunkte und 1.8.0 für Ticket 21, ohne Änderungen eingefrorener Bündel. Die lokale Definition von Einschließen und die übrigen Paketentscheidungen für 21 wurden am 12.11.2026 vor Implementierungsbeginn ausdrücklich bestätigt; Details im Ticket.
 

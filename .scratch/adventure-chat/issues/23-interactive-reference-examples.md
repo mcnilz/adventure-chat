@@ -4,7 +4,7 @@
 
 **Blocked by:** [20](20-shared-object-actions.md), [21](21-state-dependent-navigation.md), [22](22-verbs-and-interaction-editor.md) und [19](19-reference-world-art-polish.md) sind done.
 
-**Status:** ready-for-human
+**Status:** done
 
 ## Auftrag und Freigabegrenze
 
@@ -75,4 +75,6 @@ Die Referenzwelt verwendet deshalb Inhaltsversion **4.0.0**. Einige vorher gült
 
 Die Sichtprüfung im Browser verglich Figurenhöhe und Gartentür, die Stellung von Innentür und Gartentor in der Rückwand sowie das Pflaster hinter dem Gitter. Beide Rückwege wurden geöffnet, zu Fuß angeklickt und tatsächlich bis in den Garten benutzt. Im geschlossenen Zustand fehlen beide Ausgänge und der Boden vor den Schwellen ist gesperrt. Die Perspektive von Tisch und Stuhl wurde in beiden Stuhlpositionen gesichtet.
 
-Der reproduzierende Inhaltstest zeigte drei zuvor fälschlich begehbare Punkte. Im endgültigen Stand prüfen fünf Inhaltsfälle die Schwellen und drei Browserfälle die Bewegungsstopps, beide Rückwege, Mehrspielerzustände sowie Speichern und Vorschau. Typcheck, Build und Vollsuite bestanden mit **339 Tests** (227 Server, 112 Browser). Die Schemata, älteren Referenzfixtures und ursprünglichen Weltgrafiken der Testwelten stimmen mit `484bfad` überein. Protokolle liegen in `evidence/23/full-plausibility/`, Browserbelege in `evidence/23/browser-plausibility/`. Der eigene Vergleich gegen Ticket und Projektstandards ergab keine weiteren offenen technischen Befunde. Die menschliche Abnahme steht aus.
+Der reproduzierende Inhaltstest zeigte drei zuvor fälschlich begehbare Punkte. Im endgültigen Stand prüfen fünf Inhaltsfälle die Schwellen und drei Browserfälle die Bewegungsstopps, beide Rückwege, Mehrspielerzustände sowie Speichern und Vorschau. Typcheck, Build und Vollsuite bestanden mit **339 Tests** (227 Server, 112 Browser). Die Schemata, älteren Referenzfixtures und ursprünglichen Weltgrafiken der Testwelten stimmen mit `484bfad` überein. Protokolle liegen in `evidence/23/full-plausibility/`, Browserbelege in `evidence/23/browser-plausibility/`. Der eigene Vergleich gegen Ticket und Projektstandards ergab keine weiteren offenen technischen Befunde. Nachtragscommit `3bd73c1`.
+
+Am 20.11.2026 hat der Benutzer Ticket 23 einschließlich der Nacharbeit ausdrücklich mit „abgenommen“ bestätigt.
