@@ -282,8 +282,11 @@ public class InteractiveObjectTests
             File.Copy(file, destination);
         }
         var hall = Path.Combine(world, "rooms", "hall.yaml");
-        var extraActions = string.Join("\n", Enumerable.Range(1, 24).Select(i => $"        - {{ id: inspect-{i}, name: 'Untersuchen Alternative {i}', from: off, to: off }}"));
-        File.AppendAllText(hall, $"\n{extraActions}\n  - {{ id: cover, image: assets/images/table.png, position: {{ x: 350, y: 200 }}, size: {{ width: 40, height: 40 }}, depthY: 320 }}\n");
+        File.AppendAllText(hall, """
+
+                    - { id: inspect, name: Untersuchen, from: off, to: off }
+              - { id: cover, image: assets/images/table.png, position: { x: 350, y: 200 }, size: { width: 40, height: 40 }, depthY: 320 }
+            """);
         await server.StartAsync();
         using var playwright = await Playwright.CreateAsync();
         await using var browser = await playwright.Chromium.LaunchAsync(new() { Headless = true });
@@ -331,7 +334,8 @@ public class InteractiveObjectTests
         await a.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.character.state === 'walk'");
         await b.GetByRole(AriaRole.Button, new() { Name = "Benutzen", Exact = true }).ClickAsync();
         await ClickAt(b, 370, 220);
-        await b.GetByRole(AriaRole.Button, new() { Name = "Untersuchen Alternative 1", Exact = true }).ClickAsync();
+        await b.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.room.objects.find(o => o.id === 'switch').position.x === 380");
+        await Assertions.Expect(b.Locator("#action-choices")).ToHaveCountAsync(0);
         await b.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.room.objects.find(o => o.id === 'chair').position.x === 240");
         Assert.That(await a.EvaluateAsync<double>("window.__ADVENTURE_GAME__.character.position.x"), Is.LessThan(110));
         await a.WaitForFunctionAsync("() => document.querySelector('#verb-bar [data-verb=walk]').getAttribute('aria-pressed') === 'true'");
@@ -356,17 +360,7 @@ public class InteractiveObjectTests
         await b.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.room.id === 'next'");
         await a.GetByRole(AriaRole.Button, new() { Name = "Benutzen", Exact = true }).ClickAsync();
         await ClickAt(a, 360, 220);
-        Assert.That(await a.GetByRole(AriaRole.Button, new() { Name = "Einschalten", Exact = true }).CountAsync(), Is.Zero);
-        await a.GetByRole(AriaRole.Button, new() { Name = "Benutzen", Exact = true }).ClickAsync();
-        await ClickAt(a, 370, 220);
-        Assert.That(await a.Locator("#action-text").InnerTextAsync(), Is.EqualTo("Benutzen Schalter"));
-        Assert.That(await a.Locator("#action-choices").EvaluateAsync<bool>("e => e.scrollHeight > e.clientHeight"), Is.True);
-        var previousRevision = await a.EvaluateAsync<long>("window.__ADVENTURE_GAME__.state.objectRevision");
-        await a.GetByRole(AriaRole.Button, new() { Name = "Untersuchen Alternative 24", Exact = true }).ClickAsync();
-        await a.WaitForFunctionAsync("revision => window.__ADVENTURE_GAME__.state.objectRevision > revision", previousRevision);
-        await a.GetByRole(AriaRole.Button, new() { Name = "Benutzen", Exact = true }).ClickAsync();
-        await ClickAt(a, 370, 220);
-        await a.GetByRole(AriaRole.Button, new() { Name = "Einschalten", Exact = true }).ClickAsync();
+        await a.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.character.speechBubble?.text === 'Das geht nicht.'");
         await b.WaitForFunctionAsync("() => window.__ADVENTURE_GAME__.room.objects.find(o => o.id === 'gate').position.x === 260");
         var close = b.GetByRole(AriaRole.Button, new() { Name = "Schließen", Exact = true });
         await close.FocusAsync();

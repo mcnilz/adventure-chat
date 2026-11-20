@@ -5,7 +5,7 @@ import { RoomRenderer } from '../../rendering/renderer.js';
 import { applyActorAnimation, assignPathToCharacter, updateCharacterMovement } from '../../simulation/movement.js';
 import type { Character, Point, PreviewObjectStates, RoomDefinition, RoomExit } from '../../types.js';
 import { applyObjectAppearances } from '../../state/object-appearance.js';
-import { actionsForVerb } from '../../input/object-action.js';
+import { actionForVerb } from '../../input/object-action.js';
 import { ObjectActionFlow } from '../../input/object-action-flow.js';
 import { exitAt, withinExitReach } from '../../input/exit-hit.js';
 import { objectUsePoints, nearestUsePoints } from '../../input/object-use-points.js';
@@ -128,10 +128,7 @@ export class EditorPreview {
     const object = this.previewRenderer?.objectAt(point);
     if (object && verb !== 'walk' && (verb || object.interaction)) {
       const state = this.currentStates().find(item => item.objectId === object.id)?.stateId;
-      const actions = actionsForVerb(object, state, verb || 'use');
-      const execute = (id: string | null) => this.actionFlow.start(this.room!.id, object, id, state);
-      if (!verb || actions.length <= 1) await execute(actions[0]?.id ?? null);
-      else this.controls.offerActions(actions, id => { if (revision === this.requestRevision) void execute(id); });
+      await this.actionFlow.start(this.room.id, object, actionForVerb(object, state, verb || 'use'), state);
       return;
     }
     if (verb && verb !== 'walk') { this.tell('Das geht nicht.'); return; }
@@ -162,7 +159,6 @@ export class EditorPreview {
     this.requestRevision++;
     this.pendingExit = null;
     this.actionFlow.cancel();
-    this.controls.clearChoice();
     if (!this.previewCharacter) return;
     this.previewCharacter.target = null;
     this.previewCharacter.waypoints = [];

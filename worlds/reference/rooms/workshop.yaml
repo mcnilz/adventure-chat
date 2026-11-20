@@ -67,7 +67,7 @@ objects:
         - { id: pull, name: Ziehen, from: table, to: pulled }
         - { id: push, name: Drücken, from: pulled, to: table }
         - id: sit
-          name: Hinsetzen
+          name: Benutzen
           from: pulled
           to: pulled
           actorAnimation:

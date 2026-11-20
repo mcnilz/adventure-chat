@@ -1,6 +1,6 @@
 import { screenToRoom } from '../rendering/camera.js';
 import type { InteractionVerb, Point, RoomDefinition, RoomExit, RoomObject } from '../types.js';
-import { actionsForVerb, VERB_PHRASES } from './object-action.js';
+import { actionForVerb, VERB_PHRASES } from './object-action.js';
 import { exitAt, withinExitReach } from './exit-hit.js';
 
 export interface InputHandlerCallbacks {
@@ -47,7 +47,7 @@ export class InputHandler {
     const exit = this.findClickedExit(logical);
     const object = verb === 'walk' && exit ? undefined : this.getObjectAt(logical);
     if (object) {
-      const available = verb === 'walk' || actionsForVerb(object, this.getObjectState(object.id), verb).length > 0;
+      const available = verb === 'walk' || actionForVerb(object, this.getObjectState(object.id), verb) !== null;
       this.canvas.style.cursor = 'pointer';
       this.callbacks.onHoverExitChanged(null, `${phrase} ${object.interaction?.name ?? object.id}${available ? '' : ' (derzeit nicht möglich)'}`);
       return;

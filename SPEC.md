@@ -71,6 +71,8 @@ Hindernisflächen und Ausgangssperren folgen dem Zustand: Der Stuhl kann ständi
 
 Eine klassische LucasArts-artige Verbenleiste mit Vorbild links unten ergänzt die bestehende Aktions-/Statuszeile. Verb und Objekt bilden einen Satz, beispielsweise „Öffne Tür“. Autoren konfigurieren Zustände, Aktionen, direkte Objektverknüpfungen und Hindernisse im Browsereditor; die gemeinsame Vorschau verwendet dieselben Regeln und dieselbe Darstellung. Eine Handvoll nutzbarer Referenzobjekte demonstriert Tür, Stuhl und Schalter mit verbundenem Tor.
 
+Jeder Objektklick führt mit dem ausgewählten Verb direkt höchstens eine Aktion aus. Am zurückgeschobenen Werkstattstuhl löst „Benutzen“ das Hinsetzen aus.
+
 Die abnehmbaren Pakete und ihre noch zu bestätigenden Detailentscheidungen/Testgrenzen sind:
 
 1. [20: Gemeinsame Zustände, Aktionen und direkte Verknüpfungen](.scratch/adventure-chat/issues/20-shared-object-actions.md).

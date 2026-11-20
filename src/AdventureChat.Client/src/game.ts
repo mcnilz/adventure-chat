@@ -1,7 +1,7 @@
 import { DEFAULT_ROOM, SPEECH_BUBBLE_DURATION } from './constants.js';
 import { withinExitReach } from './input/exit-hit.js';
 import { InputHandler } from './input/input-handler.js';
-import { actionsForVerb } from './input/object-action.js';
+import { actionForVerb } from './input/object-action.js';
 import { ObjectActionFlow } from './input/object-action-flow.js';
 import { nearestUsePoints, objectUsePoints } from './input/object-use-points.js';
 import { RoomNetworkClient } from './network/room-client.js';
@@ -35,8 +35,6 @@ export class AdventureGame {
   public onActionFeedback?: (text: string) => void;
   public onWorldUnavailable?: (message: string) => void;
   public onObjectsChanged?: () => void;
-  public onActionChoices?: (actions: ReadonlyArray<{ readonly id: string; readonly name: string }>, choose: (id: string) => void) => void;
-  public onClearActionChoices?: () => void;
   public onVerbSelected?: (verb: InteractionVerb) => void;
   private verb: InteractionVerb = 'walk';
   private approach: { verb: InteractionVerb; objectId: string; actionId: string; state: string | undefined } | null = null;
@@ -75,7 +73,7 @@ export class AdventureGame {
     this.state.onChatMessage = (msg) => {
       this.onChatMessage?.(msg);
     };
-    this.state.onObjectsChanged = () => { this.renderer.updateRoomState(this.state.room); this.onClearActionChoices?.(); this.onObjectsChanged?.(); };
+    this.state.onObjectsChanged = () => { this.renderer.updateRoomState(this.state.room); this.onObjectsChanged?.(); };
     this.state.onNavigationStopped = () => {
       this.objectWalkToken++;
       this.objectActionFlow.cancel();
@@ -161,17 +159,11 @@ export class AdventureGame {
           this.renderer.toggleDebugOverlay();
         },
         onObjectAction: async object => {
-          this.onClearActionChoices?.();
-          const actions = actionsForVerb(object, this.state.objectStates.get(object.id), this.verb);
           const roomId = this.room.id, expectedState = this.state.objectStates.get(object.id);
+          const actionId = actionForVerb(object, expectedState, this.verb);
           this.state.pendingExit = null;
-          const execute = (actionId: string | null) => {
-            if (this.approach && (this.approach.actionId !== actionId || this.approach.state !== expectedState)) this.cancelObjectApproach();
-            return this.objectActionFlow.start(roomId, object, actionId, expectedState);
-          };
-          if (actions.length === 0) await execute(null);
-          else if (actions.length === 1) await execute(actions[0]!.id);
-          else this.onActionChoices?.(actions, id => { void execute(id); });
+          if (this.approach && (this.approach.actionId !== actionId || this.approach.state !== expectedState)) this.cancelObjectApproach();
+          await this.objectActionFlow.start(roomId, object, actionId, expectedState);
         },
         onUnavailableTarget: () => {
           this.cancelObjectApproach();
@@ -183,7 +175,6 @@ export class AdventureGame {
           if (this.approach && (this.verb === 'walk' || this.approach.objectId !== objectId)) this.cancelObjectApproach();
           this.objectWalkToken++;
           this.objectActionFlow.cancel();
-          this.onClearActionChoices?.();
           this.onActionFeedback?.('');
         },
       },

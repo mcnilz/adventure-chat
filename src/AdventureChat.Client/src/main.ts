@@ -36,8 +36,6 @@ async function initialize(): Promise<void> {
   );
   const verbBar = new VerbBar(verb => game.chooseVerb(verb));
   game.onVerbSelected = verb => verbBar.setSelected(verb);
-  game.onActionChoices = (actions, choose) => verbBar.showChoices(actions, choose);
-  game.onClearActionChoices = () => verbBar.clearChoices();
 
   game.onConnectionStatusChanged = (status) => {
     chatUi.setConnectionStatus(status);
@@ -48,7 +46,6 @@ async function initialize(): Promise<void> {
   };
 
   game.onRoomChanged = (room) => {
-    verbBar.clearChoices();
     chatUi.appendSystemMessage(`--- Raum gewechselt: ${room.name} ---`);
   };
 

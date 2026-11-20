@@ -35,8 +35,16 @@ Die Grafik wird beim Raumaufbau vorgeladen. Der ausführende Browser wartet vor 
 ## Manuelle Abnahme
 
 1. [Lokale Abnahmekopie](http://127.0.0.1:61395/) in zwei Browserfenstern öffnen und mit verschiedenen Namen eintreten. Von der Lounge durch die rechte Tür in den Garten gehen. Die Holztür im efeubewachsenen Steinbogen führt zur Werkstatt.
-2. Mit **Ziehen** den Stuhl vom Tisch rücken. Mit **Benutzen → Hinsetzen** Platz nehmen. Beide Fenster sollen dieselbe Sitzpose sehen. Im zweiten Fenster dieselbe Aktion probieren. Der Platz ist belegt. Die erste Figur mit **Gehe zu** auf freie Fliesen schicken und im zweiten Fenster erneut **Hinsetzen** wählen.
+2. Mit **Ziehen** den Stuhl vom Tisch rücken. Mit **Benutzen** direkt Platz nehmen. Beide Fenster sollen dieselbe Sitzpose sehen. Im zweiten Fenster dieselbe Aktion probieren. Der Platz ist belegt. Die erste Figur mit **Gehe zu** auf freie Fliesen schicken und im zweiten Fenster erneut **Benutzen** wählen.
 3. **Benutzen** auf der leeren Tafel links an der Rückwand wählen. Die Figur soll zur Tafel gehen, nach oben schauen und die Hand heben. Erst danach erscheint der Werkstattplan in beiden Fenstern. Ein weiterer Klick mit **Benutzen** leert die Tafel. Die Geste wiederholen und vor der Wirkung einen Gehauftrag geben. Die Tafel soll leer bleiben. Nach erfolgreicher Geste mit einem frischen Besuch die beschriftete Tafel prüfen.
 4. Im [Editor der Abnahmekopie](http://127.0.0.1:61395/editor.html?worldId=reference) **Werkstatt → board → Aktionen → Figurenanimation** öffnen. Dauer und Blickrichtung prüfen. Optional eine Dauer ändern, speichern, neu laden und die Geste über den Vorschaumodus ausprobieren.
 
-Spiel und Editor der getrennten Abnahmekopie wurden mit HTTP 200 geprüft. Der Editor meldet Format 1.10.0. Spieleintritt und der Weg von der Lounge bis zur Werkstatt wurden im Browser geprüft. Prozess 3192, Kopie unter `.scratch/adventure-chat/evidence/26/acceptance`. Sitzpose, erhobene Hand und geschriebener Plan sind als Browseraufnahmen im Belegordner festgehalten.
+Spiel und Editor der getrennten Abnahmekopie wurden mit HTTP 200 geprüft. Die aktualisierte Kopie liegt unter `.scratch/adventure-chat/evidence/26/acceptance-direct-verbs` und läuft als Prozess 33928. Sitzpose, erhobene Hand und geschriebener Plan sind als Browseraufnahmen im Belegordner festgehalten.
+
+## Nachtrag zur direkten Verbenbedienung
+
+Am 20.11.2026 bestätigte der Benutzer die Funktion und bat darum, alle Aktionsuntermenüs aus der Verbenleiste zu entfernen. Spiel und Editorvorschau führen pro Verb und Objektklick direkt eine Aktion aus. Der zurückgeschobene Stuhl weist **Benutzen** dem Hinsetzen zu. Der Stuhl am Tisch lässt sich weiterhin mit **Ziehen** zurückschieben. Die Regel für vorhandene frei benannte Aktionen steht im [Formatvertrag](../../../CONTENT-FORMAT.md#interaktionen-ab-weltformat-160-ticket-20).
+
+Referenzinhalt **5.1.1** enthält die angepasste Aktionsbezeichnung. Die Änderung betrifft die Auswahl im Browser. Format **1.10.0**, veröffentlichte Schemata, gespeicherte Aktions-IDs und serverseitige Ausführung bleiben unverändert. Menschliche Abnahme des Nachtrags steht aus.
+
+Typcheck, Clientbuild und .NET-Build mit 0 Warnungen bestanden. Die vollständige Suite bestand erneut **362 Tests** (246 Server, 116 Browser). Die Browser prüfen unter anderem das direkte Hinsetzen, den Stuhl am Tisch, den Schalter mit mehreren gespeicherten Aktionen und Spiel sowie Editorvorschau. Belege stehen unter `.scratch/adventure-chat/evidence/26/direct-verbs-tests`. Lokaler Nachtragscommit `Execute object verbs directly (ticket 26)`.

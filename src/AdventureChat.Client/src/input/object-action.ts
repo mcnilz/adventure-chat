@@ -20,9 +20,14 @@ export function verbForActionName(name: string): string {
     ?? (['use', 'benutzen', 'benutze'].includes(name.toLowerCase()) ? 'use' : '');
 }
 
-export function actionsForVerb(object: RoomObject, state: string | undefined, verb: InteractionVerb): ReadonlyArray<{ readonly id: string; readonly name: string }> {
-  const available = object.interaction?.actions.filter(action => action.from === state) ?? [];
-  if (verb === 'walk') return [];
-  if (verb === 'use') return available;
-  return available.filter(action => aliases[verb].includes(action.id.toLowerCase()) || aliases[verb].includes(action.name.toLowerCase()));
+export function actionForVerb(object: RoomObject, state: string | undefined, verb: InteractionVerb): string | null {
+  const actions = object.interaction?.actions ?? [];
+  if (verb === 'walk') return null;
+  const matchesVerb = (action: (typeof actions)[number]) =>
+    verbForActionName(action.id) === verb || verbForActionName(action.name) === verb;
+  const matching = actions.find(action => action.from === state && matchesVerb(action));
+  if (matching) return matching.id;
+  if (verb === 'use' && !actions.some(matchesVerb))
+    return actions.find(action => action.from === state)?.id ?? null;
+  return null;
 }

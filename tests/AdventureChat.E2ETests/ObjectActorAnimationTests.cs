@@ -30,10 +30,14 @@ public class ObjectActorAnimationTests
         var mara = await JoinWorkshop(browser, server.BaseUrl, "mara");
         var bruno = await JoinWorkshop(browser, server.BaseUrl, "bruno");
 
+        await Act(mara, "Benutzen", 169, 194);
+        await mara.WaitForFunctionAsync("window.__ADVENTURE_GAME__.character.speechBubble?.text === 'Das geht nicht.'");
+        await ObjectShows(mara, "chair", "workshop-chair.png", 148);
         await Act(mara, "Ziehen", 169, 194);
         await ObjectShows(bruno, "chair", "workshop-chair.png", 204);
         await Sit(mara);
         await bruno.WaitForFunctionAsync(MaraSeated);
+        await Assertions.Expect(mara.Locator("#action-choices")).ToHaveCountAsync(0);
         await HasPixel(bruno, 204, 198, 30, 26, 229, 189, 148);
         await Capture(bruno, "held-pose");
         await Sit(bruno);
@@ -129,7 +133,6 @@ public class ObjectActorAnimationTests
     private static async Task Sit(IPage page)
     {
         await Act(page, "Benutzen", 224, 214);
-        await page.GetByRole(AriaRole.Button, new() { Name = "Hinsetzen", Exact = true }).ClickAsync();
     }
 
     private static Task ObjectShows(IPage page, string id, string image, int x) => page.WaitForFunctionAsync("""
