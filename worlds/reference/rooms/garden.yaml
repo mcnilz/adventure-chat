@@ -11,7 +11,7 @@ spawns:
   - { id: from-workshop, position: { x: 471, y: 328 } }
 walkable:
   - id: floor
-    points: [{ x: 26, y: 304 }, { x: 112, y: 280 }, { x: 244, y: 276 }, { x: 408, y: 276 }, { x: 446, y: 280 }, { x: 616, y: 290 }, { x: 616, y: 348 }, { x: 26, y: 348 }]
+    points: [{ x: 26, y: 304 }, { x: 112, y: 280 }, { x: 244, y: 276 }, { x: 393, y: 276 }, { x: 409, y: 294 }, { x: 527, y: 294 }, { x: 553, y: 286 }, { x: 616, y: 290 }, { x: 616, y: 348 }, { x: 26, y: 348 }]
 obstacles:
   - id: table
     points: [{ x: 252, y: 294 }, { x: 408, y: 294 }, { x: 408, y: 310 }, { x: 252, y: 310 }]
@@ -39,7 +39,7 @@ exits:
     label: Lounge
     target: { room: lounge, spawn: from-garden }
   - id: to-workshop
-    position: { x: 472, y: 294 }
+    position: { x: 472, y: 306 }
     radius: 16
     bounds: { x: 425, y: 112, width: 94, height: 174 }
     label: Werkstatt

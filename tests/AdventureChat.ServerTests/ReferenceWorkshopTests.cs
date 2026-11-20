@@ -6,13 +6,21 @@ namespace AdventureChat.ServerTests;
 
 public class ReferenceWorkshopTests
 {
+    [TestCase("garden", 420, 284, false)]
+    [TestCase("garden", 472, 284, false)]
+    [TestCase("garden", 472, 306, true)]
+    [TestCase("workshop", 49, 90, false)]
+    [TestCase("workshop", 49, 118, true)]
+    public void WalkingSurface_MatchesTheDoorThreshold(string roomId, int x, int y, bool walkable)
+    {
+        var room = LoadReference().LoadRooms().Single(room => room.Id == roomId).ToRoomDefinition();
+        Assert.That(room.Geometry.IsWalkable(new Point2D(x, y)), Is.EqualTo(walkable));
+    }
+
     [Test]
     public void ReferenceWorkshop_AddsAReachableRoundTripFromTheGarden()
     {
-        var root = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory,
-            "../../../../../worlds/reference"));
-        var world = WorldPackage.Load(root);
-        var rooms = world.LoadRooms().Select(room => room.ToRoomDefinition()).ToDictionary(room => room.Id);
+        var rooms = LoadReference().LoadRooms().Select(room => room.ToRoomDefinition()).ToDictionary(room => room.Id);
         Assert.That(rooms.Keys, Does.Contain("workshop"));
 
         var garden = rooms["garden"];
@@ -26,6 +34,9 @@ public class ReferenceWorkshopTests
         AssertReachableExit(workshop, "entry", "to-garden", "garden", "from-workshop", paths);
         AssertReachableExit(garden, "from-workshop", "to-depth-demos", "tour-map", "entry", paths);
     }
+
+    private static WorldPackage LoadReference() => WorldPackage.Load(Path.GetFullPath(Path.Combine(
+        TestContext.CurrentContext.TestDirectory, "../../../../../worlds/reference")));
 
     private static void AssertReachableExit(RoomDefinition room, string start, string exitId,
         string targetRoom, string targetSpawn, PathfindingService paths)

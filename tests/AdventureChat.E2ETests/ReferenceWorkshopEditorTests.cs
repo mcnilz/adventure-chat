@@ -43,7 +43,12 @@ public class ReferenceWorkshopEditorTests
         await editor.ClickAsync("#btn-toggle-mode");
         await editor.ClickAsync("#btn-toggle-mode");
         await PreviewAction(editor, "pull", ChairAtTable);
-        await PreviewAction(editor, "open", ClosedDoorPanel);
+        await PreviewAction(editor, "open", ReturnDoor);
+        await editor.GetByLabel("Vorschauverb").SelectOptionAsync("walk");
+        await ClickCanvas(editor, ReturnDoor.X, ReturnDoor.Y);
+        await Assertions.Expect(editor.Locator("#preview-result")).ToHaveTextAsync("Raum: Tavernen-Garten");
+        await ClickCanvas(editor, WorkshopEntrance.X, WorkshopEntrance.Y);
+        await Assertions.Expect(editor.Locator("#preview-result")).ToHaveTextAsync("Raum: Werkstatt");
         await PreviewAction(editor, "use", SwitchPanel);
         await Capture(editor, "editor-preview");
         await editor.GetByLabel("Vorschauverb").SelectOptionAsync("walk");

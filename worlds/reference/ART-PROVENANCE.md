@@ -33,12 +33,12 @@ Inhalt **3.0.0** statt 2.1.0: Neue Laufpolygone/Hindernisse und an die sichtbare
 
 ## Werkstatt · Ticket 23
 
-Acht Werkstattgrafiken sind bytegleiche Spielkopien der projektinternen Pixelzeichnungen aus der abgenommenen Testwelt von Ticket 22 (Commit `c8be2e8`). Für Ticket 23 wurden die Motive als Raumobjekte neu platziert und teilweise im vorhandenen Renderer skaliert. Der Tisch verwendet die vorhandene Spielgrafik `garden-table.png`. Die PNG-Originale liegen weiterhin in den beiden [Testwelten von Ticket 22](../../tests/Fixtures/interaction-review/) und die bisherigen Referenzbilder behalten ihre Herkunft.
+Sieben Werkstattgrafiken sind bytegleiche Spielkopien der projektinternen Pixelzeichnungen aus der abgenommenen Testwelt von Ticket 22 (Commit `c8be2e8`). Für Ticket 23 wurden die Motive als Raumobjekte neu platziert und teilweise im vorhandenen Renderer skaliert. Der Tisch verwendet die vorhandene Spielgrafik `garden-table.png`. Die PNG-Originale liegen weiterhin in den beiden [Testwelten von Ticket 22](../../tests/Fixtures/interaction-review/) und die bisherigen Referenzbilder behalten ihre Herkunft.
 
 | Spielgrafik | Original unter `tests/Fixtures/interaction-review` |
 | --- | --- |
-| `workshop.png` | `navigation/assets/images/background.png` |
-| `workshop-door-closed.png`, `workshop-door-open.png` | `navigation/assets/images/door-closed.png`, `door-open.png` |
+| `workshop.png` | `interactions/assets/images/background.png` |
+| `workshop-door-closed.png` | `navigation/assets/images/door-closed.png` |
 | `workshop-chair.png` | `navigation/assets/images/wooden-chair.png` |
 | `workshop-switch-off.png`, `workshop-switch-on.png` | `interactions/assets/images/switch-off.png`, `switch-on.png` |
 | `workshop-gate-closed.png`, `workshop-gate-open.png` | `interactions/assets/images/gate-closed.png`, `gate-open.png` |
@@ -48,3 +48,7 @@ Die Kopien übernehmen den vorhandenen Rechte- und Lizenzstand der Projektgrafik
 `workshop-garden-entrance.png` ist eine Überarbeitung desselben Holztürmotivs für den Garten. Der Auftrag an die integrierte Bildbearbeitung war eine geschlossene, erwachsenengroße Eichentür mit Brettern und Eisenbeschlägen. Die abgenommene niedrige Gartenmauer gab grauen Stein, Efeu und warmes Licht am linken Rand vor. Die Werkstatttür aus Ticket 22 war die Motivvorlage und der bestehende Gartenhintergrund die Stilreferenz. Die Einfassung bildet einen eigenen hohen Bogen. Der Hintergrund der Spielgrafik ist transparent.
 
 Aus dem lokalen 887 × 1774 PNG wurde der Alpharand zugeschnitten und die Spielfassung auf 94 × 174 Pixel verkleinert. Das vollständige Original liegt lokal unter `.scratch/adventure-chat/evidence/23/garden-entrance-art-original.png`. Die veröffentlichte Spielfassung enthält die fertigen Pixel und benötigt keine Bilderzeugung beim Start. Die Figuren verwenden im Garten weiterhin 128 Pixel hohe Rahmen.
+
+Für die Rückwand der Werkstatt wurde der Hintergrund mit durchgehenden Bodenfliesen übernommen. Die integrierte Bildbearbeitung hat die bestehende offene Tür als dunklen Durchgang mit sichtbarer Schwelle nachgezeichnet. So scheint in der Öffnung keine Mauer durch. Geschlossene Tür und offene Vorlage stammen aus Ticket 22. Die offene Spielfassung `workshop-door-open.png` wurde vom Original (793 × 1983) auf 40 × 100 Pixel zugeschnitten und skaliert. Original und Bildauftrag liegen lokal unter `.scratch/adventure-chat/evidence/23/`.
+
+`workshop-gate-view.png` zeigt die Öffnung in der Rückwand hinter dem vorhandenen Gitter. Die integrierte Bilderstellung verwendete den Garten als Vorlage für Mondlicht und Pflaster und den Werkstatthintergrund als Stilvorlage. Die Spielgrafik wurde vom Original (1217 × 1293) auf 72 × 76 Pixel skaliert und liegt als gemeinsame Ebene hinter beiden Gitterzuständen. Das Original und der Bildauftrag liegen lokal im selben Belegordner.

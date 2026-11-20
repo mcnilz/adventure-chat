@@ -10,11 +10,11 @@ public class ReferenceTourArtTests
         Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../../worlds/reference")));
 
     [Test]
-    public void ReferenceWorld_UsesPublishedNavigationFormatAndAdditiveContentVersion()
+    public void ReferenceWorld_UsesPublishedNavigationFormatAndRevisedContentVersion()
     {
         var world = LoadWorld();
         Assert.That(world.FormatVersion, Is.EqualTo("1.8.0"));
-        Assert.That(world.ContentVersion, Is.EqualTo("3.1.0"));
+        Assert.That(world.ContentVersion, Is.EqualTo("4.0.0"));
         Assert.That(world.Characters.Select(c => c.Id), Is.EquivalentTo(new[] { "mara", "bruno" }));
     }
 

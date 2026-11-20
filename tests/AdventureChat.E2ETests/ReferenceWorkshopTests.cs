@@ -7,10 +7,10 @@ namespace AdventureChat.E2ETests;
 public class ReferenceWorkshopTests
 {
     internal static readonly (int X, int Y) ChairAtTable = (169, 194);
-    internal static readonly (int X, int Y) ClosedDoorPanel = (300, 252);
-    internal static readonly (int X, int Y) SwitchPanel = (418, 91);
-    internal static readonly (int X, int Y) GateOpening = (500, 80);
-    internal static readonly (int X, int Y) GateBeam = (500, 45);
+    internal static readonly (int X, int Y) ReturnDoor = (49, 68);
+    internal static readonly (int X, int Y) SwitchPanel = (286, 74);
+    internal static readonly (int X, int Y) GateOpening = (370, 78);
+    internal static readonly (int X, int Y) GateBeam = (370, 28);
     internal static readonly (int X, int Y) WorkshopEntrance = (472, 242);
 
     [Test]
@@ -23,7 +23,7 @@ public class ReferenceWorkshopTests
         var mara = await JoinWorkshop(browser, server.BaseUrl, "mara");
         var bruno = await JoinWorkshop(browser, server.BaseUrl, "bruno");
         await mara.WaitForFunctionAsync("window.__ADVENTURE_GAME__.remotePlayers.size === 1");
-        Assert.That(await TryWalk(bruno, 545, 320), Is.False, "Closed door blocks the east workshop.");
+        Assert.That(await TryWalk(bruno, 49, 118), Is.False, "Closed return door blocks its sill.");
         Assert.That(await TryWalk(bruno, 168, 205), Is.False, "Chair at the table occupies its footprint.");
         await Walk(bruno, 106, 236);
         await Capture(mara, "initial");
@@ -41,37 +41,42 @@ public class ReferenceWorkshopTests
         Assert.That(await TryWalk(bruno, 222, 230), Is.False, "Pulled chair occupies its other footprint.");
         await Walk(bruno, 120, 261);
 
-        await Verb(mara, "Öffnen", ClosedDoorPanel);
+        await Verb(mara, "Öffnen", ReturnDoor);
         await ExpectObjectImage(bruno, "door", "open");
         await Capture(mara, "open-and-pulled");
         await Verb(bruno, "Drücken", (224, 215));
         await ExpectObjectX(mara, "chair", 148);
 
+        await Walk(bruno, 49, 118);
+        await Capture(bruno, "door-threshold");
+        await FollowExit(bruno, ReturnDoor, "garden");
+        await FollowExit(bruno, WorkshopEntrance, "workshop");
         await Walk(bruno, 545, 320);
-        Assert.That(await TryWalk(bruno, 100, 275), Is.True);
+        Assert.That(await TryWalk(bruno, 49, 118), Is.True);
         await bruno.WaitForFunctionAsync("window.__ADVENTURE_GAME__.character.state === 'walk'");
-        await Verb(mara, "Schließen", (288, 252));
+        await Verb(mara, "Schließen", ReturnDoor);
         await ExpectObjectImage(bruno, "door", "closed");
+        Assert.That(await bruno.EvaluateAsync<bool>("window.__ADVENTURE_GAME__.room.exits.some(exit => exit.id === 'to-garden')"), Is.False);
         await bruno.WaitForFunctionAsync("""
             () => {
               const actor = window.__ADVENTURE_GAME__.character;
-              return actor.state === 'idle' && actor.position.x > 320 && actor.speechBubble?.text.includes('versperrt');
+              return actor.state === 'idle' && actor.position.x > 69 && actor.speechBubble?.text.includes('versperrt');
             }
             """);
-        Assert.That(await TryWalk(bruno, 500, 124), Is.False, "Closed gate blocks the sill.");
+        Assert.That(await TryWalk(bruno, 389, 115), Is.False, "Closed gate blocks the sill.");
 
-        await Verb(bruno, "Öffnen", ClosedDoorPanel);
+        await Verb(bruno, "Öffnen", ReturnDoor);
         await ExpectObjectImage(mara, "door", "open");
         await Verb(mara, "Benutzen", SwitchPanel);
         await ExpectGate(bruno, true);
-        await ClickCanvas(bruno, 500, 124);
-        await WaitAt(bruno, 500, 124);
+        await ClickCanvas(bruno, 389, 115);
+        await WaitAt(bruno, 389, 115);
         Assert.That(await bruno.EvaluateAsync<string>("window.__ADVENTURE_GAME__.room.id"), Is.EqualTo("workshop"));
         await Verb(mara, "Benutzen", SwitchPanel);
         await mara.WaitForFunctionAsync("window.__ADVENTURE_GAME__.character.speechBubble?.text.includes('überdecken')");
         await ExpectGate(mara, true);
         await ExpectGate(bruno, true);
-        await Walk(bruno, 500, 161);
+        await Walk(bruno, 389, 159);
         await Capture(mara, "gate-open");
         await Verb(mara, "Benutzen", SwitchPanel);
         await ExpectGate(bruno, false);
@@ -82,10 +87,12 @@ public class ReferenceWorkshopTests
         await Verb(mara, "Benutzen", SwitchPanel);
         await ExpectGate(bruno, true);
         await FollowExit(bruno, GateOpening, "garden");
+        Assert.That(await TryWalk(bruno, 420, 284), Is.False, "The garden door meets the wall on its left side.");
+        Assert.That(await TryWalk(bruno, 472, 284), Is.False, "The garden threshold is in front of the closed door.");
         await Capture(bruno, "garden-entrance");
         await FollowExit(bruno, WorkshopEntrance, "workshop");
         await ExpectGate(bruno, true);
-        await FollowExit(bruno, (49, 90), "garden");
+        await FollowExit(bruno, ReturnDoor, "garden");
         await FollowExit(bruno, WorkshopEntrance, "workshop");
 
         await mara.FillAsync("#chat-input", "Das Gartentor ist offen");
@@ -104,7 +111,7 @@ public class ReferenceWorkshopTests
         var mara = await JoinWorkshop(browser, server.BaseUrl, "mara");
         await Verb(mara, "Ziehen", ChairAtTable);
         await ExpectObjectX(mara, "chair", 204);
-        await Verb(mara, "Öffnen", ClosedDoorPanel);
+        await Verb(mara, "Öffnen", ReturnDoor);
         await ExpectObjectImage(mara, "door", "open");
         await Verb(mara, "Benutzen", SwitchPanel);
         await ExpectGate(mara, true);
