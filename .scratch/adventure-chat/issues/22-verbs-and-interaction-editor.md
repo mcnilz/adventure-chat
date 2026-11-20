@@ -4,7 +4,7 @@
 
 **Blocked by:** [20](20-shared-object-actions.md), [21](21-state-dependent-navigation.md), [18](18-responsive-game-scaling.md), 06, 15 und 17 sind done. Paketfreigabe am 19.11.2026 erfolgt.
 
-**Status:** ready-for-human
+**Status:** done
 
 ## Auftrag und Freigabegrenze
 
@@ -73,7 +73,7 @@ Die neuen Abnahmewelten liegen unter `tests/Fixtures/interaction-review`. Eigens
 
 Der Türrahmen bleibt in beiden Zuständen am selben Ort in der Steinwand. Die freie Türöffnung, der eingezeichnete Durchgang und der Ausgang `next` liegen jetzt beieinander. Geschlossen sperrt der Zustand die Öffnung und deaktiviert den Ausgang. Offen gibt er beides frei. Der Browsertest reproduzierte zuerst den bisherigen Übergang neben der Tür und prüft jetzt den Klick direkt durch die offene Tür in Spiel und Vorschau. Im Nebenraum ist der Rückweg ebenfalls an einer sichtbaren Tür platziert.
 
-Abschließende Vollsuite mit 330 bestandenen Tests (221 Server, 109 Browser) und 0 Warnungen. Sichtprüfung der offenen und geschlossenen Tür sowie des Übergangs abgeschlossen. Die Nacharbeit betrifft die neuen Abnahmewelten und einen Browsertest. Der bestehende Formatvertrag, die veröffentlichten Schemas und die früheren Referenzfixtures bleiben bytegleich. Protokolle unter `.scratch/adventure-chat/evidence/22`. Lokaler Nachtragscommit „Integrate the doorway into the acceptance rooms (ticket 22)“. Menschliche Abnahme steht aus.
+Abschließende Vollsuite mit 330 bestandenen Tests (221 Server, 109 Browser) und 0 Warnungen. Sichtprüfung der offenen und geschlossenen Tür sowie des Übergangs abgeschlossen. Die Nacharbeit betrifft die neuen Abnahmewelten und einen Browsertest. Der bestehende Formatvertrag, die veröffentlichten Schemas und die früheren Referenzfixtures bleiben bytegleich. Protokolle unter `.scratch/adventure-chat/evidence/22`. Lokaler Nachtragscommit „Integrate the doorway into the acceptance rooms (ticket 22)“. Der Benutzer hat Ticket 22 einschließlich Nacharbeit am 20.11.2026 ausdrücklich abgenommen („abgenommen“).
 
 ## Manuelle Abnahme
 

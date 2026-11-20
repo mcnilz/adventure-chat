@@ -4,7 +4,7 @@
 
 **Blocked by:** keine offenen fachlichen Vorgänger; Tickets 13 und 16 sind done. Ticket 18 bearbeitet unabhängig davon die Bildschirmskalierung und ist keine Voraussetzung für die Grafikarbeit. Gemeinsame Sichtprüfung mit dessen tatsächlich verfügbarem Stand; keine parallele Umsetzung beauftragt.
 
-**Status:** ready-for-human (lokal umgesetzt und geprüft; finale menschliche Sichtabnahme ausstehend)
+**Status:** done. Der Benutzer hat die Gesamtabnahme am 20.11.2026 ausdrücklich bestätigt („abegenommen“).
 
 ## Aktuelles Umsetzungsergebnis · 09.11.2026
 
