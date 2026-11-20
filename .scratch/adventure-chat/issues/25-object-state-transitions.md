@@ -4,7 +4,7 @@
 
 **Blocked by:** [21](21-state-dependent-navigation.md), [22](22-verbs-and-interaction-editor.md).
 
-**Status:** ready-for-human
+**Status:** done
 
 ## Acceptance criteria
 
@@ -37,7 +37,7 @@ Weltformat **1.9.0** ist eine Minor-Erweiterung mit optionalen Angaben. Bestehen
 
 ## Nachtrag zur Bedienung
 
-Beide Hubtasten lassen sich mit **Drücken** und **Benutzen** bedienen. Die Aktionsnamen verwenden die vorhandene Verbzuordnung. Inhaltsversion **5.0.1** kennzeichnet die zusätzliche Bedienung im Raum. Weltformat und veröffentlichte Schemas behalten ihre bisherige Bedeutung. Der erweiterte Browsertest war vor der Änderung bei **Drücken** rot. Anschließend bestanden 12 gezielte Servertests und drei Browsertests. Der Nachtrag steht zur Sichtkontrolle in derselben lokalen Abnahmekopie bereit.
+Beide Hubtasten lassen sich mit **Drücken** und **Benutzen** bedienen. Die Aktionsnamen verwenden die vorhandene Verbzuordnung. Inhaltsversion **5.0.1** kennzeichnet die zusätzliche Bedienung im Raum. Weltformat und veröffentlichte Schemas behalten ihre bisherige Bedeutung. Der erweiterte Browsertest war vor der Änderung bei **Drücken** rot. Anschließend bestanden 12 gezielte Servertests und drei Browsertests. Der Benutzer hat den Nachtrag aus `78b6abf` am 20.11.2026 ausdrücklich mit „abgenommen“ bestätigt.
 
 ## Manuelle Abnahme
 
