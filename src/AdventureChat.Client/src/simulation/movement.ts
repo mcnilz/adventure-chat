@@ -1,6 +1,15 @@
 import { moveTowards } from '../math.js';
 import { WALK_FRAME_INTERVAL } from '../constants.js';
-import type { Character, Direction, Point } from '../types.js';
+import type { Character, Direction, PlayerDto, Point } from '../types.js';
+
+export function applyActorAnimation(character: Character, player: PlayerDto, assetUrl = (path: string) => path): void {
+  const animation = player.actorAnimation;
+  character.actorAnimation = animation ? {
+    ...animation, image: animation.image ? assetUrl(animation.image) : null,
+    startedAt: performance.now() - animation.elapsedMs
+  } : null;
+  if (animation) character.facing = player.direction;
+}
 
 /**
  * Calculates the cardinal direction based on the movement delta vector.

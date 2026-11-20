@@ -1,5 +1,5 @@
 import { DEFAULT_ROOM, DEFAULT_SPEED, SPEECH_BUBBLE_DURATION } from '../constants.js';
-import { assignPathToCharacter } from '../simulation/movement.js';
+import { applyActorAnimation, assignPathToCharacter } from '../simulation/movement.js';
 import { applyObjectAppearances } from './object-appearance.js';
 import type {
   Character,
@@ -87,6 +87,7 @@ export class RoomState {
         this.character.state = player.state;
         this.character.target = null;
         this.character.waypoints = [];
+        applyActorAnimation(this.character, player);
         if (player.waypoints.length > 1) assignPathToCharacter(this.character, player.waypoints as Point[]);
       } else {
         this.addOrUpdateRemotePlayer(player);
@@ -105,7 +106,7 @@ export class RoomState {
     if (dto.exits) this.room = { ...this.room, exits: dto.exits };
     for (const player of dto.players ?? []) {
       this.handlePlayerMoved({ roomId: dto.roomId, sessionId: player.sessionId, revision: player.movementRevision,
-        target: player.target ?? player.position, waypoints: player.waypoints.length > 0 ? player.waypoints : [player.position] }, true);
+        target: player.target ?? player.position, waypoints: player.waypoints.length > 0 ? player.waypoints : [player.position] }, player);
     }
     const stoppedPlayer = dto.players?.find(p => p.sessionId === this.sessionId);
     if (dto.stoppedSessions?.includes(this.sessionId) && stoppedPlayer &&
@@ -148,6 +149,7 @@ export class RoomState {
     if (player.waypoints && player.waypoints.length > 0) {
       assignPathToCharacter(char, player.waypoints as Point[]);
     }
+    applyActorAnimation(char, player);
 
     this.remotePlayers.set(player.sessionId, char);
   }
@@ -156,21 +158,17 @@ export class RoomState {
     this.remotePlayers.delete(sessionId);
   }
 
-  public handlePlayerMoved(dto: PlayerMovedDto, fromObjectSnapshot = false): void {
+  public handlePlayerMoved(dto: PlayerMovedDto, player?: PlayerDto): void {
     const currentRevision = this.movementRevisions.get(dto.sessionId) ?? -1;
-    if (dto.roomId !== this.room.id || dto.revision < currentRevision || (!fromObjectSnapshot && dto.revision === currentRevision)) return;
+    if (dto.roomId !== this.room.id || dto.revision < currentRevision || (!player && dto.revision === currentRevision)) return;
+    const character = dto.sessionId === this.sessionId ? this.character : this.remotePlayers.get(dto.sessionId);
+    if (!character) return;
     this.movementRevisions.set(dto.sessionId, dto.revision);
     const waypoints = dto.waypoints as Point[];
-    if (dto.sessionId === this.sessionId) {
-      if (waypoints[0]) this.character.position = { ...waypoints[0] };
-      assignPathToCharacter(this.character, waypoints);
-    } else {
-      const remote = this.remotePlayers.get(dto.sessionId);
-      if (remote) {
-        if (waypoints[0]) remote.position = { ...waypoints[0] };
-        assignPathToCharacter(remote, waypoints);
-      }
-    }
+    if (waypoints[0]) character.position = { ...waypoints[0] };
+    assignPathToCharacter(character, waypoints);
+    if (player) applyActorAnimation(character, player);
+    else character.actorAnimation = null;
   }
 
   public handleChatMessage(msg: ChatMessageDto): void {

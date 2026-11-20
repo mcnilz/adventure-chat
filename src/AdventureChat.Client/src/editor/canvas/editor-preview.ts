@@ -2,7 +2,7 @@ import { loadCharacterCatalog } from '../../network/character-catalog.js';
 import { EditorApi, type PreviewResult } from '../core/editor-api.js';
 import type { RoomView } from '../core/editor-types.js';
 import { RoomRenderer } from '../../rendering/renderer.js';
-import { assignPathToCharacter, updateCharacterMovement } from '../../simulation/movement.js';
+import { applyActorAnimation, assignPathToCharacter, updateCharacterMovement } from '../../simulation/movement.js';
 import type { Character, Point, PreviewObjectStates, RoomDefinition, RoomExit } from '../../types.js';
 import { applyObjectAppearances } from '../../state/object-appearance.js';
 import { actionsForVerb } from '../../input/object-action.js';
@@ -27,6 +27,7 @@ export class EditorPreview {
   private pendingExit: RoomExit | null = null;
   private exits: readonly RoomExit[] = [];
   private initialSnapshot: Promise<void> | null = null;
+  private activeAnimation: { objectId: string; actionId: string } | null = null;
 
   public constructor(private readonly canvas: HTMLCanvasElement) {
     this.actionFlow = new ObjectActionFlow(
@@ -39,7 +40,8 @@ export class EditorPreview {
       }),
       point => this.walk(point),
       (_, objectId, actionId) => this.executeAction(objectId, actionId),
-      error => this.tell(error ?? 'Aktion ausgeführt.')
+      (error, pending) => { if (!pending) this.tell(error ?? 'Aktion ausgeführt.'); },
+      async animation => this.previewRenderer?.prepareActorAnimation(animation)
     );
   }
 
@@ -62,7 +64,7 @@ export class EditorPreview {
     this.exits = roomDef.exits?.filter(exit => !blockedExitIds.has(exit.id.toLowerCase())) ?? [];
     this.objectStates = [{ roomId: roomDef.id, states: (roomDef.objects ?? []).flatMap(o =>
       o.interaction ? [{ objectId: o.id, stateId: o.interaction.initialState }] : []) }];
-    this.previewRenderer = new RoomRenderer(this.canvas, { ...roomDef, exits: this.exits });
+    this.previewRenderer = new RoomRenderer(this.canvas, { ...roomDef, exits: this.exits }, path => EditorApi.backgroundUrl(path));
 
     // Initial character spawn
     const defaultSpawn = roomDef.spawnPoint ?? { x: 320, y: 300 };
@@ -101,6 +103,7 @@ export class EditorPreview {
 
   public stop(): void {
     this.cancelCommand();
+    this.clearAnimation();
     this.isRunning = false;
     this.controls.close();
     if (this.previewAnimationId !== null) {
@@ -171,6 +174,7 @@ export class EditorPreview {
     const room = this.room;
     const revision = this.requestRevision;
     if (!character || !room) return { accepted: false };
+    this.clearAnimation();
     try {
       const result = await EditorApi.previewPath(room, character.position, target, this.currentStates(), this.targetFormat);
       if (revision !== this.requestRevision) return { accepted: false };
@@ -190,19 +194,53 @@ export class EditorPreview {
   private location() {
     return {
       room: this.draft!, roomId: this.room!.id, position: this.previewCharacter!.position, states: this.objectStates,
+      ...(this.previewCharacter?.appearance ? { characterId: this.previewCharacter.appearance.id } : {}),
       ...(this.targetFormat ? { targetFormat: this.targetFormat } : {})
     };
   }
 
   private async executeAction(objectId: string, actionId: string) {
+    if (this.activeAnimation) {
+      const same = this.activeAnimation.objectId === objectId && this.activeAnimation.actionId === actionId;
+      const pending = same && this.previewCharacter?.actorAnimation?.durationMs != null;
+      return { success: same, error: same ? null : 'Beende zuerst die aktuelle Benutzung.', pending };
+    }
     const revision = this.requestRevision;
     try {
       const result = await EditorApi.previewAction(this.location(), objectId, actionId);
-      if (revision === this.requestRevision) this.renderSnapshot(result);
-      return result;
+      if (revision !== this.requestRevision) return result;
+      this.renderSnapshot(result);
+      if (result.success && this.previewCharacter?.actorAnimation) {
+        const command = { objectId, actionId };
+        this.activeAnimation = command;
+        const { durationMs, elapsedMs } = this.previewCharacter.actorAnimation;
+        if (durationMs !== null) void this.finishGesture(command, durationMs - elapsedMs);
+      }
+      return { ...result, pending: this.previewCharacter?.actorAnimation?.durationMs != null };
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : String(error) };
     }
+  }
+
+  private async finishGesture(command: { objectId: string; actionId: string }, wait: number): Promise<void> {
+    await new Promise(resolve => setTimeout(resolve, Math.max(0, wait)));
+    if (this.activeAnimation !== command) return;
+    try {
+      const result = await EditorApi.previewAction(this.location(), command.objectId, command.actionId, true);
+      if (this.activeAnimation !== command) return;
+      this.clearAnimation();
+      this.renderSnapshot(result);
+      this.tell(result.success ? 'Aktion ausgeführt.' : result.error ?? 'Aktion abgelehnt.');
+    } catch (error) {
+      if (this.activeAnimation !== command) return;
+      this.clearAnimation();
+      this.tell(error instanceof Error ? error.message : String(error));
+    }
+  }
+
+  private clearAnimation(): void {
+    this.activeAnimation = null;
+    if (this.previewCharacter) this.previewCharacter.actorAnimation = null;
   }
 
   private async enterExit(exit: RoomExit): Promise<void> {
@@ -213,6 +251,7 @@ export class EditorPreview {
       if (!result.success) { this.tell(result.error ?? 'Der Ausgang ist derzeit gesperrt.'); return; }
       const room = result.snapshot.roomId === this.draft?.id ? this.draft : await EditorApi.fetchRoom(result.snapshot.roomId);
       if (revision !== this.requestRevision || !room) return;
+      this.clearAnimation();
       this.room = room;
       this.renderSnapshot(result, true);
       this.tell(`Raum: ${room.name}`);
@@ -226,12 +265,17 @@ export class EditorPreview {
     const definition = result.snapshot.room;
     const character = this.previewCharacter;
     if (!definition || !character) return;
+    const player = result.snapshot.players.find(player => player.sessionId === result.snapshot.yourSessionId);
+    if (player?.actorAnimation) {
+      character.position = player.position;
+      applyActorAnimation(character, player, path => EditorApi.backgroundUrl(path));
+    }
     this.exits = definition.exits ?? [];
     const room = { ...definition, backgroundUrl: EditorApi.backgroundUrl(definition.backgroundUrl),
       objects: applyObjectAppearances(definition.objects ?? [], result.snapshot.objectStates ?? [])
         .map(object => ({ ...object, image: EditorApi.backgroundUrl(object.image) })) };
     if (crossedExit) {
-      character.position = result.snapshot.players.find(player => player.sessionId === result.snapshot.yourSessionId)?.position ?? room.spawnPoint;
+      character.position = player?.position ?? room.spawnPoint;
       character.speed = room.walkSpeed ?? 130;
       this.previewRenderer?.setRoom(room);
     } else this.previewRenderer?.updateRoomState(room);

@@ -1,6 +1,6 @@
 import { EditorApi } from '../core/editor-api.js';
 
-const UPGRADE_FORMATS = ['1.8.0', '1.9.0'];
+const UPGRADE_FORMATS = ['1.8.0', '1.9.0', '1.10.0'];
 
 export class EditorFormat {
   private readonly selector = document.querySelector<HTMLSelectElement>('#world-format')!;

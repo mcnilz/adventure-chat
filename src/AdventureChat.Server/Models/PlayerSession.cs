@@ -15,9 +15,11 @@ public class PlayerSession
     public DateTimeOffset MovementUpdatedAt { get; set; }
     public long MovementRevision { get; set; }
     public bool NavigationStopped { get; set; }
+    internal ActiveObjectAnimation? ObjectAnimation { get; set; }
+    internal ObjectAnimationApproach? AnimationApproach { get; set; }
     public DateTime LastActivity { get; set; } = DateTime.UtcNow;
 
-    public PlayerDto ToDto()
+    public PlayerDto ToDto(DateTimeOffset? timestamp = null)
     {
         return new PlayerDto(
             SessionId,
@@ -27,7 +29,9 @@ public class PlayerSession
             State,
             Target is not null ? new PointDto(Target.Value.X, Target.Value.Y) : null,
             Waypoints.Select(w => new PointDto(w.X, w.Y)).ToList(),
-            MovementRevision, CharacterId
+            MovementRevision, CharacterId, ObjectAnimation is { } animation ?
+                new ActorAnimationDto(animation.Image, animation.DurationMs,
+                    (int)Math.Clamp(((timestamp ?? DateTimeOffset.UtcNow) - animation.StartedAt).TotalMilliseconds, 0, int.MaxValue)) : null
         );
     }
 }
@@ -41,8 +45,15 @@ public record PlayerDto(
     PointDto? Target,
     IReadOnlyList<PointDto> Waypoints,
     long MovementRevision,
-    string? CharacterId = null
+    string? CharacterId = null,
+    ActorAnimationDto? ActorAnimation = null
 );
+
+internal sealed record ActiveObjectAnimation(string ObjectId, string ActionId, string RequiredState,
+    string? Image, DateTimeOffset StartedAt, int? DurationMs);
+internal sealed record ObjectAnimationApproach(string ObjectId, string ActionId, string RequiredState,
+    DateTimeOffset ArrivesAt, long Sequence);
+public record ActorAnimationDto(string? Image, int? DurationMs, int ElapsedMs);
 
 public record RoomSpawnDto(
     string Id,
@@ -99,8 +110,9 @@ public record ObjectStateDto(string ObjectId, string StateId, ObjectTransitionDt
 public record ObjectStatesChangedDto(string RoomId, long Revision, IReadOnlyList<ObjectStateDto> States,
     RoomGeometryDto? Geometry = null, IReadOnlyList<RoomExitDto>? Exits = null,
     IReadOnlyList<PlayerDto>? Players = null, IReadOnlyList<string>? StoppedSessions = null);
-public record ObjectActionRequestDto(string RoomId, string ObjectId, string ActionId, long ExpectedRevision);
-public record ObjectActionResultDto(bool Success, string? Error, string? ErrorCode = null);
+public record ObjectActionRequestDto(string RoomId, string ObjectId, string ActionId, long ExpectedRevision, bool Approach = false);
+public record ObjectActionResultDto(bool Success, string? Error, string? ErrorCode = null, bool Pending = false);
+public record ObjectActionFeedbackDto(string RoomId, string Message);
 
 public record ChatMessageDto(
     string MessageId,

@@ -11,7 +11,7 @@ export interface InputHandlerCallbacks {
   onObjectAction: (object: RoomObject) => Promise<void>;
   onNavigateToObject: (object: RoomObject) => Promise<void>;
   onUnavailableTarget: () => void;
-  onCanvasAction: () => void;
+  onCanvasAction: (objectId: string | undefined) => void;
 }
 
 export class InputHandler {
@@ -79,10 +79,10 @@ export class InputHandler {
   }
 
   public async handleCanvasClick(clientX: number, clientY: number): Promise<{ point: Point; exit: RoomExit | null }> {
-    this.callbacks.onCanvasAction();
     const logical = this.screenToLogical(clientX, clientY);
     const clickedExit = this.findClickedExit(logical);
     const object = this.getVerb() === 'walk' && clickedExit ? undefined : this.getObjectAt(logical);
+    this.callbacks.onCanvasAction(object?.id);
     if (object) {
       if (this.getVerb() === 'walk' && !object.interaction && !object.usePoints?.length)
         await this.callbacks.onNavigateToPoint(logical);

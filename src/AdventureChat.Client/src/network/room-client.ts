@@ -10,6 +10,7 @@ import type {
   UserLeftDto,
   ObjectStatesChangedDto,
   ObjectActionResultDto,
+  ObjectActionFeedbackDto,
 } from '../types.js';
 import type { HubConnection } from '@microsoft/signalr';
 
@@ -25,6 +26,7 @@ export interface RoomClientEvents {
   onConnectionStatusChanged: (status: 'connected' | 'connecting' | 'disconnected') => void;
   onReconnected: () => Promise<void>;
   onObjectStatesChanged: (dto: ObjectStatesChangedDto) => void;
+  onObjectActionFeedback: (dto: ObjectActionFeedbackDto) => void;
   onWorldReset: () => void;
 }
 
@@ -64,6 +66,7 @@ export class RoomNetworkClient {
         this.events.onChatMessageReceived(dto);
       });
       this.hubConnection.on('ObjectStatesChanged', (dto: ObjectStatesChangedDto) => this.events.onObjectStatesChanged(dto));
+      this.hubConnection.on('ObjectActionFeedback', (dto: ObjectActionFeedbackDto) => this.events.onObjectActionFeedback(dto));
       this.hubConnection.on('WorldReset', () => this.events.onWorldReset());
 
       this.hubConnection.onreconnecting(() => {
@@ -164,10 +167,17 @@ export class RoomNetworkClient {
     }
   }
 
-  public async requestObjectAction(roomId: string, objectId: string, actionId: string, expectedRevision: number): Promise<ObjectActionResultDto> {
+  public async requestObjectAction(roomId: string, objectId: string, actionId: string, expectedRevision: number,
+    approach: boolean): Promise<ObjectActionResultDto> {
     if (!this.hubConnection || this.connectionStatus !== 'connected') return { success: false, error: 'Nicht verbunden.' };
-    try { return await this.hubConnection.invoke('RequestObjectAction', { roomId, objectId, actionId, expectedRevision }) as ObjectActionResultDto; }
+    try { return await this.hubConnection.invoke('RequestObjectAction', { roomId, objectId, actionId, expectedRevision, approach }) as ObjectActionResultDto; }
     catch (error) { return { success: false, error: String(error) }; }
+  }
+
+  public async cancelObjectApproach(): Promise<void> {
+    if (!this.hubConnection || this.connectionStatus !== 'connected') return;
+    try { await this.hubConnection.invoke('CancelObjectApproach'); }
+    catch { /* A disconnected session has no pending approach. */ }
   }
 
   public async sendChatMessage(text: string): Promise<SendChatMessageResultDto> {

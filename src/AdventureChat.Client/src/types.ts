@@ -32,6 +32,7 @@ export interface CharacterCatalog {
 }
 
 export interface Character {
+  actorAnimation?: ActorAnimationDto & { readonly startedAt: number } | null;
   appearance?: CharacterAppearance | undefined;
   characterId?: string | null | undefined;
   id: string;
@@ -115,6 +116,18 @@ export interface ObjectAction {
  readonly from: string;
  readonly to: string;
  readonly effects?: ReadonlyArray<{ readonly room: string; readonly object: string; readonly state: string }> | null;
+ readonly actorAnimation?: ObjectActorAnimation | null;
+}
+export interface ObjectActorAnimation {
+ readonly point: number;
+ readonly direction: FacingDirection;
+ readonly durationMs?: number | null;
+ readonly sprites?: Readonly<Record<string, string>> | null;
+}
+export interface ActorAnimationDto {
+ readonly image: string | null;
+ readonly durationMs: number | null;
+ readonly elapsedMs: number;
 }
 export type InteractionVerb = 'walk' | 'open' | 'close' | 'pull' | 'push' | 'use';
 export interface ObjectAppearance {
@@ -195,6 +208,7 @@ export interface SendChatMessageResultDto {
 }
 
 export interface PlayerDto {
+  readonly actorAnimation?: ActorAnimationDto | null;
   readonly characterId?: string | null | undefined;
   readonly sessionId: string;
   readonly displayName: string;
@@ -267,7 +281,9 @@ export interface ObjectActionResultDto {
   readonly success: boolean;
   readonly error: string | null;
   readonly errorCode?: string | null;
+  readonly pending?: boolean;
 }
+export interface ObjectActionFeedbackDto { readonly roomId: string; readonly message: string }
 
 export interface RequestMoveDto {
   readonly start?: Point | null;

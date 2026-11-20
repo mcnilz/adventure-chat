@@ -7,9 +7,10 @@ internal static class EditorFormatUpgrade
 {
     public const string Target = "1.8.0";
     public const string TransitionTarget = "1.9.0";
+    public const string ActorAnimationTarget = "1.10.0";
 
     public static bool CanUpgrade(string source, string target) =>
-        target is Target or TransitionTarget && Version.Parse(source) < Version.Parse(target);
+        target is Target or TransitionTarget or ActorAnimationTarget && Version.Parse(source) < Version.Parse(target);
 
     public static void Save(WorldPackage world, string sourceVersion, string targetVersion, string roomFile, RoomYamlDto room,
         IReadOnlyList<RoomYamlDto> existing, IReadOnlyList<RoomYamlDto> candidates)

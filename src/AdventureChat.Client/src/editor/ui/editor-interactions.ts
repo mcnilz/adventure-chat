@@ -4,6 +4,7 @@ import { hasEffectReference, referencesState } from '../core/editor-interaction-
 import type { EditorState } from '../core/editor-state.js';
 import type { RoomObjectDto, RoomView } from '../core/editor-types.js';
 import { editObjectAction } from './editor-action-fields.js';
+import { editActorAnimation } from './editor-actor-animation-fields.js';
 import { editObjectState, unusedId } from './editor-state-fields.js';
 import { editObjectTransitions } from './editor-transition-fields.js';
 import { InteractionFields, updateInteractionForm } from './interaction-fields.js';
@@ -84,6 +85,7 @@ export class EditorInteractions {
     const detail = relevant.find(error => /initial state|initialState|obstacle|blockedexits|use radius|useRadius|use points|target state|duplicate target/i.test(error))
       ?? relevant[0] ?? '';
     if (/transitions?/i.test(detail)) { this.report(relevant.join(' '), undefined, 'object-transitions'); return; }
+    if (/actorAnimation|Actor sprite/i.test(detail)) { this.report(relevant.join(' '), undefined, 'actor-animation'); return; }
     const state = /\bstate '([^']+)'/i.exec(detail)?.[1];
     if (state && this.stateId !== state) { this.report(relevant.join(' ')); return; }
     const obstacle = /\bobstacle '([^']+)'/i.exec(detail)?.[1];
@@ -159,15 +161,26 @@ export class EditorInteractions {
     const points = object.usePoints ?? (interaction.usePoint ? [interaction.usePoint] : []);
     const group = fields.group('Bedienpunkte');
     group.number('Bedienradius', interaction.useRadius, useRadius => this.save({ ...object, interaction: { ...interaction, useRadius } }));
-    const assign = (next: readonly Point[]) => this.save({
+    const assign = (next: readonly Point[], actions = interaction.actions) => this.save({
       ...object, usePoints: object.usePoints != null || next.length > 1 ? next : null,
-      interaction: { ...interaction, usePoint: (object.usePoints != null || next.length > 1 ? interaction.usePoint : next[0]) ?? null }
+      interaction: { ...interaction, actions, usePoint: (object.usePoints != null || next.length > 1 ? interaction.usePoint : next[0]) ?? null }
     });
     points.forEach((point, index) => {
       const edit = (next: Point) => assign(points.map((p, i) => i === index ? next : p));
       group.number(`Bedienpunkt ${index + 1} X`, point.x, x => edit({ ...point, x }));
       group.number(`Bedienpunkt ${index + 1} Y`, point.y, y => edit({ ...point, y }));
-      if (points.length > 1) group.button(`Bedienpunkt ${index + 1} löschen`, () => assign(points.filter((_, i) => i !== index)));
+      if (points.length > 1) group.button(`Bedienpunkt ${index + 1} löschen`, () => {
+        if (interaction.actions.some(action => action.actorAnimation?.point === index)) {
+          this.report('Dieser Bedienpunkt wird von einer Figurenanimation verwendet.');
+          return;
+        }
+        const actions = interaction.actions.map(action => {
+          const animation = action.actorAnimation;
+          return animation && animation.point > index ?
+            { ...action, actorAnimation: { ...animation, point: animation.point - 1 } } : action;
+        });
+        assign(points.filter((_, i) => i !== index), actions);
+      });
     });
     if (points.length < 8) group.button('Bedienpunkt hinzufügen', () => {
       const start = points.at(-1) ?? this.state.getRoom().spawns[0]?.position ?? { x: 0, y: 0 };
@@ -227,9 +240,11 @@ export class EditorInteractions {
     });
     const action = actions[index];
     if (!action) return;
-    editObjectAction(group, action, interaction, this.state.getRoom().id, object.id, this.rooms(),
-      next => update({ ...interaction, actions: actions.map((item, i) => i === index ? next : item) }),
-      (message, field) => this.report(message, field));
+    const replace = (next: ObjectAction) => update({ ...interaction, actions: actions.map((item, i) => i === index ? next : item) });
+    const report = (message: string, field: string) => this.report(message, field);
+    editObjectAction(group, action, interaction, this.state.getRoom().id, object.id, this.rooms(), replace, report);
+    editActorAnimation(group, action.actorAnimation, object.usePoints ?? (interaction.usePoint ? [interaction.usePoint] : []),
+      actorAnimation => replace({ ...action, actorAnimation }), report);
     if (actions.length > 1 || interaction.transitions?.length) group.button('Aktion löschen', () =>
       update({ ...interaction, actions: actions.filter((_, i) => i !== index) }));
   }

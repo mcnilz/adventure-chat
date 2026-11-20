@@ -39,6 +39,7 @@ export class AdventureGame {
   public onClearActionChoices?: () => void;
   public onVerbSelected?: (verb: InteractionVerb) => void;
   private verb: InteractionVerb = 'walk';
+  private approach: { verb: InteractionVerb; objectId: string; actionId: string; state: string | undefined } | null = null;
   private readonly objectActionFlow: ObjectActionFlow;
 
   private lastTimestamp = 0;
@@ -65,6 +66,7 @@ export class AdventureGame {
 
     this.state.onRoomChanged = (room) => {
       this.objectWalkToken++;
+      this.approach = null;
       this.objectActionFlow.cancel();
       this.renderer.setRoom(room);
       this.onRoomChanged?.(room);
@@ -86,6 +88,11 @@ export class AdventureGame {
       onPlayerMoved: (dto) => this.dispatchRoomEvent(() => this.state.handlePlayerMoved(dto)),
       onChatMessageReceived: (dto) => this.dispatchRoomEvent(() => this.state.handleChatMessage(dto)),
       onObjectStatesChanged: (dto) => this.dispatchRoomEvent(() => this.state.handleObjectStates(dto)),
+      onObjectActionFeedback: ({ roomId, message }) => {
+        if (this.room.id !== roomId) return;
+        this.speakLocally(message);
+        this.onActionFeedback?.(message);
+      },
       onWorldReset: () => this.onWorldUnavailable?.('Die Welt wurde geändert und neu gestartet. Bitte erneut beitreten.'),
       onConnectionStatusChanged: (status) => {
         if (status !== 'connected' && this.objectActionFlow.cancel()) {
@@ -104,12 +111,17 @@ export class AdventureGame {
       () => ({ roomId: this.room.id, position: this.character.position, idle: this.character.state === 'idle',
         revision: this.state.objectRevision, stateOf: id => this.state.objectStates.get(id) }),
       point => this.setTarget(point),
-      (room, object, action, revision) => this.networkClient.requestObjectAction(room, object, action, revision),
-      error => {
+      (room, object, action, revision, approach) => {
+        this.approach = approach ? { verb: this.verb, objectId: object, actionId: action, state: this.state.objectStates.get(object) } : null;
+        return this.networkClient.requestObjectAction(room, object, action, revision, approach);
+      },
+      (error, pending) => {
         if (error) this.speakLocally(error);
         this.selectVerb('walk');
-        this.onActionFeedback?.(error ?? 'Aktion ausgeführt.');
-      }
+        this.onActionFeedback?.(error ?? (pending ? '' : 'Aktion ausgeführt.'));
+      },
+      animation => this.renderer.prepareActorAnimation(animation),
+      true
     );
 
     this.inputHandler = new InputHandler(
@@ -153,17 +165,27 @@ export class AdventureGame {
           const actions = actionsForVerb(object, this.state.objectStates.get(object.id), this.verb);
           const roomId = this.room.id, expectedState = this.state.objectStates.get(object.id);
           this.state.pendingExit = null;
-          const execute = (actionId: string | null) => this.objectActionFlow.start(roomId, object, actionId, expectedState);
+          const execute = (actionId: string | null) => {
+            if (this.approach && (this.approach.actionId !== actionId || this.approach.state !== expectedState)) this.cancelObjectApproach();
+            return this.objectActionFlow.start(roomId, object, actionId, expectedState);
+          };
           if (actions.length === 0) await execute(null);
           else if (actions.length === 1) await execute(actions[0]!.id);
           else this.onActionChoices?.(actions, id => { void execute(id); });
         },
         onUnavailableTarget: () => {
+          this.cancelObjectApproach();
           this.speakLocally('Das geht nicht.');
           this.selectVerb('walk');
           this.onActionFeedback?.('Das geht nicht.');
         },
-        onCanvasAction: () => { this.objectWalkToken++; this.objectActionFlow.cancel(); this.onClearActionChoices?.(); this.onActionFeedback?.(''); },
+        onCanvasAction: objectId => {
+          if (this.approach && (this.verb === 'walk' || this.approach.objectId !== objectId)) this.cancelObjectApproach();
+          this.objectWalkToken++;
+          this.objectActionFlow.cancel();
+          this.onClearActionChoices?.();
+          this.onActionFeedback?.('');
+        },
       },
       () => this.state.room,
       () => this.state.character.position,
@@ -181,6 +203,17 @@ export class AdventureGame {
     this.onActionFeedback?.('');
     this.onVerbSelected?.(verb);
     this.inputHandler.updateVerb();
+  }
+
+  public chooseVerb(verb: InteractionVerb): void {
+    if (this.approach && this.approach.verb !== verb) this.cancelObjectApproach();
+    this.selectVerb(verb);
+  }
+
+  private cancelObjectApproach(): void {
+    if (!this.approach) return;
+    this.approach = null;
+    void this.networkClient.cancelObjectApproach();
   }
 
   private speakLocally(text: string): void {

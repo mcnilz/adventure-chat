@@ -12,6 +12,7 @@ interface PreviewLocation {
   roomId: string;
   states: readonly PreviewObjectStates[];
   targetFormat?: string;
+  characterId?: string;
 }
 
 export interface PreviewResult extends ObjectActionResultDto {
@@ -72,8 +73,8 @@ export class EditorApi {
     return response.json();
   }
 
-  public static previewAction(location: PreviewLocation, objectId: string, actionId: string): Promise<PreviewResult> {
-    return this.previewCommand('action', { ...location, objectId, actionId });
+  public static previewAction(location: PreviewLocation, objectId: string, actionId: string, completeGesture = false): Promise<PreviewResult> {
+    return this.previewCommand('action', { ...location, objectId, actionId, completeGesture });
   }
 
   public static previewExit(location: PreviewLocation, exitId: string): Promise<PreviewResult> {

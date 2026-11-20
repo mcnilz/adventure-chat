@@ -34,6 +34,7 @@ public sealed partial class RoomValidator : IRoomValidator
     private readonly bool _supportsUsePoints;
     private readonly bool _supportsStateNavigation;
     private readonly bool _supportsTransitions;
+    private readonly bool _supportsActorAnimations;
     private readonly IPathfindingService _pathfinder;
 
     public RoomValidator(string? schemaPath = null, IPathfindingService? pathfinder = null)
@@ -51,6 +52,7 @@ public sealed partial class RoomValidator : IRoomValidator
             _supportsInteractions = obj?["interaction"] is not null;
             _supportsUsePoints = obj?["usePoints"] is not null;
             _supportsTransitions = interaction?["transitions"] is not null;
+            _supportsActorAnimations = interaction?["actions"]?["items"]?["properties"]?["actorAnimation"] is not null;
             _supportsStateNavigation = interaction?["states"]?["items"]?["properties"]?["obstacles"] is not null;
             _supportsViewport = room?["viewport"] is not null;
             _supportsDisplay = room?["perspective"] is not null;
@@ -190,6 +192,7 @@ public sealed partial class RoomValidator : IRoomValidator
 
         if (dto.Spawns is null || dto.Spawns.Count == 0) errors.Add("Room must define at least one spawn point.");
         if (errors.Count == 0) ObjectInteractionValidation.ValidateRoom(dto, _supportsInteractions, _supportsUsePoints, _supportsTransitions, errors);
+        if (errors.Count == 0) ObjectActorAnimationValidation.Validate(dto, _supportsActorAnimations, errors);
         if (errors.Count == 0) ObjectNavigationValidation.Validate(dto, _supportsStateNavigation, _pathfinder, errors);
 
         // 8. Geometry checks if walkable is valid

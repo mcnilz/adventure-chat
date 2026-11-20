@@ -2,7 +2,7 @@ import { actorHeightAt } from './depth-scale.js';
 import { ObjectRenderer, compareObjectDepth } from './object-renderer.js';
 import { HorizontalCamera, resizeCanvas } from './camera.js';
 import { CLICK_MARKER_DURATION } from '../constants.js';
-import type { Character, Point, RenderedRoom, RoomExit, RoomObject } from '../types.js';
+import type { Character, ObjectActorAnimation, Point, RenderedRoom, RoomExit, RoomObject } from '../types.js';
 import { CharacterRenderer } from './character-renderer.js';
 import { OverlayRenderer, type ClickMarker } from './overlay-renderer.js';
 import { SpeechBubbleRenderer } from './speech-bubble-renderer.js';
@@ -27,7 +27,8 @@ export class RoomRenderer {
 
   public constructor(
     private readonly canvas: HTMLCanvasElement,
-    private room: RenderedRoom
+    private room: RenderedRoom,
+    private readonly actorImageUrl = (path: string) => path
   ) {
     const context = this.canvas.getContext('2d');
     if (!context) {
@@ -37,6 +38,7 @@ export class RoomRenderer {
     this.ctx.imageSmoothingEnabled = false;
 
     this.characterRenderer = new CharacterRenderer();
+    this.preloadActorAnimations(room);
     this.speechBubbleRenderer = new SpeechBubbleRenderer();
     this.overlayRenderer = new OverlayRenderer();
 
@@ -53,11 +55,24 @@ export class RoomRenderer {
 
   public setRoom(newRoom: RenderedRoom): void {
     this.room = newRoom;
+    this.preloadActorAnimations(newRoom);
     this.cameraInitialized = false;
     if (!this.backgroundImage.src.endsWith(newRoom.backgroundUrl)) {
       this.backgroundLoaded = false;
       this.backgroundImage.src = newRoom.backgroundUrl;
     }
+  }
+
+  private preloadActorAnimations(room: RenderedRoom): void {
+    for (const object of room.objects ?? [])
+      for (const action of object.interaction?.actions ?? [])
+        for (const path of Object.values(action.actorAnimation?.sprites ?? {}))
+          this.characterRenderer.preload(this.actorImageUrl(path));
+  }
+
+  public async prepareActorAnimation(animation: ObjectActorAnimation): Promise<void> {
+    await Promise.all(Object.values(animation.sprites ?? {}).map(path =>
+      this.characterRenderer.prepare(this.actorImageUrl(path))));
   }
 
   public setObjects(objects: ReadonlyArray<RoomObject>): void {

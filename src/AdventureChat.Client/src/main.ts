@@ -34,7 +34,7 @@ async function initialize(): Promise<void> {
       return { success: result.success, error: result.error };
     }
   );
-  const verbBar = new VerbBar(verb => game.selectVerb(verb));
+  const verbBar = new VerbBar(verb => game.chooseVerb(verb));
   game.onVerbSelected = verb => verbBar.setSelected(verb);
   game.onActionChoices = (actions, choose) => verbBar.showChoices(actions, choose);
   game.onClearActionChoices = () => verbBar.clearChoices();

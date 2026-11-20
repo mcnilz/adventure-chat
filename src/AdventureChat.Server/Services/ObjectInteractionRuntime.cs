@@ -18,6 +18,20 @@ internal sealed class ObjectInteractionRuntime(IRoomService rooms, TimeProvider 
 
     public long Revision(string roomId) => _revisions.GetValueOrDefault(roomId);
     public void SetRevision(string roomId, long revision) => _revisions[roomId] = revision;
+    public void AdvanceRevision(string roomId) => SetRevision(roomId, ++_revision);
+
+    public string State(string roomId, RoomObject obj) => _states.GetValueOrDefault((roomId, obj.Id), obj.Interaction!.InitialState);
+
+    public ObjectAction? FindAction(string roomId, RoomObject obj, string actionId)
+    {
+        var current = State(roomId, obj);
+        return obj.Interaction!.Actions.Find(action => action.Id == actionId && action.From == current);
+    }
+
+    public static IReadOnlyList<Point2D> UsePoints(RoomObject obj) =>
+        obj.UsePoints ?? (obj.Interaction?.UsePoint is { } old ? [new Point2D(old.X, old.Y)] : []);
+    public static Point2D AnimationPoint(RoomObject obj, ObjectActorAnimation animation) => UsePoints(obj)[animation.Point];
+    public static bool AtAnimationPoint(Point2D actor, Point2D point) => actor.DistanceTo(point) <= 1;
 
     public void RestorePreview(IReadOnlyList<PreviewObjectStates> restored)
     {
@@ -73,11 +87,16 @@ internal sealed class ObjectInteractionRuntime(IRoomService rooms, TimeProvider 
         var obj = room?.Objects?.FirstOrDefault(o => o.Id == request.ObjectId);
         if (room is null || obj?.Interaction is not { } interaction) return Reject("Objekt nicht verfügbar.");
         if (request.ExpectedRevision != Revision(room.Id)) return Reject("Der Objektzustand hat sich geändert. Bitte erneut versuchen.");
-        var points = obj.UsePoints ?? (interaction.UsePoint is { } old ? [new Point2D(old.X, old.Y)] : []);
-        if (!points.Any(point => Math.Pow(session.Position.X - point.X, 2) + Math.Pow(session.Position.Y - point.Y, 2) <= interaction.UseRadius * interaction.UseRadius))
+        var action = FindAction(room.Id, obj, request.ActionId);
+        if (action?.ActorAnimation is { } animation)
+        {
+            var point = AnimationPoint(obj, animation);
+            if (!new ObjectNavigation(rooms, States).Geometry(room).IsWalkable(point))
+                return Reject("Der Bedienpunkt ist derzeit gesperrt.");
+            if (!AtAnimationPoint(session.Position, point)) return Reject("Zu weit entfernt. Bitte zum Bedienpunkt gehen.", "too_far");
+        }
+        else if (!UsePoints(obj).Any(point => session.Position.DistanceTo(point) <= interaction.UseRadius))
             return Reject("Zu weit entfernt. Bitte näher herangehen.", "too_far");
-        var current = _states.GetValueOrDefault((room.Id, obj.Id), interaction.InitialState);
-        var action = interaction.Actions.FirstOrDefault(a => a.Id == request.ActionId && a.From == current);
         if (action is null) return Reject("Diese Aktion ist derzeit nicht möglich.");
         var assignments = new List<Assignment> { new(room.Id, obj.Id, interaction, action.To) };
         foreach (var effect in action.Effects ?? [])

@@ -56,3 +56,7 @@ Für die Rückwand der Werkstatt wurde der Hintergrund mit durchgehenden Bodenfl
 ## Hubtisch · Ticket 25
 
 Die Tischplatte (112 × 24), das Gestell (112 × 92) und die beiden Pfeiltasten (je 27 × 28) sind neu gezeichnete Pixelgrafiken aus einfachen Formen in der Werkstattpalette. Sie wurden mit dem vorhandenen PNG-Helfer erzeugt und liegen fertig unter `assets/images/workshop-lift-*.png`. Es wurden keine Drittquellen oder neuen Abhängigkeiten verwendet.
+
+## Sitzpose und Tafel · Ticket 26
+
+Die beiden Tafelbilder (82 × 56) und die Sitz- und Gestenbilder für Mara und Bruno wurden lokal aus farbigen Pixelpolygonen neu gezeichnet. Haar, Kleidung und Farben orientieren sich an den vorhandenen Figuren. Die Sitzpose belegt einen 64 × 64-Rahmen, die Geste drei nebeneinanderliegende 64 × 64-Rahmen. Die fertigen PNGs liegen unter `assets/images/`. Für ihren Einsatz genügt der bestehende Renderer.

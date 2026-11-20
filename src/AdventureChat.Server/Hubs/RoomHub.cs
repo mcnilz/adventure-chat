@@ -10,7 +10,8 @@ public class RoomHub : Hub
     private readonly WorldRuntimeCatalog _worlds;
     private WorldRuntimeCatalog.Runtime? CurrentWorld => Context.Items.TryGetValue("world", out var value) ? value as WorldRuntimeCatalog.Runtime : null;
     private IRoomSessionManager Sessions => CurrentWorld?.Sessions ?? _legacySessions;
-    private string Group(string roomId) => CurrentWorld is { } world ? $"world:{world.Package.Id}:room:{roomId.ToLowerInvariant()}" : roomId;
+    private string Group(string roomId) => CurrentWorld is { } world ? WorldGroup(world.Package.Id, roomId) : roomId;
+    internal static string WorldGroup(string worldId, string roomId) => $"world:{worldId}:room:{roomId.ToLowerInvariant()}";
     private readonly WorldPackage? _world;
 
     public RoomHub(IRoomSessionManager sessionManager, WorldRuntimeCatalog worlds, WorldPackage? world = null)
@@ -83,6 +84,8 @@ public class RoomHub : Hub
 
         Point2D? start = request.Start is not null ? new Point2D(request.Start.X, request.Start.Y) : null;
         var moveResult = Sessions.RequestMove(Context.ConnectionId, new Point2D(request.Target.X, request.Target.Y), start);
+        if (moveResult.AnimationChange is { } change)
+            await Clients.Group(Group(change.RoomId)).SendAsync("ObjectStatesChanged", change);
         if (!moveResult.Success || moveResult.Waypoints is null || moveResult.Target is null)
         {
             return new MoveResultDto(false, moveResult.Error ?? "Move request rejected.");
@@ -111,11 +114,15 @@ public class RoomHub : Hub
     public async Task<ObjectActionResultDto> RequestObjectAction(ObjectActionRequestDto request)
     {
         var result = Sessions.RequestObjectAction(Context.ConnectionId, request);
-        if (!result.Success) return new ObjectActionResultDto(false, result.Error, result.ErrorCode);
+        if (result.Move is { } move)
+            await Clients.Group(Group(move.RoomId!)).SendAsync("PlayerMoved",
+                new PlayerMovedDto(move.SessionId!, move.Target!, move.Waypoints!, move.RoomId!, move.Revision));
         foreach (var change in result.Changes)
             await Clients.Group(Group(change.RoomId)).SendAsync("ObjectStatesChanged", change);
-        return new ObjectActionResultDto(true, null);
+        return new ObjectActionResultDto(result.Success, result.Error, result.ErrorCode, result.Pending);
     }
+
+    public void CancelObjectApproach() => Sessions.CancelObjectApproach(Context.ConnectionId);
 
     public Task UpdateProgress(PointDto position, string direction, string state)
     {

@@ -28,17 +28,28 @@ internal static class RoomObjectValidation
         }
     }
 
-    public static void ValidateImages(string root, IReadOnlyList<RoomObjectYamlDto>? objects)
+    public static void ValidateImages(string root, IReadOnlyList<RoomObjectYamlDto>? objects,
+        IReadOnlyList<CharacterDefinition> characters)
     {
         foreach (var obj in objects ?? [])
         {
             ValidateImage(root, obj.Id, obj.Image);
             foreach (var state in obj.Interaction?.States ?? [])
                 ValidateImage(root, obj.Id, state.Image);
+            foreach (var action in obj.Interaction?.Actions ?? [])
+            {
+                if (action.ActorAnimation is not { Sprites: { } sprites } animation) continue;
+                foreach (var (id, image) in sprites)
+                {
+                    if (!characters.Any(character => character.Id == id))
+                        throw new InvalidOperationException($"Object '{obj.Id}', action '{action.Id}': actorAnimation references unknown character '{id}'.");
+                    ValidateImage(root, obj.Id, image, animation.DurationMs is null ? 1 : 3);
+                }
+            }
         }
     }
 
-    private static void ValidateImage(string root, string objectId, string image)
+    private static void ValidateImage(string root, string objectId, string image, int? squareFrames = null)
     {
             try
             {
@@ -51,6 +62,8 @@ internal static class RoomObjectValidation
                 var width = checked((int)BinaryPrimitives.ReadUInt32BigEndian(header[16..20]));
                 var height = checked((int)BinaryPrimitives.ReadUInt32BigEndian(header[20..24]));
                 if (width <= 0 || height <= 0) throw new InvalidOperationException("Invalid dimensions.");
+                if (squareFrames is int count && (long)width != (long)height * count)
+                    throw new InvalidOperationException($"Actor sprite requires {count} square frame(s) in one row.");
                 PngValidator.Validate(file, width, height);
             }
             catch (Exception ex) when (ex is IOException or InvalidOperationException or OverflowException)

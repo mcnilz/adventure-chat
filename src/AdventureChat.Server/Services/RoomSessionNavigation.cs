@@ -7,12 +7,15 @@ public partial class RoomSessionManager
     internal void RestorePreview(IReadOnlyList<PreviewObjectStates> states) => _interactions.RestorePreview(states);
     internal IReadOnlyList<ObjectStateDto> PreviewStates(RoomDefinition room) => _interactions.States(room);
 
-    private ObjectActionResult ExecuteObjectAction(PlayerSession actor, ObjectActionRequestDto request)
+    private ObjectActionResult ExecuteObjectAction(PlayerSession actor, ObjectActionRequestDto request,
+        Action? onApplied = null, Point2D? actionPoint = null)
     {
         var now = _clock.GetUtcNow();
         var projected = _sessionsByConnection.Values.Select(p => ProjectMovement(p, now)).ToList();
+        var projectedActor = projected.Single(p => p.ConnectionId == actor.ConnectionId);
+        if (actionPoint is { } point) projectedActor.Position = point;
         var navigationRooms = new List<string>();
-        var result = _interactions.Execute(projected.Single(p => p.ConnectionId == actor.ConnectionId), request,
+        var result = _interactions.Execute(projectedActor, request,
             (proposed, assignedRooms) =>
             {
                 foreach (var room in _roomService.GetAllRooms())
@@ -41,6 +44,8 @@ public partial class RoomSessionManager
         foreach (var player in _sessionsByConnection.Values) AdvanceMovement(player, now);
         foreach (var player in _sessionsByConnection.Values.Where(p => navigationRooms.Contains(p.RoomId)))
             RepairRoute(player, now);
+        onApplied?.Invoke();
+        EndInvalidObjectAnimations();
 
         // A later visual-only revision can overtake a previous navigation revision in transit.
         // Every event therefore subsumes the entire current room/navigation/movement state.
@@ -48,15 +53,20 @@ public partial class RoomSessionManager
         foreach (var roomId in result.Changes.Select(c => c.RoomId).Concat(navigationRooms).Distinct(StringComparer.OrdinalIgnoreCase))
         {
             _interactions.SetRevision(roomId, result.Changes[0].Revision);
-            var room = _roomService.GetRoom(roomId)!;
-            var dto = _navigation.EffectiveRoom(room).ToDto();
-            var players = _sessionsByConnection.Values.Where(p => p.RoomId == roomId).ToList();
-            var change = new ObjectStatesChangedDto(roomId, result.Changes[0].Revision, _interactions.States(room),
-                dto.Geometry, dto.Exits, players.Select(p => p.ToDto()).ToList(),
-                players.Where(p => p.NavigationStopped).Select(p => p.SessionId).ToList());
-            changes.Add(change);
+            changes.Add(CurrentObjectView(roomId));
         }
         return result with { Changes = changes };
+    }
+
+    private ObjectStatesChangedDto CurrentObjectView(string roomId)
+    {
+        var room = _roomService.GetRoom(roomId)!;
+        var dto = _navigation.EffectiveRoom(room).ToDto();
+        var players = _sessionsByConnection.Values.Where(p => p.RoomId == roomId).ToList();
+        var now = _clock.GetUtcNow();
+        return new ObjectStatesChangedDto(roomId, _interactions.Revision(roomId), _interactions.States(room),
+            dto.Geometry, dto.Exits, players.Select(p => p.ToDto(now)).ToList(),
+            players.Where(p => p.NavigationStopped).Select(p => p.SessionId).ToList());
     }
 
     private bool SameNavigation(RoomDefinition room, ObjectNavigation proposed)
@@ -89,13 +99,20 @@ public partial class RoomSessionManager
     private void RepairRoute(PlayerSession player, DateTimeOffset now)
     {
         if (player.Target is not { } target || player.State != "walk") return;
-        var geometry = _navigation.Geometry(_roomService.GetRoom(player.RoomId)!);
+        var room = _roomService.GetRoom(player.RoomId)!;
+        var geometry = _navigation.Geometry(room);
         if (player.Waypoints.Zip(player.Waypoints.Skip(1)).All(pair => geometry.HasLineOfSight(pair.First, pair.Second))) return;
         var route = _pathfinder.CalculatePath(geometry, player.Position, target);
         player.MovementRevision++;
         player.MovementUpdatedAt = now;
         player.Waypoints = route.Success ? route.Waypoints!.ToList() : [];
-        if (route.Success) return;
+        if (route.Success)
+        {
+            if (player.AnimationApproach is { } approach)
+                player.AnimationApproach = approach with { ArrivesAt = ArrivalAt(player, room) };
+            return;
+        }
+        player.AnimationApproach = null;
         player.Target = null;
         player.State = "idle";
         player.NavigationStopped = true;

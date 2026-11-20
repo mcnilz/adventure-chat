@@ -18,4 +18,5 @@ public sealed class WorldRuntimeCatalog
     }
 
     public Runtime? Find(string id) => _worlds.GetValueOrDefault(id);
+    internal IEnumerable<Runtime> All => _worlds.Values;
 }

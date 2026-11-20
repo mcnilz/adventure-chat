@@ -27,7 +27,7 @@ public sealed record WorldPackage(string Root, string Id, string Name, string Fo
             var deserializer = new DeserializerBuilder().WithDuplicateKeyChecking().WithAttemptingUnquotedStringTypeDeserialization().Build();
             var raw = deserializer.Deserialize<Dictionary<object, object>>(yaml);
             var version = raw.TryGetValue("formatVersion", out var value) ? value?.ToString() : null;
-            if (version is not ("1.0.0" or "1.1.0" or "1.2.0" or "1.3.0" or "1.4.0" or "1.5.0" or "1.6.0" or "1.7.0" or "1.8.0" or "1.9.0")) throw new InvalidOperationException($"World manifest '{file}', field formatVersion: unsupported version '{version}'.");
+            if (version is not ("1.0.0" or "1.1.0" or "1.2.0" or "1.3.0" or "1.4.0" or "1.5.0" or "1.6.0" or "1.7.0" or "1.8.0" or "1.9.0" or "1.10.0")) throw new InvalidOperationException($"World manifest '{file}', field formatVersion: unsupported version '{version}'.");
             var json = new SerializerBuilder().JsonCompatible().Build().Serialize(raw);
             var schemaFile = FindSchema("world.schema.json", version);
             var schema = JsonSchema.FromText(File.ReadAllText(schemaFile));
@@ -109,7 +109,7 @@ public sealed record WorldPackage(string Root, string Id, string Name, string Fo
 
     public void ValidateBackground(AdventureChat.Server.Models.RoomYamlDto room)
     {
-        RoomObjectValidation.ValidateImages(Root, room.Objects);
+        RoomObjectValidation.ValidateImages(Root, room.Objects, Characters);
         var background = SafePath(Root, room.Background, true);
         if (!room.Background.StartsWith("assets/images/", StringComparison.Ordinal) || !string.Equals(Path.GetExtension(background), ".png", StringComparison.OrdinalIgnoreCase))
             throw new InvalidOperationException("Background must be a PNG in assets/images.");

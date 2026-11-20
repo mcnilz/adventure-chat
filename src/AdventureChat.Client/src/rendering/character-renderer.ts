@@ -15,6 +15,35 @@ export class CharacterRenderer {
     };
   }
 
+  public preload(url: string): void { this.image(url); }
+
+  public async prepare(url: string): Promise<void> {
+    try { await this.image(url).decode(); }
+    catch { /* A failed image still has the standing-frame fallback. */ }
+  }
+
+  private image(url: string): HTMLImageElement {
+    let image = this.images.get(url);
+    if (!image) {
+      image = new Image();
+      image.src = url;
+      this.images.set(url, image);
+    }
+    return image;
+  }
+
+  private drawActorAnimation(ctx: CanvasRenderingContext2D, character: Character, x: number, y: number, height: number): boolean {
+    const animation = character.actorAnimation;
+    if (!animation?.image) return false;
+    const image = this.image(animation.image);
+    if (!image.complete || !image.naturalWidth) return false;
+    const frameSize = image.naturalHeight;
+    const elapsed = performance.now() - animation.startedAt;
+    const frame = animation.durationMs ? Math.min(2, Math.floor(3 * elapsed / animation.durationMs)) : 0;
+    ctx.drawImage(image, frame * frameSize, 0, frameSize, frameSize, x - height / 2, y - height, height, height);
+    return true;
+  }
+
   public drawCharacter(ctx: CanvasRenderingContext2D, character: Character, isLocal: boolean, room?: RoomDefinition, showName = true): void {
     const { position, facing, state, walkFrame } = character;
 
@@ -22,15 +51,18 @@ export class CharacterRenderer {
     let sprite = this.characterSprite;
     if (appearance) {
       const imageUrl = room?.perspective === 'top-down' ? appearance.topDownImageUrl ?? appearance.imageUrl : appearance.imageUrl;
-      let image = this.images.get(imageUrl);
-      if (!image) { image = new Image(); image.src = imageUrl; this.images.set(imageUrl, image); }
-      sprite = image;
+      sprite = this.image(imageUrl);
     }
     const loaded = appearance ? sprite.complete && sprite.naturalWidth > 0 : this.spriteLoaded;
     const frameWidth = appearance?.frameWidth ?? 48;
     const frameHeight = appearance?.frameHeight ?? 64;
     const footX = Math.round(position.x);
     const footY = Math.round(position.y);
+    const height = actorHeightAt(room, position.y);
+    if (this.drawActorAnimation(ctx, character, footX, footY, height)) {
+      if (showName) this.drawName(ctx, character, isLocal, room);
+      return;
+    }
 
     // Frame calculation
     let frameIndex = 0;
@@ -55,7 +87,6 @@ export class CharacterRenderer {
 
     ctx.save();
 
-    const height = actorHeightAt(room, position.y);
     ctx.translate(footX, footY);
     ctx.scale(height / frameHeight, height / frameHeight);
     ctx.translate(-footX, -footY);

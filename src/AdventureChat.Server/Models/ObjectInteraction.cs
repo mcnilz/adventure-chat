@@ -37,6 +37,15 @@ public sealed class ObjectAction
     public string From { get; set; } = "";
     public string To { get; set; } = "";
     public List<ObjectEffect>? Effects { get; set; }
+    public ObjectActorAnimation? ActorAnimation { get; set; }
+}
+
+public sealed class ObjectActorAnimation
+{
+    public int Point { get; set; }
+    public string Direction { get; set; } = "";
+    public int? DurationMs { get; set; }
+    public Dictionary<string, string>? Sprites { get; set; }
 }
 
 public sealed class ObjectEffect

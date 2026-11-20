@@ -60,7 +60,7 @@ Geplant sind optionale Raumangaben für Draufsicht und feste Figurengröße, hor
 | Weltformat | Raumformat | Unterstützung |
 | --- | --- | --- |
 | `1.0.0` | `legacy-1`, Raum-`version: 1` | Lesen und Schreiben |
-| `1.1.0`–`1.9.0` | `legacy-1`, Raum-`version: 1` | Lesen und Schreiben für jede ausdrücklich veröffentlichte Minor-Version |
+| `1.1.0`–`1.10.0` | `legacy-1`, Raum-`version: 1` | Lesen und Schreiben für jede ausdrücklich veröffentlichte Minor-Version |
 | andere | beliebig | ausdrücklich abgelehnt |
 
 Das Manifest verwendet `formatVersion`, `id`, `name`, `contentVersion`, `startRoom`, `startSpawn` und `roomFormat`. `rooms` und `assets/images` sind paketrelative Verzeichnisse. Dateiname und Raum-ID stimmen überein; Hintergründe sind vollständige PNG-Dateien mit passenden Abmessungen; PNG-Dateien sind auf 64 MiB, ihre dekodierten Bilddaten auf 128 MiB und einzelne YAML-Dateien auf 1 MiB begrenzt. Absolute Pfade, `..` und symbolische Links/Junctions werden abgewiesen. Der Editor schreibt ausschließlich `version: 1`, prüft vorhandene Dateien vor Überschreiben und behält beim normalen Speichern die Manifestversion bei. Schema-Bündel und ihre lokalen Referenzen bleiben nach Veröffentlichung unverändert. Die ursprünglichen Legacy-Dateien und das ursprüngliche Schema bleiben als Referenz erhalten. `1.0.0` ist die erstmalige Veröffentlichung des Weltvertrags, keine Umdeutung des ganzzahligen Raumversionsfeldes; daher ist kein früheres Weltformat umzuversionieren. Weitere Formatänderungen folgen den Regeln im Kompatibilitätsvertrag.
@@ -167,7 +167,7 @@ Nach Erfolg bleiben weiterhin gültige Wege bestehen. Ungültige Wege werden ab 
 
 Die Editorvorschau prüft Wege, Objektaktionen und Ausgänge mit denselben Serverregeln wie das Spiel. Mit „Automatisch“ probiert ein Objektklick die erste verfügbare Aktion. Über die Verbauswahl lässt sich eine konkrete Aktion testen. Die Vorschau verwendet den Raumdraft beim Start und isolierte Objektzustände, die nach einem Raumwechsel erhalten bleiben. Ein Neustart der Vorschau setzt sie auf die Anfangszustände zurück. Synthetisches Beispiel: `tests/Fixtures/navigation`.
 
-Ältere Weltpakete behalten beim Speichern ihr Format. Für eine Aktualisierung auf 1.8.0 oder 1.9.0 wird das höhere Zielformat ausdrücklich im Editor gewählt. Vor dem Schreiben prüft der Server Manifest, vorhandene Räume und den Entwurf mit dem Zielvertrag. Speichern aktualisiert das Manifest und den bearbeiteten Raum. Übrige Raumdateien bleiben unverändert.
+Ältere Weltpakete behalten beim Speichern ihr Format. Für eine Aktualisierung auf 1.8.0, 1.9.0 oder 1.10.0 wird das höhere Zielformat ausdrücklich im Editor gewählt. Vor dem Schreiben prüft der Server Manifest, vorhandene Räume und den Entwurf mit dem Zielvertrag. Speichern aktualisiert das Manifest und den bearbeiteten Raum. Übrige Raumdateien bleiben unverändert.
 
 ### Sichtbare Objektübergänge ab 1.9.0
 
@@ -182,3 +182,26 @@ transitions:
 Eine bestätigte eigene Aktion oder direkte Verknüpfung startet den zum bisherigen und neuen Zustand passenden Übergang. Das Zielobjekt kann bei vorhandenen Übergängen mit `actions: []` ausschließlich über Verknüpfungen bedient werden. Der Server übernimmt den Zielzustand samt Geometrie sofort nach der Sicherheitsprüfung. Solange die Darstellung läuft, lehnt er Aktionen mit einer erneuten Zustandsänderung desselben Objekts vollständig ab. Erneutes Setzen desselben Zustands startet keine weitere Bewegung. Beim Eintritt liefert der Snapshot den bereits verstrichenen Anteil einer laufenden Bewegung. Eine Richtung ohne Eintrag springt wie bisher direkt zum neuen Erscheinungsbild.
 
 Format 1.9.0 ist eine additive Minor-Version. Bisher gültige Dateien behalten ohne `transitions` ihre Semantik. Das neue Offline-Bündel liegt unter `schemas/world/1.9.0/`.
+
+### Figurenposen und Gesten ab 1.10.0
+
+Eine Objektaktion kann ein optionales `actorAnimation`-Feld enthalten.
+
+```yaml
+actorAnimation:
+  point: 0
+  direction: up
+  durationMs: 1500
+  sprites:
+    mara: assets/images/workshop-mara-gesture.png
+```
+
+`point` ist der nullbasierte Index in `usePoints`. Bei einem einzelnen `interaction.usePoint` ist er 0. Die Figur muss den ausgewählten Punkt bis auf einen Raumpixel erreichen. Der Server prüft seine aktuelle Begehbarkeit und richtet die Figur dort nach `up`, `down`, `left` oder `right` aus. Aktionen ohne `actorAnimation` verwenden weiterhin den gewöhnlichen Bedienradius.
+
+Ohne `durationMs` hält die Figur die Pose ab der erfolgreichen Objektaktion. Der erreichte Zustand `to` muss für die Dauer der Pose bestehen bleiben. Einen Bedienpunkt mit gehaltener Pose vergibt der Server je Raum an die erste berechtigte Figur, die dort ankommt. Ein neuer Gehauftrag, Raumwechsel, Verbindungsende oder Wechsel des vorausgesetzten Zustands beendet die Pose. Dieselbe Eingabe startet eine laufende Benutzung kein zweites Mal.
+
+Mit einer Dauer von 200 bis 5000 ganzen Millisekunden zeigt die Figur eine kurze Geste. Ihre Aktion wirkt erst am Ende nach einer erneuten Prüfung von Zustand, Bedienpunkt und Navigationssicherheit. Bewegung, Raumwechsel, Verbindungsende oder ein Wechsel des vorausgesetzten Ausgangszustands brechen die ausstehende Wirkung ab. Figuren in einem laufenden Raum und beim späteren Eintritt erhalten die bestätigte Pose beziehungsweise die bereits verstrichene Zeit der Geste.
+
+`sprites` ist optional und ordnet bis zu 32 Figuren-IDs aus dem Katalog jeweils ein PNG direkt unter `assets/images/` zu. Eine Pose verwendet ein quadratisches Bild. Eine Geste verwendet drei gleich große quadratische Bilder in einer horizontalen Reihe. Der Renderer zeigt sie in gleichen Zeitabschnitten von links nach rechts und verankert jedes Bild unten mittig am Fußpunkt. Ohne passende Grafik bleibt die gewählte Figur in der konfigurierten Blickrichtung stehen.
+
+Format 1.10.0 ergänzt das optionale Feld in einem eigenen Schema-Bündel unter `schemas/world/1.10.0/`. Bestehende gültige Aktionen behalten ohne das Feld ihre bisherigen Regeln. Der Raumeditor kann die Pose, Geste und Grafiken je Aktion setzen und in der isolierten Vorschau ausprobieren.

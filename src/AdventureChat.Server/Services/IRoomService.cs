@@ -221,12 +221,21 @@ public sealed class RoomService : IRoomService
         ObjectInteraction? ConvertInteraction(ObjectInteraction? interaction) => interaction is null ? null : new ObjectInteraction
         {
             Name = interaction.Name, InitialState = interaction.InitialState, UsePoint = interaction.UsePoint,
-            UseRadius = interaction.UseRadius, Actions = interaction.Actions, Transitions = interaction.Transitions,
+            UseRadius = interaction.UseRadius, Actions = interaction.Actions.Select(ConvertAction).ToList(), Transitions = interaction.Transitions,
             States = interaction.States.Select(s => new ObjectState
             {
                 Id = s.Id, Name = s.Name, Image = Asset(s.Image), Position = s.Position, Size = s.Size, DepthY = s.DepthY,
                 Obstacles = s.Obstacles, BlockedExits = s.BlockedExits
             }).ToList()
+        };
+        ObjectAction ConvertAction(ObjectAction action) => new()
+        {
+            Id = action.Id, Name = action.Name, From = action.From, To = action.To, Effects = action.Effects,
+            ActorAnimation = action.ActorAnimation is not { } animation ? null : new()
+            {
+                Point = animation.Point, Direction = animation.Direction, DurationMs = animation.DurationMs,
+                Sprites = animation.Sprites?.ToDictionary(pair => pair.Key, pair => Asset(pair.Value))
+            }
         };
     }
 }

@@ -1,4 +1,4 @@
-import type { ObjectActionResultDto, Point, RoomObject } from '../types.js';
+import type { ObjectActionResultDto, ObjectActorAnimation, Point, RoomObject } from '../types.js';
 import { nearestUsePoints, objectUsePoints } from './object-use-points.js';
 
 interface PendingAction {
@@ -22,8 +22,10 @@ export class ObjectActionFlow {
   public constructor(
     private readonly current: () => { roomId: string; position: Point; idle: boolean; revision: number; stateOf: (objectId: string) => string | undefined },
     private readonly walk: (point: Point) => Promise<{ accepted: boolean; error?: string }>,
-    private readonly execute: (roomId: string, objectId: string, actionId: string, revision: number) => Promise<ObjectActionResultDto>,
-    private readonly finish: (error: string | null) => void
+    private readonly execute: (roomId: string, objectId: string, actionId: string, revision: number, approach: boolean) => Promise<ObjectActionResultDto>,
+    private readonly finish: (error: string | null, pending?: boolean) => void,
+    private readonly prepareAnimation: (animation: ObjectActorAnimation) => Promise<void>,
+    private readonly serverApproach = false
   ) {}
 
   public cancel(): boolean {
@@ -34,11 +36,23 @@ export class ObjectActionFlow {
 
   public async start(roomId: string, object: RoomObject, actionId: string | null, expectedState: string | undefined): Promise<void> {
     const interaction = object.interaction;
-    const points = nearestUsePoints(objectUsePoints(object, this.current().position), this.current().position);
+    const animation = interaction?.actions.find(action => action.id === actionId && action.from === expectedState)?.actorAnimation;
+    const usePoints = objectUsePoints(object, this.current().position);
+    const configuredPoint = animation ? usePoints[animation.point] : undefined;
+    const points = configuredPoint ? [configuredPoint] : nearestUsePoints(usePoints, this.current().position);
     const intent: PendingAction = { roomId, objectId: object.id, actionId, expectedState,
-      point: points[0]!, points, radius: interaction?.useRadius ?? 40, ready: false, inFlight: false, retries: 0, nextAttempt: 0, approached: false };
+      point: points[0]!, points, radius: configuredPoint ? 1 : interaction?.useRadius ?? 40,
+      ready: false, inFlight: false, retries: 0, nextAttempt: 0, approached: false };
     this.pending = intent;
+    if (animation) {
+      await this.prepareAnimation(animation);
+      if (this.pending !== intent) return;
+    }
     const current = this.current(), position = current.position;
+    if (animation && this.serverApproach) {
+      await this.tryExecute(intent, true);
+      return;
+    }
     if (current.idle && points.some(point => Math.hypot(position.x - point.x, position.y - point.y) <= intent.radius)) {
       await this.tryExecute(intent);
       return;
@@ -66,7 +80,7 @@ export class ObjectActionFlow {
     void this.tryExecute(intent);
   }
 
-  private async tryExecute(intent: PendingAction): Promise<void> {
+  private async tryExecute(intent: PendingAction, approach = false): Promise<void> {
     const current = this.current();
     if (current.roomId !== intent.roomId) { this.cancel(); return; }
     if (current.stateOf(intent.objectId) !== intent.expectedState) {
@@ -74,7 +88,7 @@ export class ObjectActionFlow {
     }
     if (intent.actionId === null) { this.pending = null; this.finish('Das geht nicht.'); return; }
     intent.inFlight = true;
-    const result = await this.execute(intent.roomId, intent.objectId, intent.actionId, current.revision);
+    const result = await this.execute(intent.roomId, intent.objectId, intent.actionId, current.revision, approach);
     if (this.pending !== intent) return;
     if (!result.success && result.errorCode === 'too_far' && !intent.approached) {
       intent.inFlight = false;
@@ -86,6 +100,6 @@ export class ObjectActionFlow {
       return;
     }
     this.pending = null;
-    this.finish(result.success ? null : result.error ?? 'Aktion abgelehnt.');
+    this.finish(result.success ? null : result.error ?? 'Aktion abgelehnt.', result.pending);
   }
 }
