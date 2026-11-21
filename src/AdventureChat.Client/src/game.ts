@@ -1,6 +1,7 @@
 import { DEFAULT_ROOM, SPEECH_BUBBLE_DURATION } from './constants.js';
 import { withinExitReach } from './input/exit-hit.js';
 import { InputHandler } from './input/input-handler.js';
+import { NpcDialogueFlow } from './input/npc-dialogue-flow.js';
 import { actionForVerb } from './input/object-action.js';
 import { ObjectActionFlow } from './input/object-action-flow.js';
 import { nearestUsePoints, objectUsePoints } from './input/object-use-points.js';
@@ -12,6 +13,7 @@ import type {
   Character,
   CharacterCatalog,
   ChatMessageDto,
+  DialogueOption,
   Point,
   RoomDefinition,
   RoomExit,
@@ -36,9 +38,12 @@ export class AdventureGame {
   public onWorldUnavailable?: (message: string) => void;
   public onObjectsChanged?: () => void;
   public onVerbSelected?: (verb: InteractionVerb) => void;
+  public onDialogueOpened?: (name: string, options: readonly DialogueOption[]) => void;
+  public onDialogueClosed?: () => void;
   private verb: InteractionVerb = 'walk';
   private approach: { verb: InteractionVerb; objectId: string; actionId: string; state: string | undefined } | null = null;
   private readonly objectActionFlow: ObjectActionFlow;
+  private readonly dialogueFlow: NpcDialogueFlow;
 
   private lastTimestamp = 0;
   private isRunning = false;
@@ -60,14 +65,17 @@ export class AdventureGame {
     private readonly characterCatalog?: CharacterCatalog
   ) {
     this.state = new RoomState(initialRoom, playerName);
-    this.renderer = new RoomRenderer(this.canvas, this.state.room);
+    this.renderer = new RoomRenderer(this.canvas, this.state.room, undefined, characterCatalog);
 
     this.state.onRoomChanged = (room) => {
       this.objectWalkToken++;
       this.approach = null;
       this.objectActionFlow.cancel();
+      const interruptedDialogue = this.dialogueFlow.cancel();
+      this.onDialogueClosed?.();
       this.renderer.setRoom(room);
       this.onRoomChanged?.(room);
+      if (interruptedDialogue) this.reportDialogueError('Das Gespräch wurde durch den Raumwechsel abgebrochen.');
     };
 
     this.state.onChatMessage = (msg) => {
@@ -75,9 +83,11 @@ export class AdventureGame {
     };
     this.state.onObjectsChanged = () => { this.renderer.updateRoomState(this.state.room); this.onObjectsChanged?.(); };
     this.state.onNavigationStopped = () => {
+      const interruptedDialogue = this.dialogueFlow.cancel();
       this.objectWalkToken++;
       this.objectActionFlow.cancel();
       this.selectVerb('walk');
+      if (interruptedDialogue) this.onActionFeedback?.('Der Weg zur Figur ist jetzt versperrt.');
     };
 
     this.networkClient = new RoomNetworkClient({
@@ -93,6 +103,10 @@ export class AdventureGame {
       },
       onWorldReset: () => this.onWorldUnavailable?.('Die Welt wurde geändert und neu gestartet. Bitte erneut beitreten.'),
       onConnectionStatusChanged: (status) => {
+        if (status !== 'connected') {
+          this.onDialogueClosed?.();
+          if (this.dialogueFlow.cancel()) this.reportDialogueError('Die Verbindung wurde unterbrochen.');
+        }
         if (status !== 'connected' && this.objectActionFlow.cancel()) {
           this.speakLocally('Die Verbindung wurde unterbrochen.');
           this.selectVerb('walk');
@@ -122,6 +136,18 @@ export class AdventureGame {
       true
     );
 
+    this.dialogueFlow = new NpcDialogueFlow(
+      () => ({ roomId: this.room.id, position: this.character.position,
+        idle: this.character.state === 'idle', changingRoom: this.changingRoom }),
+      point => this.setTarget(point),
+      (room, npc) => this.networkClient.requestNpcDialogue(room, npc),
+      (npc, options) => {
+        this.selectVerb('walk');
+        this.onDialogueOpened?.(npc.name, options);
+      },
+      text => this.reportDialogueError(text)
+    );
+
     this.inputHandler = new InputHandler(
       this.canvas,
       {
@@ -130,16 +156,10 @@ export class AdventureGame {
           this.onActionChanged?.(actionText);
         },
         onNavigateToExit: async (exit, isImmediate) => {
-          if (isImmediate) {
-            this.exitRetries = 0;
-            this.nextExitAttempt = 0;
-            this.state.pendingExit = exit;
-          } else {
-            this.exitRetries = 0;
-            this.nextExitAttempt = 0;
-            this.state.pendingExit = exit;
-            await this.setTarget(exit.position);
-          }
+          this.exitRetries = 0;
+          this.nextExitAttempt = 0;
+          this.state.pendingExit = exit;
+          if (!isImmediate || this.character.state === 'walk') await this.setTarget(exit.position);
         },
         onNavigateToPoint: async (point) => {
           this.state.pendingExit = null;
@@ -171,11 +191,19 @@ export class AdventureGame {
           this.selectVerb('walk');
           this.onActionFeedback?.('Das geht nicht.');
         },
-        onCanvasAction: objectId => {
+        onCanvasAction: (objectId, leavingRoom) => {
           if (this.approach && (this.verb === 'walk' || this.approach.objectId !== objectId)) this.cancelObjectApproach();
           this.objectWalkToken++;
           this.objectActionFlow.cancel();
-          this.onActionFeedback?.('');
+          const interruptedDialogue = this.dialogueFlow.cancel();
+          this.onDialogueClosed?.();
+          this.onActionFeedback?.(interruptedDialogue && leavingRoom
+            ? 'Gespräch abgebrochen. Du hast einen Ausgang gewählt.' : '');
+        },
+        onTalk: npc => {
+          this.state.pendingExit = null;
+          this.selectVerb('walk');
+          return this.dialogueFlow.start(npc);
         },
       },
       () => this.state.room,
@@ -183,7 +211,8 @@ export class AdventureGame {
       () => this.renderer.camera.offset,
       () => this.verb,
       point => this.renderer.objectAt(point),
-      id => this.state.objectStates.get(id)
+      id => this.state.objectStates.get(id),
+      point => this.renderer.npcAt(point)
     );
   }
 
@@ -197,8 +226,17 @@ export class AdventureGame {
   }
 
   public chooseVerb(verb: InteractionVerb): void {
+    const interruptedDialogue = this.dialogueFlow.cancel();
+    this.onDialogueClosed?.();
     if (this.approach && this.approach.verb !== verb) this.cancelObjectApproach();
     this.selectVerb(verb);
+    if (interruptedDialogue) this.onActionFeedback?.('Gespräch abgebrochen.');
+  }
+
+  private reportDialogueError(text: string): void {
+    this.selectVerb('walk');
+    this.speakLocally(text);
+    this.onActionFeedback?.(text);
   }
 
   private cancelObjectApproach(): void {
@@ -280,6 +318,8 @@ export class AdventureGame {
   public stop(): void {
     this.isRunning = false;
     this.objectActionFlow.cancel();
+    this.dialogueFlow.cancel();
+    this.onDialogueClosed?.();
     if (this.animationFrameId !== null) {
       cancelAnimationFrame(this.animationFrameId);
       this.animationFrameId = null;
@@ -422,6 +462,7 @@ export class AdventureGame {
       updateCharacterMovement(remote, dt);
     }
     this.objectActionFlow.update();
+    this.dialogueFlow.update();
 
     // Check if local character finished walking to an exit
     if (this.state.pendingExit && this.state.character.state === 'idle') {

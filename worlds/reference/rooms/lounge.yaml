@@ -7,6 +7,15 @@ actorHeight: 128
 spawns:
   - { id: entry, position: { x: 180, y: 320 } }
   - { id: from-garden, position: { x: 564, y: 254 } }
+npcs:
+  - id: nela
+    name: Nela
+    characterId: bruno
+    position: { x: 112, y: 286 }
+    talkPoint: { x: 146, y: 294 }
+    options:
+      - { id: introduction, text: Wer bist du?, reply: Ich bin Nela. Ich passe auf die Lounge auf. }
+      - { id: garden, text: Wo ist der Garten?, reply: Durch die Tür rechts erreichst du den Tavernen-Garten. }
 walkable:
   - id: floor
     points: [{ x: 76, y: 242 }, { x: 284, y: 222 }, { x: 510, y: 222 }, { x: 532, y: 236 }, { x: 616, y: 236 }, { x: 616, y: 348 }, { x: 76, y: 348 }]

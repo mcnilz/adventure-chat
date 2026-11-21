@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Text.RegularExpressions;
 using AdventureChat.Server.Models;
 
@@ -38,8 +39,7 @@ public sealed class EditorService : IEditorService
     private readonly bool _editorEnabled;
     private readonly WorldPackage? _world;
     private readonly string? _startupFormat;
-    private readonly Lazy<IRoomValidator> _navigationValidator = FormatValidator(EditorFormatUpgrade.Target);
-    private readonly Lazy<IRoomValidator> _transitionValidator = FormatValidator(EditorFormatUpgrade.TransitionTarget);
+    private readonly ConcurrentDictionary<string, IRoomValidator> _formatValidators = new(StringComparer.Ordinal);
 
     public EditorService(
         IContentPathProvider pathProvider,
@@ -60,16 +60,13 @@ public sealed class EditorService : IEditorService
 
     public bool IsEditorEnabled => _editorEnabled;
     public string? FormatVersion => _world?.FormatVersion;
-    private static Lazy<IRoomValidator> FormatValidator(string version) =>
-        new(() => new RoomValidator(WorldPackage.FindSchema("room.schema.json", version)));
-
-    private IRoomValidator ValidatorFor(string? target) =>
-        (target ?? FormatVersion) switch
-        {
-            var version when version == _startupFormat => _validator,
-            EditorFormatUpgrade.TransitionTarget => _transitionValidator.Value,
-            _ => _navigationValidator.Value
-        };
+    private IRoomValidator ValidatorFor(string? target)
+    {
+        var version = target ?? FormatVersion;
+        return version is null || version == _startupFormat
+            ? _validator
+            : _formatValidators.GetOrAdd(version, static version => new RoomValidator(WorldPackage.FindSchema("room.schema.json", version)));
+    }
 
     private IRoomValidator Validator => ValidatorFor(null);
 

@@ -1,7 +1,7 @@
 import type { InteractionVerb, RoomObject } from '../types.js';
 
 export const VERB_PHRASES: Record<InteractionVerb, string> = {
-  walk: 'Gehe zu', open: 'Öffne', close: 'Schließe', pull: 'Ziehe', push: 'Drücke', use: 'Benutzen'
+  walk: 'Gehe zu', open: 'Öffne', close: 'Schließe', pull: 'Ziehe', push: 'Drücke', use: 'Benutzen', talk: 'Spreche mit'
 };
 
 const aliases = {

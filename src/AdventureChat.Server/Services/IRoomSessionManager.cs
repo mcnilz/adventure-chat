@@ -23,6 +23,7 @@ public interface IRoomSessionManager
     SendChatMessageResult SendChatMessage(string connectionId, string text);
     IReadOnlyList<ChatMessageDto> GetRecentMessages(string roomId);
     ObjectActionResult RequestObjectAction(string connectionId, ObjectActionRequestDto request);
+    NpcDialogueResult RequestNpcDialogue(string connectionId, NpcDialogueRequest request);
     void CancelObjectApproach(string connectionId);
     SaveRoomResult SaveRoomAndReset(Func<SaveRoomResult> save);
 }

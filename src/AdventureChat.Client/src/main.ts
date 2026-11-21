@@ -4,6 +4,7 @@ import type { ChatMessageDto } from './types.js';
 import { chooseWorld, loadWorlds, showStartupError } from './ui/world-picker.js';
 import { GameViewport } from './ui/game-viewport.js';
 import { VerbBar } from './ui/verb-bar.js';
+import { NpcDialoguePanel } from './ui/npc-dialogue-panel.js';
 
 declare global {
   interface Window {
@@ -36,6 +37,9 @@ async function initialize(): Promise<void> {
   );
   const verbBar = new VerbBar(verb => game.chooseVerb(verb));
   game.onVerbSelected = verb => verbBar.setSelected(verb);
+  const dialogue = new NpcDialoguePanel();
+  game.onDialogueOpened = (name, options) => dialogue.open(name, options);
+  game.onDialogueClosed = () => dialogue.close();
 
   game.onConnectionStatusChanged = (status) => {
     chatUi.setConnectionStatus(status);

@@ -1,0 +1,60 @@
+using AdventureChat.Server.Models;
+using AdventureChat.Server.Services;
+using NUnit.Framework;
+
+namespace AdventureChat.ServerTests;
+
+public class NpcContentTests
+{
+    private const string NpcYaml = """
+
+            npcs:
+              - id: host
+                name: Gastgeber
+                characterId: mara
+                position: { x: 40, y: 50 }
+                talkPoint: { x: 60, y: 50 }
+                options:
+                  - { id: hello, text: Hallo, reply: Willkommen }
+                  - { id: garden, text: Wo ist der Garten?, reply: Nebenan }
+            """;
+
+    [Test]
+    public void StationaryNpcRoundTripsOnlyInTheNewFormat()
+    {
+        var serializer = new RoomYamlSerializer();
+        var yaml = serializer.Serialize(DynamicNavigationTests.Room()) + NpcYaml;
+        var room = serializer.Deserialize(yaml);
+        var validator = new RoomValidator(WorldPackage.FindSchema("room.schema.json", "1.11.0"));
+
+        Assert.That(validator.Validate(room).Errors, Is.Empty);
+        var saved = serializer.Serialize(RoomYamlDto.FromRoomDefinition(room.ToRoomDefinition()));
+        Assert.That(serializer.Deserialize(saved).Npcs!.Single().Options[0].Reply, Is.EqualTo("Willkommen"));
+        Assert.That(new RoomValidator(WorldPackage.FindSchema("room.schema.json", "1.10.0")).Validate(room).Errors,
+            Has.Some.Contains("npcs"));
+    }
+
+    [TestCase("id: garden", "id: HELLO", "unique dialogue option IDs")]
+    [TestCase("reply: Nebenan", "reply: ' '", "each with a reply")]
+    [TestCase("x: 60, y: 50", "x: 95, y: 50", "walkable talkPoint")]
+    public void InvalidDialogueFailsContentValidation(string original, string replacement, string expected)
+    {
+        var serializer = new RoomYamlSerializer();
+        var room = serializer.Deserialize(serializer.Serialize(DynamicNavigationTests.Room()) +
+            NpcYaml.Replace(original, replacement, StringComparison.Ordinal));
+        var validator = new RoomValidator(WorldPackage.FindSchema("room.schema.json", "1.11.0"));
+        Assert.That(validator.Validate(room).Errors, Has.Some.Contains(expected));
+    }
+
+    [Test]
+    public void NpcCharacterMustExistInTheWorldCatalog()
+    {
+        var reference = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../../worlds/reference"));
+        var world = WorldPackage.Load(reference);
+        var lounge = world.LoadRooms().Single(room => room.Id == "lounge");
+        lounge.Npcs![0] = lounge.Npcs[0] with { CharacterId = "wrong-character" };
+
+        var exception = Assert.Throws<InvalidOperationException>(() => world.ValidateBackground(lounge));
+        Assert.That(exception!.Message, Does.Contain("NPC 'nela' references unknown character 'wrong-character'"));
+    }
+}

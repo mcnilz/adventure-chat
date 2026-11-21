@@ -35,6 +35,7 @@ public sealed partial class RoomValidator : IRoomValidator
     private readonly bool _supportsStateNavigation;
     private readonly bool _supportsTransitions;
     private readonly bool _supportsActorAnimations;
+    private readonly bool _supportsNpcs;
     private readonly IPathfindingService _pathfinder;
 
     public RoomValidator(string? schemaPath = null, IPathfindingService? pathfinder = null)
@@ -53,6 +54,7 @@ public sealed partial class RoomValidator : IRoomValidator
             _supportsUsePoints = obj?["usePoints"] is not null;
             _supportsTransitions = interaction?["transitions"] is not null;
             _supportsActorAnimations = interaction?["actions"]?["items"]?["properties"]?["actorAnimation"] is not null;
+            _supportsNpcs = room?["npcs"] is not null;
             _supportsStateNavigation = interaction?["states"]?["items"]?["properties"]?["obstacles"] is not null;
             _supportsViewport = room?["viewport"] is not null;
             _supportsDisplay = room?["perspective"] is not null;
@@ -199,6 +201,7 @@ public sealed partial class RoomValidator : IRoomValidator
         if (errors.Count == 0)
         {
             var roomDef = dto.ToRoomDefinition();
+            NpcValidation.Validate(roomDef, _supportsNpcs, errors);
             ObjectInteractionValidation.ValidateReachability(roomDef, _pathfinder, errors);
 
             // Obstacles must be inside outer boundary

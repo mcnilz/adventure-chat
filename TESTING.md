@@ -58,6 +58,8 @@ Ticket 23 wurde am 20.11.2026 für öffentliche Inhalts- und Navigationsprüfung
 
 Für Ticket 26 sind Inhaltsvalidierung, Speichern und Neuladen im Editor, die öffentlichen Raumkommandos und echte Browserabläufe mit zwei Teilnehmern bestätigt. Geprüft werden der gewählte Bedienpunkt, Blickrichtung, Pose und Geste im Canvas, Platzkonkurrenz, Abbruch und sichtbare Objektwirkung beim späteren Eintritt. Die Lesbarkeit der Geste und das Bediengefühl bleiben menschliche Abnahme.
 
+Für Ticket 27 wurden am 21.11.2026 die öffentlichen Inhalts- und Browsergrenzen bestätigt. Fälle sind die Validierung und das Speichern von NPCs mit Katalogverweisen, die Regressionsprüfung mit älteren Referenzfixtures sowie browserseitig zwei unabhängige Gespräche, Reichweite, Abbruch, Raumrückkehr und Trennung vom Raumchat. Die visuelle Einbindung der Figur und die Bedienung bleiben menschliche Abnahme.
+
 | Paket | Vorgeschlagene öffentliche Grenzen / Schwerpunkt | Ausdrückliche Grenze |
 | --- | --- | --- |
 | [20](.scratch/adventure-chat/issues/20-shared-object-actions.md) | Inhalts-Laden/Speichern, echte SignalR-Kommandos, Browser/Canvas: reversible Zustände, atomare direkte Wirkungen, Konkurrenz, Snapshots, Weltisolation, Neustart | Keine privaten Sperren/Zustandscontainer testen; keine Script-Ausführung oder Persistenz zusichern. |

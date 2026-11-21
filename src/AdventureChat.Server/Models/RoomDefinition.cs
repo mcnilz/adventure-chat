@@ -47,7 +47,8 @@ public sealed record RoomDefinition(
     double WalkSpeed = 130,
     RoomViewport? Viewport = null,
     IReadOnlyList<RoomObject>? Objects = null,
-    RoomDepthScale? DepthScale = null
+    RoomDepthScale? DepthScale = null,
+    IReadOnlyList<NpcDefinition>? Npcs = null
 )
 {
     public IReadOnlyList<RoomSpawn> Spawns { get; init; } = Spawns ?? new List<RoomSpawn> { new("entry", SpawnPoint) };

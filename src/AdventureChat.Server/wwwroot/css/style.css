@@ -116,7 +116,7 @@ body {
 
 #verb-bar {
   display: grid;
-  grid-template-columns: repeat(3, 130px);
+  grid-template-columns: repeat(4, 130px);
   gap: 2px 8px;
   padding: 6px 16px;
   background: #070a13;
@@ -124,6 +124,40 @@ body {
 #verb-bar button { background: transparent; border: 1px solid transparent; color: #ddd1a2; cursor: pointer; padding: 4px 10px; text-align: left; font: bold 15px "Courier New", monospace; }
 #verb-bar button[aria-pressed="true"] { color: #ffe066; border-color: #b88f3a; }
 #verb-bar button:focus-visible { outline: 2px solid #ffe066; outline-offset: 2px; }
+#verb-bar button[data-verb="talk"] { grid-column: 4; grid-row: 1; }
+
+#npc-dialogue {
+  inset: 52px 16px auto auto;
+  z-index: 11;
+  width: min(440px, calc(100% - 32px));
+  max-height: calc(100% - 64px);
+  overflow: auto;
+  padding: 14px;
+  border: 2px solid #b88f3a;
+  background: #111722;
+  color: #eee1b1;
+}
+.npc-dialogue-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+#npc-dialogue-name { color: #ffe066; font-size: 18px; overflow-wrap: anywhere; }
+#npc-dialogue button {
+  border: 1px solid #856d40;
+  background: #222b38;
+  color: inherit;
+  padding: 6px 10px;
+  cursor: pointer;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+#npc-dialogue button:focus-visible { outline: 2px solid #ffe066; outline-offset: 2px; }
+#npc-choices { display: grid; gap: 6px; }
+#npc-reply { margin-top: 10px; line-height: 1.4; overflow-wrap: anywhere; }
+#npc-reply:empty { margin-top: 0; }
 
 #chat-container {
   height: 120px;

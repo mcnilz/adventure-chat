@@ -123,6 +123,7 @@ Ticket 20 erweitert die ausdrückliche Unterstützung um 1.6.0 und nach Benutzer
 | 23: Referenzbeispiele | Veröffentlichtes Format 1.8.0 aus 21 | Inhalt 4.0.0 ergänzt die Werkstatt und korrigiert die Laufkante an der Gartentür. Ein kleiner Bereich im bestehenden Garten ist jetzt gesperrt. Die bisherigen Tourausgänge, Spawns und Defaults behalten ihre Bedeutung. Ältere Testwelten verwenden weiterhin ihre eigenen Formate. |
 | 25: Sichtbare Objektübergänge | Format 1.9.0 | Optionale gerichtete Übergänge. Ohne sie gelten die bisherigen Zustands- und Navigationsregeln. Die Werkstatt ergänzt einen Hubtisch mit eigener Stellfläche. Die bisher dort erreichbaren Fußpunkte entfallen in Inhalt 5.0.0. |
 | 26: Figurenposen und Gesten | Format 1.10.0 | Optional je Aktion. Ohne Angabe bleiben Bedienradius und sofortige Wirkungen erhalten. Referenzinhalt 5.1.0 ergänzt Hinsetzen am zurückgeschobenen Stuhl und eine Geste an der Werkstatttafel. |
+| 27: Stationäre NPCs und Gespräche | Format 1.11.0 | Optionale NPC-Liste mit Katalogverweis, Gesprächspunkt und vorbereiteten Antworten. Die Referenzwelt 5.2.0 ergänzt Nela in der Startlounge. |
 
 Versionsnummern bei Paketfreigabe gegen den tatsächlichen Stand prüfen. Eine spätere andere Reihenfolge darf keinen veröffentlichten Vertrag verändern. Bis Implementierung und Prüfung akzeptiert kein Server diese geplanten Versionen allein wegen dieses Dokuments.
 

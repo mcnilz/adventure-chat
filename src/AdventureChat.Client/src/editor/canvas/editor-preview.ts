@@ -90,6 +90,7 @@ export class EditorPreview {
     if (EditorApi.worldId) void loadCharacterCatalog(EditorApi.worldId).then(catalog => {
       if (this.previewCharacter === character && character) {
         character.appearance = catalog.characters.find(c => c.id === catalog.defaultCharacterId);
+        this.previewRenderer?.setCharacterCatalog(catalog);
       }
     }).catch(() => { /* Preview keeps its loading fallback if content is temporarily unavailable. */ });
     this.lastFrameTime = performance.now();

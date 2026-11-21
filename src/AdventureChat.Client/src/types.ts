@@ -129,7 +129,24 @@ export interface ActorAnimationDto {
  readonly durationMs: number | null;
  readonly elapsedMs: number;
 }
-export type InteractionVerb = 'walk' | 'open' | 'close' | 'pull' | 'push' | 'use';
+export type InteractionVerb = 'walk' | 'open' | 'close' | 'pull' | 'push' | 'use' | 'talk';
+export interface NpcPresence {
+  readonly id: string;
+  readonly name: string;
+  readonly characterId: string;
+  readonly position: Point;
+  readonly talkPoint: Point;
+}
+export interface DialogueOption {
+  readonly id: string;
+  readonly text: string;
+  readonly reply: string;
+}
+export interface NpcDialogueResult {
+  readonly error: string | null;
+  readonly options: readonly DialogueOption[] | null;
+  readonly tooFar: boolean;
+}
 export interface ObjectAppearance {
  readonly obstacles?: ReadonlyArray<{ readonly id: string; readonly points: ReadonlyArray<Point> }> | null;
  readonly blockedExits?: ReadonlyArray<string> | null;
@@ -167,6 +184,7 @@ export interface DepthScale {
 }
 
 export interface RoomDefinition {
+  readonly npcs?: readonly NpcPresence[] | null;
   depthScale?: DepthScale | null;
   objects?: ReadonlyArray<RoomObject> | null;
   viewport?: RoomViewport | null;

@@ -60,7 +60,7 @@ Geplant sind optionale Raumangaben für Draufsicht und feste Figurengröße, hor
 | Weltformat | Raumformat | Unterstützung |
 | --- | --- | --- |
 | `1.0.0` | `legacy-1`, Raum-`version: 1` | Lesen und Schreiben |
-| `1.1.0`–`1.10.0` | `legacy-1`, Raum-`version: 1` | Lesen und Schreiben für jede ausdrücklich veröffentlichte Minor-Version |
+| `1.1.0`–`1.11.0` | `legacy-1`, Raum-`version: 1` | Lesen und Schreiben für jede ausdrücklich veröffentlichte Minor-Version |
 | andere | beliebig | ausdrücklich abgelehnt |
 
 Das Manifest verwendet `formatVersion`, `id`, `name`, `contentVersion`, `startRoom`, `startSpawn` und `roomFormat`. `rooms` und `assets/images` sind paketrelative Verzeichnisse. Dateiname und Raum-ID stimmen überein; Hintergründe sind vollständige PNG-Dateien mit passenden Abmessungen; PNG-Dateien sind auf 64 MiB, ihre dekodierten Bilddaten auf 128 MiB und einzelne YAML-Dateien auf 1 MiB begrenzt. Absolute Pfade, `..` und symbolische Links/Junctions werden abgewiesen. Der Editor schreibt ausschließlich `version: 1`, prüft vorhandene Dateien vor Überschreiben und behält beim normalen Speichern die Manifestversion bei. Schema-Bündel und ihre lokalen Referenzen bleiben nach Veröffentlichung unverändert. Die ursprünglichen Legacy-Dateien und das ursprüngliche Schema bleiben als Referenz erhalten. `1.0.0` ist die erstmalige Veröffentlichung des Weltvertrags, keine Umdeutung des ganzzahligen Raumversionsfeldes; daher ist kein früheres Weltformat umzuversionieren. Weitere Formatänderungen folgen den Regeln im Kompatibilitätsvertrag.
@@ -167,7 +167,7 @@ Nach Erfolg bleiben weiterhin gültige Wege bestehen. Ungültige Wege werden ab 
 
 Die Editorvorschau prüft Wege, Objektaktionen und Ausgänge mit denselben Serverregeln wie das Spiel. Bei einem interaktiven Objekt verwendet „Automatisch“ die Auswahlregel für „Benutzen“. Über die Verbauswahl lässt sich eine konkrete Aktion testen. Die Vorschau verwendet den Raumdraft beim Start und isolierte Objektzustände, die nach einem Raumwechsel erhalten bleiben. Ein Neustart der Vorschau setzt sie auf die Anfangszustände zurück. Synthetisches Beispiel: `tests/Fixtures/navigation`.
 
-Ältere Weltpakete behalten beim Speichern ihr Format. Für eine Aktualisierung auf 1.8.0, 1.9.0 oder 1.10.0 wird das höhere Zielformat ausdrücklich im Editor gewählt. Vor dem Schreiben prüft der Server Manifest, vorhandene Räume und den Entwurf mit dem Zielvertrag. Speichern aktualisiert das Manifest und den bearbeiteten Raum. Übrige Raumdateien bleiben unverändert.
+Ältere Weltpakete behalten beim Speichern ihr Format. Für eine Aktualisierung auf 1.8.0, 1.9.0, 1.10.0 oder 1.11.0 wird das höhere Zielformat ausdrücklich im Editor gewählt. Vor dem Schreiben prüft der Server Manifest, vorhandene Räume und den Entwurf mit dem Zielvertrag. Speichern aktualisiert das Manifest und den bearbeiteten Raum. Übrige Raumdateien bleiben unverändert.
 
 ### Sichtbare Objektübergänge ab 1.9.0
 
@@ -205,3 +205,26 @@ Mit einer Dauer von 200 bis 5000 ganzen Millisekunden zeigt die Figur eine kurze
 `sprites` ist optional und ordnet bis zu 32 Figuren-IDs aus dem Katalog jeweils ein PNG direkt unter `assets/images/` zu. Eine Pose verwendet ein quadratisches Bild. Eine Geste verwendet drei gleich große quadratische Bilder in einer horizontalen Reihe. Der Renderer zeigt sie in gleichen Zeitabschnitten von links nach rechts und verankert jedes Bild unten mittig am Fußpunkt. Ohne passende Grafik bleibt die gewählte Figur in der konfigurierten Blickrichtung stehen.
 
 Format 1.10.0 ergänzt das optionale Feld in einem eigenen Schema-Bündel unter `schemas/world/1.10.0/`. Bestehende gültige Aktionen behalten ohne das Feld ihre bisherigen Regeln. Der Raumeditor kann die Pose, Geste und Grafiken je Aktion setzen und in der isolierten Vorschau ausprobieren.
+
+### Stationäre NPCs und Gespräche ab 1.11.0
+
+Ein Raum kann unter `npcs` stationäre Figuren mit einer Grafik aus dem Figurenkatalog der Welt definieren. Die Referenzwelt nutzt diese Definition für Nela.
+
+```yaml
+npcs:
+  - id: nela
+    name: Nela
+    characterId: bruno
+    position: { x: 112, y: 286 }
+    talkPoint: { x: 146, y: 294 }
+    options:
+      - { id: introduction, text: Wer bist du?, reply: Ich bin Nela. Ich passe auf die Lounge auf. }
+      - { id: garden, text: Wo ist der Garten?, reply: Durch die Tür rechts erreichst du den Tavernen-Garten. }
+```
+
+- `id` ist im Raum eindeutig, `characterId` verweist auf einen exakten Katalogeintrag. `position` setzt den Fußpunkt der Figur. `talkPoint` ist das Laufziel des Besuchers und liegt höchstens 48 Raumpixel entfernt. Beide Punkte müssen auf begehbarem Boden liegen und direkt verbunden sein.
+- Jede Figur hat zwei bis acht `options` mit eigener ID, Aussage (`text`) und zugehöriger Antwort (`reply`). IDs werden auf Duplikate unabhängig von der Groß-/Kleinschreibung geprüft. Aussagen müssen sich unterscheiden. Textgrenzen sind 100 Zeichen für den Namen, 120 für eine Aussage und 400 für eine Antwort.
+- Der Server prüft den Raum, die Ankunft bis auf zwei Raumpixel am Gesprächspunkt und die freie Verbindung in der aktuellen Raumgeometrie. Besucher können gleichzeitig mit derselben Figur sprechen. Jeder sieht seine Auswahl und Antwort im eigenen Dialogfeld.
+- NPCs werden in der Raum-YAML bearbeitet. Der Browsereditor erhält die Einträge beim Speichern und zeigt die Figur in der Raumvorschau.
+
+`npcs` ist optional. Die additive Erweiterung erscheint als Minor-Version mit eigenem Schema-Bündel unter `schemas/world/1.11.0/`.

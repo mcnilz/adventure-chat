@@ -40,6 +40,7 @@ public sealed class RoomYamlDto
     public double? WalkSpeed { get; set; }
     public RoomViewportYamlDto? Viewport { get; set; }
     public List<RoomObjectYamlDto>? Objects { get; set; }
+    public List<NpcDefinition>? Npcs { get; set; }
 
     public RoomDefinition ToRoomDefinition()
     {
@@ -80,7 +81,8 @@ public sealed class RoomYamlDto
             DepthScale: DepthScale,
             WalkSpeed: WalkSpeed ?? 130,
             Objects: Objects?.Select(o => new RoomObject(o.Id, o.Image, new Point2D(o.Position.X, o.Position.Y), new RoomObjectSize(o.Size.Width, o.Size.Height), o.DepthY, o.Interaction, o.UsePoints?.Select(p => new Point2D(p.X, p.Y)).ToList())).ToList(),
-            Viewport: Viewport is null ? null : new RoomViewport(Viewport.Width, Viewport.Height, Viewport.ScrollMode)
+            Viewport: Viewport is null ? null : new RoomViewport(Viewport.Width, Viewport.Height, Viewport.ScrollMode),
+            Npcs: Npcs
         );
     }
 
@@ -138,6 +140,7 @@ public sealed class RoomYamlDto
                 }).ToList()
                 : null,
             Notes = room.Notes,
+            Npcs = room.Npcs?.ToList(),
             Objects = room.Objects?.Select(o => new RoomObjectYamlDto { Id = o.Id, Image = o.Image, Position = new RoomPointYamlDto { X = o.Position.X, Y = o.Position.Y }, Size = new RoomSizeYamlDto { Width = o.Size.Width, Height = o.Size.Height }, DepthY = o.DepthY, Interaction = o.Interaction, UsePoints = o.UsePoints?.Select(p => new RoomPointYamlDto { X = p.X, Y = p.Y }).ToList() }).ToList(),
             Perspective = room.Perspective == "adventure" ? null : room.Perspective,
             DepthScale = room.DepthScale,

@@ -1,5 +1,5 @@
 import { screenToRoom } from '../rendering/camera.js';
-import type { InteractionVerb, Point, RoomDefinition, RoomExit, RoomObject } from '../types.js';
+import type { InteractionVerb, NpcPresence, Point, RoomDefinition, RoomExit, RoomObject } from '../types.js';
 import { actionForVerb, VERB_PHRASES } from './object-action.js';
 import { exitAt, withinExitReach } from './exit-hit.js';
 
@@ -11,7 +11,8 @@ export interface InputHandlerCallbacks {
   onObjectAction: (object: RoomObject) => Promise<void>;
   onNavigateToObject: (object: RoomObject) => Promise<void>;
   onUnavailableTarget: () => void;
-  onCanvasAction: (objectId: string | undefined) => void;
+  onCanvasAction: (objectId: string | undefined, leavingRoom?: boolean) => void;
+  onTalk: (npc: NpcPresence) => Promise<void>;
 }
 
 export class InputHandler {
@@ -24,7 +25,8 @@ export class InputHandler {
     private getCameraOffset: () => number = () => 0,
     private getVerb: () => InteractionVerb = () => 'walk',
     private getObjectAt: (point: Point) => RoomObject | undefined = () => undefined,
-    private getObjectState: (objectId: string) => string | undefined = () => undefined
+    private getObjectState: (objectId: string) => string | undefined = () => undefined,
+    private getNpcAt: (point: Point) => NpcPresence | undefined = () => undefined
   ) {
     this.setupListeners();
   }
@@ -44,6 +46,12 @@ export class InputHandler {
     const logical = this.screenToLogical(clientX, clientY);
     const verb = this.getVerb();
     const phrase = VERB_PHRASES[verb];
+    const npc = verb === 'talk' ? this.getNpcAt(logical) : undefined;
+    if (npc) {
+      this.canvas.style.cursor = 'pointer';
+      this.callbacks.onHoverExitChanged(null, `${phrase} ${npc.name}`);
+      return;
+    }
     const exit = this.findClickedExit(logical);
     const object = verb === 'walk' && exit ? undefined : this.getObjectAt(logical);
     if (object) {
@@ -80,9 +88,16 @@ export class InputHandler {
 
   public async handleCanvasClick(clientX: number, clientY: number): Promise<{ point: Point; exit: RoomExit | null }> {
     const logical = this.screenToLogical(clientX, clientY);
+    if (this.getVerb() === 'talk') {
+      this.callbacks.onCanvasAction(undefined);
+      const npc = this.getNpcAt(logical);
+      if (npc) await this.callbacks.onTalk(npc);
+      else this.callbacks.onUnavailableTarget();
+      return { point: logical, exit: null };
+    }
     const clickedExit = this.findClickedExit(logical);
     const object = this.getVerb() === 'walk' && clickedExit ? undefined : this.getObjectAt(logical);
-    this.callbacks.onCanvasAction(object?.id);
+    this.callbacks.onCanvasAction(object?.id, this.getVerb() === 'walk' && clickedExit !== null);
     if (object) {
       if (this.getVerb() === 'walk' && !object.interaction && !object.usePoints?.length)
         await this.callbacks.onNavigateToPoint(logical);

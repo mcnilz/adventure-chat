@@ -45,6 +45,7 @@ export interface RoomObjectDto {
 }
 
 export interface RoomYamlDto {
+  npcs?: (import('../../types.js').NpcPresence & { readonly options: readonly import('../../types.js').DialogueOption[] })[] | null;
   depthScale?: import('../../types.js').DepthScale | null;
   objects?: RoomObjectDto[] | null;
   viewport?: import('../../types.js').RoomViewport | null;

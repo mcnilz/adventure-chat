@@ -124,6 +124,9 @@ public class RoomHub : Hub
 
     public void CancelObjectApproach() => Sessions.CancelObjectApproach(Context.ConnectionId);
 
+    public NpcDialogueResult RequestNpcDialogue(NpcDialogueRequest request) =>
+        Sessions.RequestNpcDialogue(Context.ConnectionId, request);
+
     public Task UpdateProgress(PointDto position, string direction, string state)
     {
         Sessions.UpdatePlayerProgress(Context.ConnectionId, new Point2D(position.X, position.Y), direction, state);
