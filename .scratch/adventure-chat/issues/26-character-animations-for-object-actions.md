@@ -4,7 +4,7 @@
 
 **Blocked by:** [21](21-state-dependent-navigation.md), [22](22-verbs-and-interaction-editor.md).
 
-**Status:** ready-for-human
+**Status:** done
 
 ## Acceptance criteria
 
@@ -30,7 +30,7 @@ Die Grafik wird beim Raumaufbau vorgeladen. Der ausführende Browser wartet vor 
 - TypeScript-Typcheck, Clientbuild und .NET-Build bestanden. Der .NET-Build meldete 0 Warnungen. Die finale Vollsuite bestand **362 Tests** (246 Server, 116 Browser in drei Gruppen). Die Ergebnisdateien liegen unter `.scratch/adventure-chat/evidence/26/final-tests/`.
 - Die gezielten Serverprüfungen decken YAML-Formatgrenzen, Figurenkatalog und PNG-Raster, belegte oder gesperrte Punkte, geordnete Ankünfte, wechselnde Ausgangszustände und die Gestenfrist ab. Die Browser prüfen Sitzen und Handheben im Canvas, Anlauf und Abbruch, späteren Eintritt sowie Speichern, Neuladen und Vorschau. Der erste Vollsuite-Lauf deckte einen fehlerhaften Vorschau-Raumwechsel mit Figuren-ID auf. Der bestehende Test besteht nach Korrektur in der finalen Suite.
 - Unabhängige Reviews zu Anforderungen und Standards prüften den Diff seit `ee2dfb4`. Befunde zur Reihenfolge, Frist, Wiederholung, Bildvorbereitung und Inhaltsvalidierung wurden behoben und nachgeprüft. Die 112 bereits versionierten Dateien der älteren Schemas, Fixtures und mitgelieferten Altwelten sind unverändert. Die Abhängigkeits- und Lockdateien sind unverändert.
-- Lokaler Commit `Add actor animations to object actions (ticket 26)`. Die menschliche Sichtabnahme steht aus.
+- Lokaler Umsetzungscommit `330228b`.
 
 ## Manuelle Abnahme
 
@@ -39,12 +39,16 @@ Die Grafik wird beim Raumaufbau vorgeladen. Der ausführende Browser wartet vor 
 3. **Benutzen** auf der leeren Tafel links an der Rückwand wählen. Die Figur soll zur Tafel gehen, nach oben schauen und die Hand heben. Erst danach erscheint der Werkstattplan in beiden Fenstern. Ein weiterer Klick mit **Benutzen** leert die Tafel. Die Geste wiederholen und vor der Wirkung einen Gehauftrag geben. Die Tafel soll leer bleiben. Nach erfolgreicher Geste mit einem frischen Besuch die beschriftete Tafel prüfen.
 4. Im [Editor der Abnahmekopie](http://127.0.0.1:61395/editor.html?worldId=reference) **Werkstatt → board → Aktionen → Figurenanimation** öffnen. Dauer und Blickrichtung prüfen. Optional eine Dauer ändern, speichern, neu laden und die Geste über den Vorschaumodus ausprobieren.
 
-Spiel und Editor der getrennten Abnahmekopie wurden mit HTTP 200 geprüft. Die aktualisierte Kopie liegt unter `.scratch/adventure-chat/evidence/26/acceptance-direct-verbs` und läuft als Prozess 33928. Sitzpose, erhobene Hand und geschriebener Plan sind als Browseraufnahmen im Belegordner festgehalten.
+Spiel und Editor der getrennten Abnahmekopie wurden mit HTTP 200 geprüft. Die Kopie unter `.scratch/adventure-chat/evidence/26/acceptance-direct-verbs` wurde am 21.11.2026 für die Abnahme neu gestartet. Sitzpose, erhobene Hand und geschriebener Plan sind als Browseraufnahmen im Belegordner festgehalten.
 
 ## Nachtrag zur direkten Verbenbedienung
 
 Am 20.11.2026 bestätigte der Benutzer die Funktion und bat darum, alle Aktionsuntermenüs aus der Verbenleiste zu entfernen. Spiel und Editorvorschau führen pro Verb und Objektklick direkt eine Aktion aus. Der zurückgeschobene Stuhl weist **Benutzen** dem Hinsetzen zu. Der Stuhl am Tisch lässt sich weiterhin mit **Ziehen** zurückschieben. Die Regel für vorhandene frei benannte Aktionen steht im [Formatvertrag](../../../CONTENT-FORMAT.md#interaktionen-ab-weltformat-160-ticket-20).
 
-Referenzinhalt **5.1.1** enthält die angepasste Aktionsbezeichnung. Die Änderung betrifft die Auswahl im Browser. Format **1.10.0**, veröffentlichte Schemata, gespeicherte Aktions-IDs und serverseitige Ausführung bleiben unverändert. Menschliche Abnahme des Nachtrags steht aus.
+Referenzinhalt **5.1.1** enthält die angepasste Aktionsbezeichnung. Die Änderung betrifft die Auswahl im Browser. Format **1.10.0**, veröffentlichte Schemata, gespeicherte Aktions-IDs und serverseitige Ausführung bleiben unverändert.
 
-Typcheck, Clientbuild und .NET-Build mit 0 Warnungen bestanden. Die vollständige Suite bestand erneut **362 Tests** (246 Server, 116 Browser). Die Browser prüfen unter anderem das direkte Hinsetzen, den Stuhl am Tisch, den Schalter mit mehreren gespeicherten Aktionen und Spiel sowie Editorvorschau. Belege stehen unter `.scratch/adventure-chat/evidence/26/direct-verbs-tests`. Lokaler Nachtragscommit `Execute object verbs directly (ticket 26)`.
+Typcheck, Clientbuild und .NET-Build mit 0 Warnungen bestanden. Die vollständige Suite bestand erneut **362 Tests** (246 Server, 116 Browser). Die Browser prüfen unter anderem das direkte Hinsetzen, den Stuhl am Tisch, den Schalter mit mehreren gespeicherten Aktionen und Spiel sowie Editorvorschau. Belege stehen unter `.scratch/adventure-chat/evidence/26/direct-verbs-tests`. Lokaler Nachtragscommit `4cdb0a0`.
+
+## Abnahme
+
+Am 21.11.2026 hat der Benutzer Ticket 26 einschließlich der direkten Verbenbedienung ausdrücklich abgenommen: „funktioniert, ticket 26 ist abgenommen“.
