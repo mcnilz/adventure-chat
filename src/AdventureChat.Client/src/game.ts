@@ -14,6 +14,7 @@ import type {
   CharacterCatalog,
   ChatMessageDto,
   DialogueOption,
+  NpcPresence,
   Point,
   RoomDefinition,
   RoomExit,
@@ -38,7 +39,7 @@ export class AdventureGame {
   public onWorldUnavailable?: (message: string) => void;
   public onObjectsChanged?: () => void;
   public onVerbSelected?: (verb: InteractionVerb) => void;
-  public onDialogueOpened?: (name: string, options: readonly DialogueOption[]) => void;
+  public onDialogueOpened?: (npc: NpcPresence, options: readonly DialogueOption[]) => void;
   public onDialogueClosed?: () => void;
   private verb: InteractionVerb = 'walk';
   private approach: { verb: InteractionVerb; objectId: string; actionId: string; state: string | undefined } | null = null;
@@ -143,7 +144,7 @@ export class AdventureGame {
       (room, npc) => this.networkClient.requestNpcDialogue(room, npc),
       (npc, options) => {
         this.selectVerb('walk');
-        this.onDialogueOpened?.(npc.name, options);
+        this.onDialogueOpened?.(npc, options);
       },
       text => this.reportDialogueError(text)
     );

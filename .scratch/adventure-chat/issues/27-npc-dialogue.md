@@ -36,8 +36,18 @@ Das optionale Feld `npcs` erweitert den [Autorenvertrag](../../../CONTENT-FORMAT
 ## Manuelle Abnahme
 
 1. [Lokale Abnahmekopie](http://127.0.0.1:64743/) in zwei Fenstern mit verschiedenen Namen öffnen. Nela steht links in der Lounge.
-2. In beiden Fenstern **Spreche mit** wählen, über Nela zeigen und sie anklicken. Die Figuren laufen zu ihr. Im ersten Fenster **Wer bist du?**, im zweiten **Wo ist der Garten?** wählen. Jedes Fenster zeigt die eigene Antwort. Der Raumchat bleibt frei von Gesprächsinhalten.
+2. In beiden Fenstern **Spreche mit** wählen, über Nela zeigen und sie anklicken. Die Figuren laufen zu ihr. Sobald die Fragen die Verbenleiste ersetzen, im ersten Fenster **Wer bist du?**, im zweiten **Wo ist der Garten?** wählen. Zuerst spricht die eigene Figur, nach einer kurzen Pause antwortet Nela. Bei **Wer bist du?** folgt eine zweite Antwortblase. Per Linksklick ins Spielfeld oder mit **.** zur nächsten Blase springen. Jedes Fenster zeigt die eigenen Sprechblasen.
 3. In einem Fenster **Gespräch beenden** oder Escape wählen, auf den Boden klicken und durch die rechte Tür in den Garten gehen. Nach der Rückkehr steht Nela einmal an derselben Stelle.
 4. Vom rechten Teil der Lounge erneut Nela ansprechen und während des Hinlaufens auf die Gartentür klicken. Der Raumwechsel bricht das Gespräch ab und zeigt die Rückmeldung in der Aktionszeile.
 
 Die menschliche Abnahme steht aus.
+
+## Nachtrag zur Gesprächsbedienung
+
+Am 21.11.2026 wurden Gesprächspausen, Nelas leicht verzögerte Antwort als Sprechblase und die Fragen anstelle der Verbenleiste angefordert. Die gewählte Frage steht zunächst über der eigenen Figur. Die Anzeigezeit richtet sich nach der Textlänge. Vor der Antwort und zwischen ihren Teilen vergehen jeweils 250 ms. Antworten werden an Satzgrenzen und bei langen Einzelabschnitten weiter geteilt. Während einer laufenden Blase oder Pause zeigt ein Linksklick ins Spielfeld oder die Punkt-Taste den nächsten Abschnitt. Die Punkt-Taste bleibt im Chat ein Zeichen. Nach der letzten Blase sind die Fragen wieder wählbar. Wird das Gespräch beendet, verschwinden die Blasen und die Verbenleiste kehrt zurück. Weltformat und Referenzinhalt bleiben kompatibel.
+
+Typcheck, Build und neun gezielte Tests bestanden. Der Browser prüft die gezeichnete Frage und Antwort, den zweiten Besucher, mehrteilige Antworten mit und ohne Wortgrenzen, beide Tasten- und Mausabläufe sowie das Entfernen der Blase beim Abbruch. In der aktualisierten Abnahmekopie wurden der vollständige Dialogablauf und die lesbare Ausweichblase bei einem schmalen Ausschnitt im Browser geprüft. Die aktuelle Aufnahme liegt unter `.scratch/adventure-chat/evidence/27/lounge-dialogue.png`.
+
+Die abschließende Vollsuite bestand mit 371 Tests (251 Server, 120 im Browser-Testprojekt). Der Browserlauf dauerte 11 Minuten und 40 Sekunden. Spezifikations- und Standardsreview führten zu Umbruch, Ausweichanzeige für kleine Ausschnitte, Zeichenreihenfolge und strengeren Browserprüfungen. Veröffentlichte Schemata, Weltdateien und Referenzfixtures wurden gegen `18510a8` geprüft. Drei durch den Testlauf neu geschriebene Aufnahmen von Ticket 21 wurden bytegleich wiederhergestellt.
+
+Der Benutzer hat die aktualisierte Abnahmekopie ausprobiert und am 21.11.2026 „funktioniert soweit gut“ zurückgemeldet.

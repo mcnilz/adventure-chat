@@ -1,6 +1,33 @@
 import type { Character } from '../types.js';
 
+export interface SpeechLayout {
+  readonly font: string;
+  readonly lineHeight: number;
+  readonly lines: readonly string[];
+}
+
+const font = (size: number): string =>
+  `bold ${size}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+
 export class SpeechBubbleRenderer {
+  public prepareDialogue(ctx: CanvasRenderingContext2D, text: string, width: number, height: number): SpeechLayout | null {
+    if (width <= 32) return null;
+    const maxTextWidth = Math.min(240, width - 32);
+    ctx.save();
+    try {
+      for (let size = 11; size >= 8; size--) {
+        ctx.font = font(size);
+        const lineHeight = Math.ceil(size * 14 / 11);
+        const lines = this.wrap(ctx, text, maxTextWidth, true);
+        if (lines.length * lineHeight + 34 <= height && lines.every(line => ctx.measureText(line).width <= maxTextWidth))
+          return { font: ctx.font, lineHeight, lines };
+      }
+      return null;
+    } finally {
+      ctx.restore();
+    }
+  }
+
   public drawSpeechBubble(
     ctx: CanvasRenderingContext2D,
     character: Character,
@@ -8,7 +35,8 @@ export class SpeechBubbleRenderer {
     now: number,
     actorHeight = 64,
     viewportLeft = 0,
-    keepVisibleVertically = false
+    keepVisibleVertically = false,
+    dialogue?: SpeechLayout
   ): void {
     const bubble = character.speechBubble;
     if (!bubble) return;
@@ -28,28 +56,11 @@ export class SpeechBubbleRenderer {
     const baseAnchorY = footY - frameHeight - nameBadgeHeight - 8;
 
     ctx.save();
-    ctx.font = 'bold 11px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-
-    const maxBubbleWidth = 180;
-    const words = bubble.text.split(' ');
-    const lines: string[] = [];
-    let currentLine = '';
-
-    for (const word of words) {
-      const testLine = currentLine ? `${currentLine} ${word}` : word;
-      const metrics = ctx.measureText(testLine);
-      if (metrics.width > maxBubbleWidth && currentLine) {
-        lines.push(currentLine);
-        currentLine = word;
-      } else {
-        currentLine = testLine;
-      }
-    }
-    if (currentLine) {
-      lines.push(currentLine);
-    }
-
-    const lineHeight = 14;
+    const paddingX = 8;
+    const paddingY = 6;
+    ctx.font = dialogue?.font ?? font(11);
+    const lineHeight = dialogue?.lineHeight ?? 14;
+    const lines = dialogue?.lines ?? this.wrap(ctx, bubble.text, 180, false);
     let measuredMaxWidth = 0;
     for (const line of lines) {
       const w = ctx.measureText(line).width;
@@ -58,9 +69,8 @@ export class SpeechBubbleRenderer {
       }
     }
 
-    const paddingX = 8;
-    const paddingY = 6;
-    const bubbleWidth = Math.max(measuredMaxWidth + paddingX * 2, 40);
+    const minBubbleWidth = dialogue ? Math.min(40, viewportRight - viewportLeft - 16) : 40;
+    const bubbleWidth = Math.max(measuredMaxWidth + paddingX * 2, minBubbleWidth);
     const bubbleHeight = lines.length * lineHeight + paddingY * 2;
 
     // Clamp horizontally within the visible viewport
@@ -69,7 +79,9 @@ export class SpeechBubbleRenderer {
     if (bubbleX + bubbleWidth > viewportRight - 8) {
       bubbleX = viewportRight - 8 - bubbleWidth;
     }
-    const bubbleY = keepVisibleVertically ? Math.max(24, baseAnchorY - bubbleHeight) : baseAnchorY - bubbleHeight;
+    const preferredY = baseAnchorY - bubbleHeight;
+    const bubbleY = dialogue ? Math.max(8, Math.min(preferredY, ctx.canvas.height - bubbleHeight - 14))
+      : keepVisibleVertically ? Math.max(24, preferredY) : preferredY;
 
     // Fade out in last 400ms
     const remaining = bubble.duration - elapsed;
@@ -131,5 +143,32 @@ export class SpeechBubbleRenderer {
     }
 
     ctx.restore();
+  }
+
+  private wrap(ctx: CanvasRenderingContext2D, text: string, width: number, splitWideWords: boolean): string[] {
+    const lines: string[] = [];
+    let line = '';
+    for (const word of splitWideWords ? text.trim().split(/\s+/u) : text.split(' ')) {
+      const withWord = line ? `${line} ${word}` : word;
+      if (ctx.measureText(withWord).width <= width) {
+        line = withWord;
+        continue;
+      }
+      if (line) lines.push(line);
+      if (!splitWideWords || ctx.measureText(word).width <= width) {
+        line = word;
+        continue;
+      }
+      line = '';
+      for (const { segment: character } of new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(word)) {
+        if (line && ctx.measureText(line + character).width > width) {
+          lines.push(line);
+          line = '';
+        }
+        line += character;
+      }
+    }
+    if (line) lines.push(line);
+    return lines;
   }
 }

@@ -1,6 +1,10 @@
 import type { Character, CharacterCatalog, NpcPresence, Point, RoomDefinition } from '../types.js';
 import { actorHeightAt } from './depth-scale.js';
 
+export function npcActorId(npcId: string): string {
+  return `npc:${npcId}`;
+}
+
 export class NpcCast {
   public readonly characters: readonly Character[];
   private readonly entries: { npc: NpcPresence; character: Character }[];
@@ -9,7 +13,7 @@ export class NpcCast {
     this.entries = npcs.map(npc => ({
       npc,
       character: {
-        id: `npc:${npc.id}`, name: npc.name, position: npc.position, characterId: npc.characterId,
+        id: npcActorId(npc.id), name: npc.name, position: npc.position, characterId: npc.characterId,
         appearance: catalog?.characters.find(character => character.id === npc.characterId),
         facing: 'down', state: 'idle', target: null, waypoints: [], speed: 0, walkFrame: 0, frameTimer: 0
       }

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Adventure Chat</title>
   <link rel="stylesheet" href="css/world-picker.css">
-  <link rel="stylesheet" href="css/style.css?v=6">
+  <link rel="stylesheet" href="css/style.css?v=7">
 </head>
 <body>
   <div id="app">
@@ -14,14 +14,7 @@
         <button type="button" id="game-scale" aria-controls="game-container" aria-pressed="false">Auf Fenstergröße</button>
       </div>
       <canvas id="game-canvas" width="640" height="360"></canvas>
-      <dialog id="npc-dialogue" aria-labelledby="npc-dialogue-name">
-        <div class="npc-dialogue-header">
-          <h2 id="npc-dialogue-name"></h2>
-          <button type="button" id="npc-dialogue-close">Gespräch beenden</button>
-        </div>
-        <div id="npc-choices"></div>
-        <p id="npc-reply" role="status"></p>
-      </dialog>
+      <p id="npc-dialogue-bubble" hidden></p>
       <div id="action-bar" class="action-bar">
         <span id="action-text" class="action-text" role="status">Gehe zu</span>
         <span id="action-feedback" role="status"></span>
@@ -35,6 +28,14 @@
         <button type="button" data-verb="use" aria-pressed="false">Benutzen</button>
         <button type="button" data-verb="talk" aria-pressed="false">Spreche mit</button>
       </nav>
+      <section id="npc-dialogue" aria-labelledby="npc-dialogue-name" hidden>
+        <div class="npc-dialogue-header">
+          <h2 id="npc-dialogue-name"></h2>
+          <button type="button" id="npc-dialogue-close">Gespräch beenden</button>
+        </div>
+        <div id="npc-choices"></div>
+        <p id="npc-reply" class="visually-hidden" role="status"></p>
+      </section>
       <div id="chat-container">
         <div id="chat-messages" class="chat-messages">
           <div class="chat-system-message">Willkommen im Adventure Chat. Klicke auf den Boden, um dich zu bewegen.</div>
@@ -47,6 +48,6 @@
     </div>
   </div>
   <script src="js/lib/signalr.min.js?v=4"></script>
-  <script type="module" src="js/main.js?v=6"></script>
+  <script type="module" src="js/main.js?v=7"></script>
 </body>
 </html>

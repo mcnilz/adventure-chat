@@ -7,6 +7,17 @@ namespace AdventureChat.E2ETests;
 
 public class NpcDialogueTests
 {
+    private const string WhitePixels = """
+        ([x, y, width, height]) => {
+          const pixels = document.querySelector('#game-canvas').getContext('2d').getImageData(x, y, width, height).data;
+          let white = 0;
+          for (let i = 0; i < pixels.length; i += 4) {
+            if (pixels[i] === 255 && pixels[i + 1] === 255 && pixels[i + 2] === 255 && pixels[i + 3] === 255) white++;
+          }
+          return white;
+        }
+        """;
+
     [Test]
     public async Task VisitorsSpeakIndependentlyAndCanWalkAway()
     {
@@ -15,28 +26,50 @@ public class NpcDialogueTests
         using var playwright = await Playwright.CreateAsync();
         await using var browser = await playwright.Chromium.LaunchAsync(new() { Headless = true });
         var first = await JoinWorld(browser, server.BaseUrl, "mara");
+        var second = await JoinWorld(browser, server.BaseUrl, "bruno");
 
         await Speak(first);
         await Assertions.Expect(first.Locator("#npc-dialogue")).ToBeVisibleAsync();
+        await Assertions.Expect(first.Locator("#verb-bar")).ToBeHiddenAsync();
+        await Assertions.Expect(first.Locator("#action-text")).ToHaveTextAsync("Spreche mit Nela");
         await Assertions.Expect(first.Locator("#npc-dialogue-name")).ToHaveTextAsync("Nela");
         await first.WaitForFunctionAsync("Math.hypot(window.__ADVENTURE_GAME__.character.position.x - 146, window.__ADVENTURE_GAME__.character.position.y - 294) < 1");
         await first.GetByRole(AriaRole.Button, new() { Name = "Wer bist du?" }).ClickAsync();
+        Assert.That(await first.Locator("#npc-reply").TextContentAsync(), Is.Empty);
+        await Assertions.Expect(first.GetByRole(AriaRole.Button, new() { Name = "Wo ist der Garten?" })).ToBeDisabledAsync();
+        int[] questionArea = [100, 137, 100, 6];
+        int[] answerArea = [25, 108, 70, 25];
+        await first.WaitForFunctionAsync($"bounds => ({WhitePixels})(bounds) > 250", questionArea);
+        await Assertions.Expect(first.Locator("#npc-reply")).ToHaveTextAsync("Ich bin Nela.");
+        await first.WaitForFunctionAsync($"bounds => ({WhitePixels})(bounds) > 250", answerArea);
+        Assert.That(await second.EvaluateAsync<int>(WhitePixels, answerArea), Is.LessThan(200));
         if (Environment.GetEnvironmentVariable("NPC_DIALOGUE_EVIDENCE") is { Length: > 0 } evidence)
         {
             Directory.CreateDirectory(evidence);
             await first.Locator("#game-container").ScreenshotAsync(new() { Path = Path.Combine(evidence, "lounge-dialogue.png") });
         }
-        var second = await JoinWorld(browser, server.BaseUrl, "bruno");
+        await ClickCanvas(first, 210, 330);
+        await Assertions.Expect(first.Locator("#npc-reply")).ToHaveTextAsync("Ich passe auf die Lounge auf.", new() { Timeout = 1000 });
+        await first.Keyboard.PressAsync(".");
+        await Assertions.Expect(first.Locator("#npc-reply")).ToHaveTextAsync("", new() { Timeout = 1000 });
+        Assert.That(await first.EvaluateAsync<bool>("window.__ADVENTURE_GAME__.character.state === 'idle'"), Is.True);
         await Assertions.Expect(second.Locator("#npc-dialogue")).ToBeHiddenAsync();
         await Speak(second);
         await second.GetByRole(AriaRole.Button, new() { Name = "Wo ist der Garten?" }).ClickAsync();
-        await Assertions.Expect(first.Locator("#npc-reply")).ToHaveTextAsync("Ich bin Nela. Ich passe auf die Lounge auf.");
+        await second.Keyboard.PressAsync(".");
+        await Assertions.Expect(second.Locator("#npc-reply")).ToHaveTextAsync("Durch die Tür rechts erreichst du den Tavernen-Garten.", new() { Timeout = 1000 });
+        await second.Locator("#chat-input").PressAsync(".");
+        await Assertions.Expect(second.Locator("#chat-input")).ToHaveValueAsync(".");
         await Assertions.Expect(second.Locator("#npc-reply")).ToHaveTextAsync("Durch die Tür rechts erreichst du den Tavernen-Garten.");
         await Assertions.Expect(first.Locator("#chat-messages")).Not.ToContainTextAsync("Ich passe auf");
         await Assertions.Expect(second.Locator("#chat-messages")).Not.ToContainTextAsync("erreichst du");
 
+        await first.GetByRole(AriaRole.Button, new() { Name = "Wo ist der Garten?" }).ClickAsync();
+        await first.WaitForFunctionAsync($"bounds => ({WhitePixels})(bounds) > 250", questionArea);
         await first.Keyboard.PressAsync("Escape");
         await Assertions.Expect(first.Locator("#npc-dialogue")).ToBeHiddenAsync();
+        await Assertions.Expect(first.Locator("#verb-bar")).ToBeVisibleAsync();
+        await first.WaitForFunctionAsync($"bounds => ({WhitePixels})(bounds) < 200", questionArea, new() { Timeout = 1000 });
         await ClickCanvas(first, 210, 330);
         await first.WaitForFunctionAsync("Math.abs(window.__ADVENTURE_GAME__.character.position.x - 210) < 2");
         await ClickCanvas(first, 572, 215);
@@ -44,6 +77,7 @@ public class NpcDialogueTests
         await ClickCanvas(first, 66, 225);
         await first.WaitForFunctionAsync("window.__ADVENTURE_GAME__.room.id === 'lounge'");
         Assert.That(await first.EvaluateAsync<int>("window.__ADVENTURE_GAME__.room.npcs.length"), Is.EqualTo(1));
+        Assert.That(await first.Locator("#npc-reply").TextContentAsync(), Is.Empty);
         await Assertions.Expect(second.Locator("#npc-dialogue")).ToBeVisibleAsync();
     }
 
@@ -61,7 +95,8 @@ public class NpcDialogueTests
             characters:
               - { id: bruno, name: Bruno, image: assets/images/bruno.png, frameWidth: 128, frameHeight: 128 }
             """);
-        File.AppendAllText(Path.Combine(world, "rooms/hall.yaml"), """
+        var longReply = new string('界', 125);
+        File.AppendAllText(Path.Combine(world, "rooms/hall.yaml"), $$"""
 
             npcs:
               - id: guard
@@ -70,7 +105,7 @@ public class NpcDialogueTests
                 position: { x: 485, y: 300 }
                 talkPoint: { x: 453, y: 300 }
                 options:
-                  - { id: hello, text: Hallo, reply: Willkommen }
+                  - { id: hello, text: Hallo, reply: {{longReply}} }
                   - { id: bye, text: Auf Wiedersehen, reply: Bis bald }
             """);
         await server.StartAsync();
@@ -88,6 +123,11 @@ public class NpcDialogueTests
         await Speak(page, 485, 275, "Wache");
         await Assertions.Expect(page.Locator("#npc-dialogue-name")).ToHaveTextAsync("Wache");
         await Assertions.Expect(page.Locator("#npc-dialogue")).ToBeVisibleAsync();
+        await page.GetByRole(AriaRole.Button, new() { Name = "Hallo", Exact = true }).ClickAsync();
+        await page.Keyboard.PressAsync(".");
+        await Assertions.Expect(page.Locator("#npc-reply")).ToHaveTextAsync(longReply[..110]);
+        await page.Keyboard.PressAsync(".");
+        await Assertions.Expect(page.Locator("#npc-reply")).ToHaveTextAsync(longReply[110..]);
     }
 
     [Test]

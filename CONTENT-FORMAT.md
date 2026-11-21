@@ -224,7 +224,7 @@ npcs:
 
 - `id` ist im Raum eindeutig, `characterId` verweist auf einen exakten Katalogeintrag. `position` setzt den Fußpunkt der Figur. `talkPoint` ist das Laufziel des Besuchers und liegt höchstens 48 Raumpixel entfernt. Beide Punkte müssen auf begehbarem Boden liegen und direkt verbunden sein.
 - Jede Figur hat zwei bis acht `options` mit eigener ID, Aussage (`text`) und zugehöriger Antwort (`reply`). IDs werden auf Duplikate unabhängig von der Groß-/Kleinschreibung geprüft. Aussagen müssen sich unterscheiden. Textgrenzen sind 100 Zeichen für den Namen, 120 für eine Aussage und 400 für eine Antwort.
-- Der Server prüft den Raum, die Ankunft bis auf zwei Raumpixel am Gesprächspunkt und die freie Verbindung in der aktuellen Raumgeometrie. Besucher können gleichzeitig mit derselben Figur sprechen. Jeder sieht seine Auswahl und Antwort im eigenen Dialogfeld.
+- Der Server prüft den Raum, die Ankunft bis auf zwei Raumpixel am Gesprächspunkt und die freie Verbindung in der aktuellen Raumgeometrie. Besucher können gleichzeitig mit derselben Figur sprechen. Im eigenen Browser ersetzen die Gesprächsoptionen die Verben. Die gewählte Aussage und die Antwort erscheinen nacheinander als Sprechblasen.
 - NPCs werden in der Raum-YAML bearbeitet. Der Browsereditor erhält die Einträge beim Speichern und zeigt die Figur in der Raumvorschau.
 
 `npcs` ist optional. Die additive Erweiterung erscheint als Minor-Version mit eigenem Schema-Bündel unter `schemas/world/1.11.0/`.

@@ -1,12 +1,12 @@
 import { actorHeightAt } from './depth-scale.js';
 import { ObjectRenderer, compareObjectDepth } from './object-renderer.js';
-import { HorizontalCamera, resizeCanvas } from './camera.js';
+import { HorizontalCamera, resizeCanvas, viewSize } from './camera.js';
 import { CLICK_MARKER_DURATION } from '../constants.js';
-import type { Character, CharacterCatalog, NpcPresence, ObjectActorAnimation, Point, RenderedRoom, RoomExit, RoomObject } from '../types.js';
+import type { Character, CharacterCatalog, NpcPresence, ObjectActorAnimation, Point, RenderedRoom, RoomExit, RoomObject, SpeechBubble } from '../types.js';
 import { NpcCast } from './npc-cast.js';
 import { CharacterRenderer } from './character-renderer.js';
 import { OverlayRenderer, type ClickMarker } from './overlay-renderer.js';
-import { SpeechBubbleRenderer } from './speech-bubble-renderer.js';
+import { SpeechBubbleRenderer, type SpeechLayout } from './speech-bubble-renderer.js';
 import { continueObjectMovements, objectAtTime } from '../simulation/object-movement.js';
 
 export { type ClickMarker } from './overlay-renderer.js';
@@ -25,6 +25,7 @@ export class RoomRenderer {
   private clickMarkers: ClickMarker[] = [];
   private hoveredExit: RoomExit | null = null;
   private npcCast: NpcCast;
+  private dialogueBubble: { speakerId: string; bubble: SpeechBubble; layout: SpeechLayout } | null = null;
   public showDebugOverlay = false;
 
   public constructor(
@@ -59,6 +60,7 @@ export class RoomRenderer {
 
   public setRoom(newRoom: RenderedRoom): void {
     this.room = newRoom;
+    this.dialogueBubble = null;
     this.npcCast = new NpcCast(newRoom.npcs ?? [], this.catalog);
     this.preloadActorAnimations(newRoom);
     this.cameraInitialized = false;
@@ -104,6 +106,13 @@ export class RoomRenderer {
   public npcAt(point: Point): NpcPresence | undefined {
     if (!this.npcCast.characters.length) return undefined;
     return this.npcCast.at(this.room, point, this.objectAt(point)?.depthY ?? -Infinity);
+  }
+
+  public setDialogueBubble(speakerId: string, bubble: SpeechBubble | null): boolean {
+    const { width, height } = viewSize(this.room);
+    const layout = bubble && this.speechBubbleRenderer.prepareDialogue(this.ctx, bubble.text, width, height);
+    this.dialogueBubble = bubble && layout ? { speakerId, bubble, layout } : null;
+    return !bubble || !!layout;
   }
 
   private objectsAtTime(now: number): RoomObject[] {
@@ -183,8 +192,17 @@ export class RoomRenderer {
     if (objects.length > 0) for (const char of allCharacters) this.characterRenderer.drawName(ctx, char, char.id === localCharacter.id, room);
 
     // 6. Draw Speech Bubbles
+    const viewportRight = this.camera.offset + canvas.width;
+    let dialogueSpeaker: Character | undefined;
     for (const char of allCharacters) {
-      this.speechBubbleRenderer.drawSpeechBubble(ctx, char, this.camera.offset + canvas.width, now, actorHeightAt(room, char.position.y), this.camera.offset, !!room.depthScale);
+      const dialogue = this.dialogueBubble?.speakerId === char.id ? this.dialogueBubble.bubble : null;
+      if (dialogue) dialogueSpeaker = { ...char, speechBubble: dialogue };
+      else this.speechBubbleRenderer.drawSpeechBubble(ctx, char, viewportRight, now,
+        actorHeightAt(room, char.position.y), this.camera.offset, !!room.depthScale);
+    }
+    if (dialogueSpeaker && this.dialogueBubble) {
+      this.speechBubbleRenderer.drawSpeechBubble(ctx, dialogueSpeaker, viewportRight, now,
+        actorHeightAt(room, dialogueSpeaker.position.y), this.camera.offset, !!room.depthScale, this.dialogueBubble.layout);
     }
 
     // 7. Hovered Exit Highlight (only in debug mode to keep screen clean)

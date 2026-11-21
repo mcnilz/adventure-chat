@@ -5,6 +5,7 @@ import { chooseWorld, loadWorlds, showStartupError } from './ui/world-picker.js'
 import { GameViewport } from './ui/game-viewport.js';
 import { VerbBar } from './ui/verb-bar.js';
 import { NpcDialoguePanel } from './ui/npc-dialogue-panel.js';
+import { npcActorId } from './rendering/npc-cast.js';
 
 declare global {
   interface Window {
@@ -37,8 +38,15 @@ async function initialize(): Promise<void> {
   );
   const verbBar = new VerbBar(verb => game.chooseVerb(verb));
   game.onVerbSelected = verb => verbBar.setSelected(verb);
-  const dialogue = new NpcDialoguePanel();
-  game.onDialogueOpened = (name, options) => dialogue.open(name, options);
+  const dialogue = new NpcDialoguePanel(
+    canvas,
+    (bubble, npcId) => game.renderer.setDialogueBubble(npcId ? npcActorId(npcId) : game.character.id, bubble),
+    npcName => {
+      if (npcName) chatUi.setActionText(`Spreche mit ${npcName}`);
+      else game.inputHandler.updateVerb();
+    }
+  );
+  game.onDialogueOpened = (npc, options) => dialogue.open(npc, options);
   game.onDialogueClosed = () => dialogue.close();
 
   game.onConnectionStatusChanged = (status) => {
@@ -54,7 +62,7 @@ async function initialize(): Promise<void> {
   };
 
   game.onActionChanged = (text) => {
-    chatUi.setActionText(text);
+    if (!dialogue.isOpen) chatUi.setActionText(text);
   };
   const actionFeedback = document.getElementById('action-feedback');
   game.onActionFeedback = text => {
