@@ -146,6 +146,7 @@ export interface NpcDialogueResult {
   readonly error: string | null;
   readonly options: readonly DialogueOption[] | null;
   readonly tooFar: boolean;
+  readonly selected: DialogueOption | null;
 }
 export interface ObjectAppearance {
  readonly obstacles?: ReadonlyArray<{ readonly id: string; readonly points: ReadonlyArray<Point> }> | null;

@@ -1,5 +1,5 @@
 # Umsetzungsplan
-Status (20.11.2026): Tickets 01–23 und 25 sind menschlich abgenommen und done. Epic 24 und die Pakete 26–32 stehen auf draft. Tatsächliche Implementierungs- und Testbelege stehen im jeweiligen Ticket und in active-state.md.
+Status (21.11.2026): Tickets 01–23 und 25–27 sind menschlich abgenommen und done. Ticket 28 ist ready-for-human. Epic 24 und die Pakete 29–32 stehen auf draft. Tatsächliche Implementierungs- und Testbelege stehen im jeweiligen Ticket und in active-state.md.
 
 | Ticket | Vorführbares Ergebnis | Blocked by |
 | --- | --- | --- |
@@ -29,8 +29,8 @@ Status (20.11.2026): Tickets 01–23 und 25 sind menschlich abgenommen und done.
 | [24 (draft)](.scratch/adventure-chat/issues/24-interactive-worlds-epic.md) | Epic für konfigurierbare Figureninteraktionen und NPCs | Planung frei, Umsetzung über 25–32 |
 | [25 (done)](.scratch/adventure-chat/issues/25-object-state-transitions.md) | Sichtbare Übergänge zwischen konfigurierten Objektzuständen | 21, 22 (done), menschlich abgenommen am 20.11.2026 |
 | [26 (done)](.scratch/adventure-chat/issues/26-character-animations-for-object-actions.md) | Gehaltene Posen und kurze Figurenanimationen je Objektaktion | 21, 22 (done), einschließlich direkter Verbenbedienung am 21.11.2026 abgenommen |
-| [27 (ready-for-human)](.scratch/adventure-chat/issues/27-npc-dialogue.md) | NPC mit „Spreche mit“ ansprechen und Antwort wählen | 22 |
-| [28 (draft)](.scratch/adventure-chat/issues/28-state-dependent-dialogue.md) | Gespräch verändert sich mit dem Objektzustand | 20, 27 |
+| [27 (done)](.scratch/adventure-chat/issues/27-npc-dialogue.md) | NPC mit „Spreche mit“ ansprechen und Antwort wählen | 22 |
+| [28 (ready-for-human)](.scratch/adventure-chat/issues/28-state-dependent-dialogue.md) | Gespräch verändert sich mit dem Objektzustand | 20, 27 |
 | [29 (draft)](.scratch/adventure-chat/issues/29-npc-movement.md) | NPC läuft Wegpunkte und optional in einem Aufenthaltsbereich | 21, 27 |
 | [30 (draft)](.scratch/adventure-chat/issues/30-follow-npc.md) | Einem NPC freiwillig durch mehrere Räume folgen und abbrechen | 27, 29 |
 | [31 (draft)](.scratch/adventure-chat/issues/31-combined-reference-scenario.md) | Objektinteraktionen, Dialog und Führung in einer Referenzszene erleben | 25, 26, 28, 30 |

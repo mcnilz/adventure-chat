@@ -44,12 +44,24 @@
       <main class="editor-canvas-column">
         <div class="canvas-wrapper">
           <canvas id="editor-canvas" width="640" height="360"></canvas>
+          <p id="npc-dialogue-bubble" hidden></p>
         </div>
         <div id="preview-controls" hidden>
           <label for="preview-verb">Vorschauverb</label>
           <select id="preview-verb"></select>
           <span id="preview-result" role="status"></span>
         </div>
+        <section id="npc-dialogue" aria-labelledby="npc-dialogue-name" hidden>
+          <div class="npc-dialogue-header">
+            <h2 id="npc-dialogue-name"></h2>
+            <button type="button" id="npc-dialogue-close">Gespräch beenden</button>
+          </div>
+          <div class="npc-dialogue-body">
+            <p id="npc-dialogue-notice" role="status" hidden></p>
+            <div id="npc-choices"></div>
+          </div>
+          <p id="npc-reply" class="visually-hidden" role="status"></p>
+        </section>
         <div class="editor-hint-bar">
           💡 <strong>Tipp:</strong> Klicke auf eine Kante, um sie zu teilen und neue Bodenpunkte herauszuziehen. Klicke auf Punkte, Spawns oder Ausgänge, um deren Eigenschaften im Inspektor zu bearbeiten.
         </div>

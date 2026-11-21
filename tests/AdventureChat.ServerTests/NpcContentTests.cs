@@ -57,4 +57,22 @@ public class NpcContentTests
         var exception = Assert.Throws<InvalidOperationException>(() => world.ValidateBackground(lounge));
         Assert.That(exception!.Message, Does.Contain("NPC 'nela' references unknown character 'wrong-character'"));
     }
+
+    [TestCase("door", "closed", true)]
+    [TestCase("table", "closed", false)]
+    [TestCase("door", "missing", false)]
+    public void DialogueConditionsReferenceAnInteractiveObjectAndItsState(string objectId, string state, bool valid)
+    {
+        var serializer = new RoomYamlSerializer();
+        var condition = $"when: {{ object: {objectId}, state: {state} }}";
+        var yaml = serializer.Serialize(DynamicNavigationTests.Room()) + NpcYaml.Replace(
+            "{ id: hello, text: Hallo, reply: Willkommen }",
+            $"{{ id: hello, text: Hallo, reply: Willkommen, {condition} }}", StringComparison.Ordinal);
+        var validator = new RoomValidator(WorldPackage.FindSchema("room.schema.json", "1.12.0"));
+        var result = validator.Validate(serializer.Deserialize(yaml));
+
+        Assert.That(result.IsValid, Is.EqualTo(valid), string.Join(Environment.NewLine, result.Errors));
+        if (valid)
+            Assert.That(serializer.Serialize(serializer.Deserialize(yaml)), Does.Contain("object: door"));
+    }
 }

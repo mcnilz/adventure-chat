@@ -62,10 +62,10 @@ public class DepthScaleTests
                 const sheet=document.createElement('canvas');sheet.width=512;sheet.height=360;sheet.id='overhead';document.body.replaceChildren(sheet);
                 let index=0;
                 for(const appearance of catalog.characters) for(const perspective of ['top-down','adventure']) {
-                    const source=new Image();source.src=perspective==='top-down'?appearance.topDownImageUrl:appearance.imageUrl;await source.decode();
+                    const imageUrl=perspective==='top-down'?appearance.topDownImageUrl:appearance.imageUrl;
+                    const source=new Image();source.src=imageUrl;await source.decode();
                     const c={position:{x:128,y:160},name:'',facing:'down',state:'idle',walkFrame:0,appearance};
-                    renderer.drawCharacter(ctx,c,true,{actorHeight:128,perspective},false);
-                    await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+                    await renderer.prepare(imageUrl);
                     ctx.clearRect(0,0,256,180);renderer.drawCharacter(ctx,c,true,{actorHeight:128,perspective},false);
                     const expected=document.createElement('canvas');expected.width=128;expected.height=128;
                     expected.getContext('2d').drawImage(source,0,256,128,128,0,0,128,128);

@@ -8,6 +8,7 @@ public partial class RoomSessionManager
     {
         lock (_lock)
         {
+            ProcessActorActivities();
             if (!_sessionsByConnection.TryGetValue(connectionId, out var session) || session.RoomId != request.RoomId)
                 return new("Das Gespräch ist hier nicht mehr verfügbar.");
 
@@ -24,7 +25,26 @@ public partial class RoomSessionManager
             if (!geometry.HasLineOfSight(session.Position, npc.Position, clearance: 0))
                 return new("Du kannst die Figur von hier nicht ansprechen.");
 
-            return new(null, npc.Options);
+            var options = GetAvailableOptions(room, npc);
+            if (request.Choice is not { } choice) return new(null, options);
+
+            var selected = options.FirstOrDefault(option => option == choice);
+            return selected is null
+                ? new("Das Gespräch hat sich geändert. Wähle eine aktuelle Frage.", options)
+                : new(null, options, Selected: selected);
         }
+    }
+
+    private List<AvailableDialogueOption> GetAvailableOptions(RoomDefinition room, NpcDefinition npc)
+    {
+        bool Matches(DialogueCondition condition) =>
+            room.Objects?.FirstOrDefault(obj => obj.Id == condition.Object) is { Interaction: not null } obj &&
+            _interactions.State(room.Id, obj) == condition.State;
+
+        return npc.Options
+            .Where(option => option.When is null || Matches(option.When))
+            .Select(option => new AvailableDialogueOption(option.Id, option.Text,
+                option.Replies?.FirstOrDefault(reply => Matches(reply.When))?.Reply ?? option.Reply))
+            .ToList();
     }
 }

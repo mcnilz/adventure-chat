@@ -28,6 +28,7 @@ public sealed class RoomYamlSerializer : IRoomYamlSerializer
         _schemaHeader = $"# yaml-language-server: $schema={association}\n";
         _serializer = new SerializerBuilder()
             .WithNamingConvention(CamelCaseNamingConvention.Instance)
+            .DisableAliases()
             .ConfigureDefaultValuesHandling(DefaultValuesHandling.OmitNull)
             .Build();
 

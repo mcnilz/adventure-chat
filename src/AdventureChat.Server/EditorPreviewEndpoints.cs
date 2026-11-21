@@ -42,10 +42,23 @@ internal static class EditorPreviewEndpoints
         });
         group.MapPost("/preview-snapshot", (PreviewCommand command, IEditorService editor, IPathfindingService paths) =>
             Run(editor, paths, command, (_, _) => (true, null, null)));
+        group.MapPost("/preview-dialogue", (PreviewDialogueRequest request, IEditorService editor, IPathfindingService paths) =>
+            WithPreviewSession(editor, paths, request.Location, (manager, roomId, _) =>
+                Results.Ok(manager.RequestNpcDialogue("preview", new(roomId, request.NpcId, request.Choice)))));
     }
 
     private static IResult Run(IEditorService editor, IPathfindingService paths, PreviewCommand command,
-        Func<RoomSessionManager, string, (bool Success, string? Error, string? ErrorCode)> run)
+        Func<RoomSessionManager, string, (bool Success, string? Error, string? ErrorCode)> run) =>
+        WithPreviewSession(editor, paths, command, (manager, roomId, definitions) =>
+        {
+            var result = run(manager, roomId);
+            var states = definitions.Select(room => new PreviewObjectStates(room.Id, manager.PreviewStates(room))).ToList();
+            return Results.Ok(new { success = result.Success, error = result.Error, errorCode = result.ErrorCode,
+                snapshot = manager.GetSnapshot("preview"), states });
+        });
+
+    private static IResult WithPreviewSession(IEditorService editor, IPathfindingService paths, PreviewCommand command,
+        Func<RoomSessionManager, string, List<RoomDefinition>, IResult> run)
     {
         var drafts = editor.WorldWithDraft(command.Room);
         var validation = editor.ValidateWorld(drafts, command.TargetFormat);
@@ -60,10 +73,7 @@ internal static class EditorPreviewEndpoints
         catch (ArgumentException ex) { return Results.BadRequest(new { errors = new[] { ex.Message } }); }
         var joined = manager.JoinRoom("preview", roomId, "Tester", position, command.CharacterId);
         if (!joined.Success) return Results.BadRequest(new { errors = new[] { joined.Error } });
-        var result = run(manager, roomId);
-        var states = definitions.Select(room => new PreviewObjectStates(room.Id, manager.PreviewStates(room))).ToList();
-        return Results.Ok(new { success = result.Success, error = result.Error, errorCode = result.ErrorCode,
-            snapshot = manager.GetSnapshot("preview"), states });
+        return run(manager, roomId, definitions);
     }
 
     private static bool ValidStates(RoomDefinition room, IReadOnlyList<ObjectStateDto> states) =>
@@ -77,6 +87,7 @@ internal static class EditorPreviewEndpoints
         string? CharacterId = null, bool CompleteGesture = false);
     internal sealed record PreviewExitRequest(RoomYamlDto Room, PointDto Position, string ExitId,
         IReadOnlyList<PreviewObjectStates>? States = null, string? RoomId = null, string? TargetFormat = null, string? CharacterId = null);
+    private sealed record PreviewDialogueRequest(PreviewCommand Location, string NpcId, AvailableDialogueOption? Choice = null);
     private sealed record PreviewCommand(RoomYamlDto Room, PointDto Position,
         IReadOnlyList<PreviewObjectStates>? States, string? RoomId, string? TargetFormat, string? CharacterId = null);
 }

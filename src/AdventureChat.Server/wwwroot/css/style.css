@@ -169,7 +169,17 @@ body {
 }
 #npc-dialogue button:focus-visible { outline: 2px solid #ffe066; outline-offset: 2px; }
 #npc-dialogue button[aria-disabled="true"] { opacity: 0.65; cursor: default; }
-#npc-choices { display: grid; align-content: start; gap: 4px; overflow: auto; padding: 3px; }
+.npc-dialogue-body { display: grid; min-height: 0; grid-template-rows: auto minmax(0, 1fr); }
+#npc-dialogue-notice { grid-row: 1; margin: 3px; color: #ffe066; }
+#npc-choices {
+  grid-row: 2;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+  gap: 4px;
+  overflow: auto;
+  padding: 3px;
+}
 .visually-hidden {
   position: absolute;
   width: 1px;

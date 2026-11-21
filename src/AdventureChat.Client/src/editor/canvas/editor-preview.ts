@@ -10,10 +10,15 @@ import { ObjectActionFlow } from '../../input/object-action-flow.js';
 import { exitAt, withinExitReach } from '../../input/exit-hit.js';
 import { objectUsePoints, nearestUsePoints } from '../../input/object-use-points.js';
 import { EditorPreviewControls } from '../ui/editor-preview-controls.js';
+import { NpcDialogueFlow } from '../../input/npc-dialogue-flow.js';
+import { npcActorId } from '../../rendering/npc-cast.js';
+import { NpcDialoguePanel } from '../../ui/npc-dialogue-panel.js';
 
 export class EditorPreview {
   private readonly controls = new EditorPreviewControls(() => this.cancelCommand());
   private readonly actionFlow: ObjectActionFlow;
+  private readonly dialogue: NpcDialoguePanel;
+  private readonly dialogueFlow: NpcDialogueFlow;
   private previewRenderer: RoomRenderer | null = null;
   private previewCharacter: Character | null = null;
   private previewAnimationId: number | null = null;
@@ -42,6 +47,17 @@ export class EditorPreview {
       (_, objectId, actionId) => this.executeAction(objectId, actionId),
       (error, pending) => { if (!pending) this.tell(error ?? 'Aktion ausgeführt.'); },
       async animation => this.previewRenderer?.prepareActorAnimation(animation)
+    );
+    this.dialogue = new NpcDialoguePanel(canvas, { verbs: this.controls.element, returnFocus: this.controls.verb,
+      advanceEvent: 'mousedown' }, (bubble, npcId) =>
+      this.previewRenderer?.setDialogueBubble(npcId ? npcActorId(npcId) : 'preview-player', bubble) ?? false);
+    this.dialogueFlow = new NpcDialogueFlow(
+      () => ({ roomId: this.room?.id ?? '', position: this.previewCharacter?.position ?? { x: 0, y: 0 },
+        idle: this.previewCharacter?.state === 'idle', changingRoom: false }),
+      point => this.walk(point),
+      (_, npcId) => EditorApi.previewDialogue(this.location(), npcId),
+      (npc, options) => this.dialogue.open(npc, options, option => EditorApi.previewDialogue(this.location(), npc.id, option)),
+      error => this.tell(error)
     );
   }
 
@@ -125,6 +141,12 @@ export class EditorPreview {
     if (revision !== this.requestRevision) return;
     const point = { x: logicalX, y: logicalY };
     const verb = this.controls.selectedVerb();
+    if (verb === 'talk') {
+      const npc = this.previewRenderer?.npcAt(point);
+      if (npc) await this.dialogueFlow.start(npc);
+      else this.tell('Wähle eine Figur zum Ansprechen.');
+      return;
+    }
     const exit = exitAt(this.exits, point);
     const object = this.previewRenderer?.objectAt(point);
     if (object && verb !== 'walk' && (verb || object.interaction)) {
@@ -160,6 +182,8 @@ export class EditorPreview {
     this.requestRevision++;
     this.pendingExit = null;
     this.actionFlow.cancel();
+    this.dialogueFlow.cancel();
+    this.dialogue.close();
     if (!this.previewCharacter) return;
     this.previewCharacter.target = null;
     this.previewCharacter.waypoints = [];
@@ -293,6 +317,7 @@ export class EditorPreview {
     if (this.previewCharacter) {
       updateCharacterMovement(this.previewCharacter, dt);
       this.actionFlow.update();
+      this.dialogueFlow.update();
       if (this.previewCharacter.state === 'idle' && this.pendingExit) {
         const exit = this.pendingExit;
         this.pendingExit = null;

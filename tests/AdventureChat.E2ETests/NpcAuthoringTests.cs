@@ -18,11 +18,14 @@ public class NpcAuthoringTests
         var serializer = new RoomYamlSerializer();
         var original = File.ReadAllText(lounge);
         var draft = serializer.Deserialize(original);
+        var npc = draft.Npcs!.Single();
+        npc.Options.RemoveAll(option => option.When is not null);
+        npc.Options[0] = npc.Options[0] with { Replies = null };
         var olderRoom = serializer.Deserialize(original);
         olderRoom.Npcs = null;
         File.WriteAllText(lounge, serializer.Serialize(olderRoom));
         var manifest = Path.Combine(world, "world.yaml");
-        File.WriteAllText(manifest, File.ReadAllText(manifest).Replace("1.11.0", "1.10.0", StringComparison.Ordinal));
+        File.WriteAllText(manifest, File.ReadAllText(manifest).Replace("1.12.0", "1.10.0", StringComparison.Ordinal));
         await server.StartAsync();
 
         using var client = new HttpClient { BaseAddress = new Uri(server.BaseUrl) };
@@ -45,5 +48,39 @@ public class NpcAuthoringTests
 
         var reloaded = await client.GetFromJsonAsync<RoomYamlDto>(roomUrl);
         Assert.That(reloaded!.Npcs!.Single().Options[0].Reply, Is.EqualTo("Willkommen in der Lounge."));
+    }
+
+    [Test]
+    public async Task EditorUpgradesAndRoundTripsConditionsButRejectsBrokenReferences()
+    {
+        await using var server = CreateReferenceCopy();
+        var serializer = new RoomYamlSerializer();
+        var loungePath = Path.Combine(server.TempRoot, "world/rooms/lounge.yaml");
+        var draft = serializer.Deserialize(File.ReadAllText(loungePath));
+        var olderRoom = serializer.Deserialize(File.ReadAllText(loungePath));
+        var olderOptions = olderRoom.Npcs!.Single().Options;
+        olderOptions.RemoveAll(option => option.When is not null);
+        olderOptions[0] = olderOptions[0] with { Replies = null };
+        File.WriteAllText(loungePath, serializer.Serialize(olderRoom));
+        var manifest = Path.Combine(server.TempRoot, "world/world.yaml");
+        File.WriteAllText(manifest, File.ReadAllText(manifest).Replace("1.12.0", "1.11.0", StringComparison.Ordinal));
+        await server.StartAsync();
+
+        using var client = new HttpClient { BaseAddress = new Uri(server.BaseUrl) };
+        const string roomUrl = "/api/editor/rooms/lounge?worldId=reference";
+        var status = await client.GetFromJsonAsync<JsonElement>("/api/editor/status?worldId=reference");
+        client.DefaultRequestHeaders.Add("X-Author-Token", status.GetProperty("token").GetString());
+        using var upgrade = await client.PostAsJsonAsync(roomUrl + "&upgradeFrom=1.11.0&targetFormat=1.12.0", draft);
+        Assert.That(upgrade.IsSuccessStatusCode, Is.True, await upgrade.Content.ReadAsStringAsync());
+
+        var saved = (await client.GetFromJsonAsync<RoomYamlDto>(roomUrl))!;
+        var replies = saved.Npcs!.Single().Options[0].Replies!;
+        Assert.That(replies.Single().When, Is.EqualTo(new DialogueCondition("bell", "rung")));
+        replies[0] = replies[0] with { When = new("bell", "missing") };
+        using var invalid = await client.PostAsJsonAsync(roomUrl, saved);
+        Assert.That(invalid.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.BadRequest));
+        Assert.That(await invalid.Content.ReadAsStringAsync(), Does.Contain("unknown state 'missing'"));
+        Assert.That(serializer.Deserialize(File.ReadAllText(loungePath)).Npcs!.Single().Options[0].Replies![0].When.State,
+            Is.EqualTo("rung"));
     }
 }

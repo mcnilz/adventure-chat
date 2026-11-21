@@ -14,8 +14,16 @@ npcs:
     position: { x: 112, y: 286 }
     talkPoint: { x: 146, y: 294 }
     options:
-      - { id: introduction, text: Wer bist du?, reply: Ich bin Nela. Ich passe auf die Lounge auf. }
+      - id: introduction
+        text: Wer bist du?
+        reply: Ich bin Nela. Ich passe auf die Lounge auf.
+        replies:
+          - { when: { object: bell, state: rung }, reply: Ich bin Nela und helfe dir gern. }
       - { id: garden, text: Wo ist der Garten?, reply: Durch die Tür rechts erreichst du den Tavernen-Garten. }
+      - id: bell
+        text: Hast du die Klingel gehört?
+        reply: Ja, ich habe deinen Ruf gehört.
+        when: { object: bell, state: rung }
 walkable:
   - id: floor
     points: [{ x: 76, y: 242 }, { x: 284, y: 222 }, { x: 510, y: 222 }, { x: 532, y: 236 }, { x: 616, y: 236 }, { x: 616, y: 348 }, { x: 76, y: 348 }]
@@ -23,6 +31,22 @@ obstacles:
   - id: table
     points: [{ x: 238, y: 270 }, { x: 422, y: 270 }, { x: 422, y: 306 }, { x: 238, y: 306 }]
 objects:
+  - id: bell
+    image: assets/images/lounge-bell-ready.png
+    position: { x: 187, y: 224 }
+    size: { width: 32, height: 51 }
+    depthY: 272
+    interaction:
+      name: Klingel
+      initialState: ready
+      usePoint: { x: 203, y: 289 }
+      useRadius: 18
+      states:
+        - { id: ready, name: Bereit, image: assets/images/lounge-bell-ready.png, position: { x: 187, y: 224 }, size: { width: 32, height: 51 }, depthY: 272 }
+        - { id: rung, name: Gerufen, image: assets/images/lounge-bell-rung.png, position: { x: 187, y: 224 }, size: { width: 32, height: 51 }, depthY: 272 }
+      actions:
+        - { id: ring, name: Drücken, from: ready, to: rung }
+        - { id: reset, name: Drücken, from: rung, to: ready }
   - id: table
     image: assets/images/lounge-table.png
     position: { x: 238, y: 224 }

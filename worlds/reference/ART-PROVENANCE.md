@@ -60,3 +60,7 @@ Die Tischplatte (112 × 24), das Gestell (112 × 92) und die beiden Pfeiltasten 
 ## Sitzpose und Tafel · Ticket 26
 
 Die beiden Tafelbilder (82 × 56) und die Sitz- und Gestenbilder für Mara und Bruno wurden lokal aus farbigen Pixelpolygonen neu gezeichnet. Haar, Kleidung und Farben orientieren sich an den vorhandenen Figuren. Die Sitzpose belegt einen 64 × 64-Rahmen, die Geste drei nebeneinanderliegende 64 × 64-Rahmen. Die fertigen PNGs liegen unter `assets/images/`. Für ihren Einsatz genügt der bestehende Renderer.
+
+## Klingel in der Startlounge · Ticket 28
+
+`lounge-bell-ready.png` und `lounge-bell-rung.png` sind lokal erstellte, transparente Pixelzeichnungen mit jeweils 32 × 51 Pixeln. Beide zeigen dieselbe Messingklingel auf einem Holzständer. Im gerufenen Zustand machen helle Striche den Wechsel sichtbar. Die fertigen PNGs gehören zum Weltpaket. Der Build benötigt keine zusätzlichen Werkzeuge.

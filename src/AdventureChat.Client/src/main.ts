@@ -40,13 +40,20 @@ async function initialize(): Promise<void> {
   game.onVerbSelected = verb => verbBar.setSelected(verb);
   const dialogue = new NpcDialoguePanel(
     canvas,
-    (bubble, npcId) => game.renderer.setDialogueBubble(npcId ? npcActorId(npcId) : game.character.id, bubble),
-    npcName => {
-      if (npcName) chatUi.setActionText(`Spreche mit ${npcName}`);
-      else game.inputHandler.updateVerb();
-    }
+    {
+      verbs: document.getElementById('verb-bar')!,
+      returnFocus: document.querySelector<HTMLElement>('#verb-bar button[data-verb="talk"]')!,
+      onModeChanged: npcName => {
+        if (npcName) chatUi.setActionText(`Spreche mit ${npcName}`);
+        else game.inputHandler.updateVerb();
+      }
+    },
+    (bubble, npcId) => game.renderer.setDialogueBubble(npcId ? npcActorId(npcId) : game.character.id, bubble)
   );
-  game.onDialogueOpened = (npc, options) => dialogue.open(npc, options);
+  game.onDialogueOpened = (npc, options) => {
+    const roomId = game.room.id;
+    dialogue.open(npc, options, option => game.networkClient.requestNpcDialogue(roomId, npc.id, option));
+  };
   game.onDialogueClosed = () => dialogue.close();
 
   game.onConnectionStatusChanged = (status) => {

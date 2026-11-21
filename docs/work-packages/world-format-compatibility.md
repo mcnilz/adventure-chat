@@ -124,6 +124,7 @@ Ticket 20 erweitert die ausdrückliche Unterstützung um 1.6.0 und nach Benutzer
 | 25: Sichtbare Objektübergänge | Format 1.9.0 | Optionale gerichtete Übergänge. Ohne sie gelten die bisherigen Zustands- und Navigationsregeln. Die Werkstatt ergänzt einen Hubtisch mit eigener Stellfläche. Die bisher dort erreichbaren Fußpunkte entfallen in Inhalt 5.0.0. |
 | 26: Figurenposen und Gesten | Format 1.10.0 | Optional je Aktion. Ohne Angabe bleiben Bedienradius und sofortige Wirkungen erhalten. Referenzinhalt 5.1.0 ergänzt Hinsetzen am zurückgeschobenen Stuhl und eine Geste an der Werkstatttafel. |
 | 27: Stationäre NPCs und Gespräche | Format 1.11.0 | Optionale NPC-Liste mit Katalogverweis, Gesprächspunkt und vorbereiteten Antworten. Die Referenzwelt 5.2.0 ergänzt Nela in der Startlounge. |
+| 28: Zustandsabhängige Gespräche | Format 1.12.0 | Optionale Bedingungen und Antwortvarianten mit Verweisen auf interaktive Objekte im selben Raum. Die Referenzwelt 5.3.0 ergänzt die Klingel in der Startlounge. |
 
 Versionsnummern bei Paketfreigabe gegen den tatsächlichen Stand prüfen. Eine spätere andere Reihenfolge darf keinen veröffentlichten Vertrag verändern. Bis Implementierung und Prüfung akzeptiert kein Server diese geplanten Versionen allein wegen dieses Dokuments.
 

@@ -339,7 +339,7 @@ public static class AppFactory
                     });
                 }
 
-                if (runtime?.Package.FormatVersion is "1.6.0" or "1.7.0" or "1.8.0" or "1.9.0" or "1.10.0" or "1.11.0")
+                if (runtime?.Package.FormatVersion is "1.6.0" or "1.7.0" or "1.8.0" or "1.9.0" or "1.10.0" or "1.11.0" or "1.12.0")
                     foreach (var room in runtime.Rooms.GetAllRooms())
                         await hub.Clients.Group($"world:{runtime.Package.Id}:room:{room.Id.ToLowerInvariant()}").SendAsync("WorldReset");
 

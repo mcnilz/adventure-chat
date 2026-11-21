@@ -11,6 +11,7 @@ import type {
   ObjectStatesChangedDto,
   ObjectActionResultDto,
   ObjectActionFeedbackDto,
+  DialogueOption,
   NpcDialogueResult,
 } from '../types.js';
 import type { HubConnection } from '@microsoft/signalr';
@@ -181,10 +182,12 @@ export class RoomNetworkClient {
     catch { /* A disconnected session has no pending approach. */ }
   }
 
-  public async requestNpcDialogue(roomId: string, npcId: string): Promise<NpcDialogueResult> {
-    if (!this.hubConnection || this.connectionStatus !== 'connected') return { error: 'Nicht verbunden.', options: null, tooFar: false };
-    try { return await this.hubConnection.invoke<NpcDialogueResult>('RequestNpcDialogue', { roomId, npcId }); }
-    catch { return { error: 'Das Gespräch konnte nicht geöffnet werden.', options: null, tooFar: false }; }
+  public async requestNpcDialogue(roomId: string, npcId: string, choice?: DialogueOption): Promise<NpcDialogueResult> {
+    if (!this.hubConnection || this.connectionStatus !== 'connected') {
+      return { error: 'Nicht verbunden.', options: null, tooFar: false, selected: null };
+    }
+    try { return await this.hubConnection.invoke<NpcDialogueResult>('RequestNpcDialogue', { roomId, npcId, choice }); }
+    catch { return { error: 'Das Gespräch konnte nicht geladen werden.', options: null, tooFar: false, selected: null }; }
   }
 
   public async sendChatMessage(text: string): Promise<SendChatMessageResultDto> {

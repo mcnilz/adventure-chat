@@ -1,3 +1,5 @@
+using AdventureChat.Server.Models;
+using AdventureChat.Server.Services;
 using Microsoft.Playwright;
 using NUnit.Framework;
 using static AdventureChat.E2ETests.DynamicNavigationTests;
@@ -7,6 +9,124 @@ namespace AdventureChat.E2ETests;
 
 public class NpcDialogueTests
 {
+    [Test]
+    public async Task AnotherVisitorRingingTheBellRefreshesAnOpenConversation()
+    {
+        await using var server = CreateReferenceCopy();
+        await server.StartAsync();
+        using var playwright = await Playwright.CreateAsync();
+        await using var browser = await playwright.Chromium.LaunchAsync(new() { Headless = true });
+        var speaker = await JoinWorld(browser, server.BaseUrl, "mara");
+        var visitor = await JoinWorld(browser, server.BaseUrl, "bruno");
+
+        await Speak(speaker);
+        var introduction = speaker.GetByRole(AriaRole.Button, new() { Name = "Wer bist du?" });
+        var bellQuestion = speaker.GetByRole(AriaRole.Button, new() { Name = "Hast du die Klingel gehört?" });
+        await Assertions.Expect(introduction).ToBeVisibleAsync();
+        await Assertions.Expect(bellQuestion).ToBeHiddenAsync(new() { Timeout = 1000 });
+
+        await visitor.GetByRole(AriaRole.Button, new() { Name = "Drücken", Exact = true }).ClickAsync();
+        await ClickCanvas(visitor, 203, 240);
+        await Assertions.Expect(visitor.Locator("#action-feedback")).ToHaveTextAsync("Aktion ausgeführt.", new() { Timeout = 5000 });
+
+        await introduction.ClickAsync();
+        await Assertions.Expect(speaker.Locator("#npc-dialogue-notice")).ToContainTextAsync("Gespräch hat sich geändert");
+        await Assertions.Expect(bellQuestion).ToBeVisibleAsync();
+        await introduction.ClickAsync();
+        await speaker.Keyboard.PressAsync(".");
+        await Assertions.Expect(speaker.Locator("#npc-reply")).ToHaveTextAsync("Ich bin Nela und helfe dir gern.");
+        await Assertions.Expect(visitor.Locator("#npc-reply")).ToBeEmptyAsync();
+        if (Environment.GetEnvironmentVariable("NPC_STATE_DIALOGUE_EVIDENCE") is { Length: > 0 } evidence)
+        {
+            Directory.CreateDirectory(evidence);
+            await speaker.Locator("#game-container").ScreenshotAsync(new() { Path = Path.Combine(evidence, "lounge-bell-dialogue.png") });
+        }
+        await speaker.Keyboard.PressAsync(".");
+
+        await visitor.GetByRole(AriaRole.Button, new() { Name = "Drücken", Exact = true }).ClickAsync();
+        await ClickCanvas(visitor, 203, 240);
+        await visitor.WaitForFunctionAsync("window.__ADVENTURE_GAME__.room.objects.find(o => o.id === 'bell').image.endsWith('lounge-bell-ready.png')");
+        await speaker.GetByRole(AriaRole.Button, new() { Name = "Wo ist der Garten?" }).ClickAsync();
+        await speaker.Keyboard.PressAsync(".");
+        await Assertions.Expect(speaker.Locator("#npc-reply")).ToHaveTextAsync("Durch die Tür rechts erreichst du den Tavernen-Garten.");
+        await speaker.Keyboard.PressAsync(".");
+        await Assertions.Expect(bellQuestion).ToBeHiddenAsync();
+    }
+
+    [Test]
+    public async Task EditorPreviewUsesItsOwnBellStateForTheConversation()
+    {
+        await using var server = CreateReferenceCopy();
+        await server.StartAsync();
+        using var playwright = await Playwright.CreateAsync();
+        await using var browser = await playwright.Chromium.LaunchAsync(new() { Headless = true });
+        var live = await JoinWorld(browser, server.BaseUrl, "mara");
+        var editor = await browser.NewPageAsync();
+        await editor.GotoAsync(server.BaseUrl + "/editor.html?worldId=reference");
+        await editor.SelectOptionAsync("#room-select", "lounge");
+        await Assertions.Expect(editor.Locator("#object-list option[value=bell]")).ToHaveCountAsync(1);
+        await editor.ClickAsync("#btn-toggle-mode");
+        await Assertions.Expect(editor.Locator("#preview-result")).ToHaveTextAsync("Lounge");
+
+        var canvas = editor.Locator("#editor-canvas");
+        var bounds = (await canvas.BoundingBoxAsync())!;
+        Task ClickPreview(int x, int y) => canvas.ClickAsync(new() { Position = new() { X = x * bounds.Width / 640, Y = y * bounds.Height / 360 } });
+        await editor.SelectOptionAsync("#preview-verb", "push");
+        await ClickPreview(203, 240);
+        await Assertions.Expect(editor.Locator("#preview-result")).ToHaveTextAsync("Aktion ausgeführt.");
+        await editor.SelectOptionAsync("#preview-verb", "talk", new() { Timeout = 3000 });
+        await ClickPreview(112, 225);
+        var question = new PageGetByRoleOptions { Name = "Hast du die Klingel gehört?" };
+        await Assertions.Expect(editor.GetByRole(AriaRole.Button, question)).ToBeVisibleAsync();
+        await editor.GetByRole(AriaRole.Button, question).ClickAsync();
+        await ClickPreview(210, 330);
+        await Assertions.Expect(editor.Locator("#npc-reply")).ToHaveTextAsync("Ja, ich habe deinen Ruf gehört.");
+        await Assertions.Expect(editor.Locator("#npc-dialogue")).ToBeVisibleAsync();
+
+        await Speak(live);
+        await Assertions.Expect(live.Locator("#npc-dialogue")).ToBeVisibleAsync();
+        await Assertions.Expect(live.GetByRole(AriaRole.Button, question)).ToBeHiddenAsync();
+    }
+
+    [Test]
+    public async Task FirstMatchingReplyWinsAndAnEmptyConversationCanBeClosed()
+    {
+        await using var server = CreateReferenceCopy();
+        var path = Path.Combine(server.TempRoot, "world/rooms/lounge.yaml");
+        var serializer = new RoomYamlSerializer();
+        var draft = serializer.Deserialize(File.ReadAllText(path));
+        var options = draft.Npcs!.Single().Options;
+        var ready = new DialogueCondition("bell", "ready");
+        for (var index = 0; index < options.Count; index++) options[index] = options[index] with { When = ready };
+        options[0] = options[0] with { Replies = [new(ready, "Erste passende Antwort."), new(ready, "Zweite passende Antwort.")] };
+        File.WriteAllText(path, serializer.Serialize(draft));
+        await server.StartAsync();
+        using var playwright = await Playwright.CreateAsync();
+        await using var browser = await playwright.Chromium.LaunchAsync(new() { Headless = true });
+        var speaker = await JoinWorld(browser, server.BaseUrl, "mara");
+        var visitor = await JoinWorld(browser, server.BaseUrl, "bruno");
+
+        await Speak(speaker);
+        var introduction = speaker.GetByRole(AriaRole.Button, new() { Name = "Wer bist du?" });
+        await introduction.ClickAsync();
+        await speaker.Keyboard.PressAsync(".");
+        await Assertions.Expect(speaker.Locator("#npc-reply")).ToHaveTextAsync("Erste passende Antwort.");
+        await speaker.Keyboard.PressAsync(".");
+
+        await visitor.GetByRole(AriaRole.Button, new() { Name = "Drücken", Exact = true }).ClickAsync();
+        await ClickCanvas(visitor, 203, 240);
+        await Assertions.Expect(visitor.Locator("#action-feedback")).ToHaveTextAsync("Aktion ausgeführt.");
+        await introduction.ClickAsync();
+        await Assertions.Expect(speaker.Locator("#npc-dialogue-notice")).ToHaveTextAsync("Im Moment gibt es keine Fragen.");
+        await Assertions.Expect(introduction).ToBeHiddenAsync();
+        await speaker.GetByRole(AriaRole.Button, new() { Name = "Gespräch beenden" }).ClickAsync();
+        await Assertions.Expect(speaker.Locator("#verb-bar")).ToBeVisibleAsync();
+        await Speak(speaker);
+        await Assertions.Expect(speaker.Locator("#npc-dialogue-notice")).ToHaveTextAsync("Im Moment gibt es keine Fragen.");
+        await speaker.Keyboard.PressAsync("Escape");
+        await Assertions.Expect(speaker.Locator("#npc-dialogue")).ToBeHiddenAsync();
+    }
+
     private const string WhitePixels = """
         ([x, y, width, height]) => {
           const pixels = document.querySelector('#game-canvas').getContext('2d').getImageData(x, y, width, height).data;

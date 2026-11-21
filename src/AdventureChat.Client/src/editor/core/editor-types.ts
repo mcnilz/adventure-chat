@@ -1,3 +1,5 @@
+import type { DialogueOption } from '../../types.js';
+
 export type EditorMode = 'edit' | 'preview';
 
 export type EditorTool = 'select' | 'add-walkable' | 'add-obstacle' | 'add-spawn' | 'add-exit';
@@ -44,8 +46,18 @@ export interface RoomObjectDto {
  usePoints?: readonly RoomPointDto[] | null;
 }
 
+interface DialogueCondition {
+  readonly object: string;
+  readonly state: string;
+}
+
+interface AuthoredDialogueOption extends DialogueOption {
+  readonly when?: DialogueCondition | null;
+  readonly replies?: readonly { readonly when: DialogueCondition; readonly reply: string }[] | null;
+}
+
 export interface RoomYamlDto {
-  npcs?: (import('../../types.js').NpcPresence & { readonly options: readonly import('../../types.js').DialogueOption[] })[] | null;
+  npcs?: (import('../../types.js').NpcPresence & { readonly options: readonly AuthoredDialogueOption[] })[] | null;
   depthScale?: import('../../types.js').DepthScale | null;
   objects?: RoomObjectDto[] | null;
   viewport?: import('../../types.js').RoomViewport | null;

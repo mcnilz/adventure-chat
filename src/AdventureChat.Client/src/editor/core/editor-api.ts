@@ -4,7 +4,7 @@ import type {
   RoomYamlDto,
   RoomView
 } from './editor-types.js';
-import type { ObjectActionResultDto, ObjectStateDto, Point, PreviewObjectStates, RoomSnapshotDto } from '../../types.js';
+import type { DialogueOption, NpcDialogueResult, ObjectActionResultDto, ObjectStateDto, Point, PreviewObjectStates, RoomSnapshotDto } from '../../types.js';
 
 interface PreviewLocation {
   room: RoomView;
@@ -85,7 +85,12 @@ export class EditorApi {
     return this.previewCommand('snapshot', location);
   }
 
-  private static async previewCommand(command: 'action' | 'exit' | 'snapshot', body: object): Promise<PreviewResult> {
+  public static async previewDialogue(location: PreviewLocation, npcId: string, choice?: DialogueOption): Promise<NpcDialogueResult> {
+    try { return await this.previewCommand<NpcDialogueResult>('dialogue', { location, npcId, choice }); }
+    catch (error) { return { error: String(error), options: null, tooFar: false, selected: null }; }
+  }
+
+  private static async previewCommand<T = PreviewResult>(command: 'action' | 'exit' | 'snapshot' | 'dialogue', body: object): Promise<T> {
     const response = await this.request(`/api/editor/preview-${command}`, {
       method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Author-Token': await this.authorToken() },
       body: JSON.stringify(body)

@@ -1,8 +1,15 @@
-import type { DialogueOption, NpcPresence, SpeechBubble } from '../types.js';
+import type { DialogueOption, NpcDialogueResult, NpcPresence, SpeechBubble } from '../types.js';
 
 const TURN_PAUSE_MS = 250;
 const REPLY_PAGE_LENGTH = 110;
 type DialogueBeat = { readonly duration: number; readonly text?: string; readonly npc?: NpcPresence };
+type Dialogue = { readonly npc: NpcPresence; readonly choose: (option: DialogueOption) => Promise<NpcDialogueResult> };
+interface DialogueControls {
+  readonly verbs: HTMLElement;
+  readonly returnFocus: HTMLElement;
+  readonly advanceEvent?: 'click' | 'mousedown';
+  readonly onModeChanged?: (npcName?: string) => void;
+}
 
 function replyPages(text: string): string[] {
   const pages: string[] = [];
@@ -23,21 +30,26 @@ function replyPages(text: string): string[] {
 
 export class NpcDialoguePanel {
   private readonly panel = document.getElementById('npc-dialogue')!;
-  private readonly verbs = document.getElementById('verb-bar')!;
   private readonly name = document.getElementById('npc-dialogue-name')!;
   private readonly choices = document.getElementById('npc-choices')!;
+  private readonly notice = document.getElementById('npc-dialogue-notice')!;
+  private readonly closeButton = document.getElementById('npc-dialogue-close')!;
   private readonly reply = document.getElementById('npc-reply')!;
   private readonly fallback = document.getElementById('npc-dialogue-bubble')!;
-  private readonly talk = document.querySelector<HTMLButtonElement>('#verb-bar button[data-verb="talk"]')!;
   private timer: number | undefined;
   private beats: DialogueBeat[] = [];
+  private dialogue: Dialogue | null = null;
+  private options: readonly DialogueOption[] = [];
+  private nextOptions: readonly DialogueOption[] | null = null;
+  private pending = false;
+  private skipPendingQuestion = false;
 
   public constructor(
     canvas: HTMLCanvasElement,
-    private readonly showBubble: (bubble: SpeechBubble | null, npcId?: string) => boolean,
-    private readonly onModeChanged: (npcName?: string) => void
+    private readonly controls: DialogueControls,
+    private readonly showBubble: (bubble: SpeechBubble | null, npcId?: string) => boolean
   ) {
-    document.getElementById('npc-dialogue-close')!.addEventListener('click', () => this.dismiss());
+    this.closeButton.addEventListener('click', () => this.dismiss());
     document.addEventListener('keydown', event => {
       if (!this.isOpen) return;
       if (event.key === 'Escape') {
@@ -49,7 +61,7 @@ export class NpcDialoguePanel {
         event.preventDefault();
       }
     });
-    canvas.addEventListener('click', event => {
+    canvas.addEventListener(controls.advanceEvent ?? 'click', event => {
       if (event.button === 0 && this.advance()) event.stopImmediatePropagation();
     }, { capture: true });
     this.fallback.addEventListener('click', event => {
@@ -59,20 +71,33 @@ export class NpcDialoguePanel {
 
   public get isOpen(): boolean { return !this.panel.hidden; }
 
-  public open(npc: NpcPresence, options: readonly DialogueOption[]): void {
+  public open(npc: NpcPresence, options: readonly DialogueOption[], choose: Dialogue['choose']): void {
     this.close();
+    this.dialogue = { npc, choose };
     this.name.textContent = npc.name;
+    this.controls.verbs.hidden = true;
+    this.panel.hidden = false;
+    this.controls.onModeChanged?.(npc.name);
+    this.showOptions(options);
+  }
+
+  private showOptions(options: readonly DialogueOption[], message?: string): void {
+    this.options = options;
+    this.setNotice(options.length ? message : 'Im Moment gibt es keine Fragen.');
+    this.choices.replaceChildren();
     for (const option of options) {
       const button = document.createElement('button');
       button.type = 'button';
       button.textContent = option.text;
-      button.addEventListener('click', () => this.exchange(npc, option));
+      button.addEventListener('click', () => void this.select(option));
       this.choices.append(button);
     }
-    this.verbs.hidden = true;
-    this.panel.hidden = false;
-    this.onModeChanged(npc.name);
-    this.choices.querySelector('button')?.focus();
+    (this.choices.querySelector('button') ?? this.closeButton).focus();
+  }
+
+  private setNotice(message?: string): void {
+    this.notice.textContent = message ?? '';
+    this.notice.hidden = !message;
   }
 
   public close(): void {
@@ -80,17 +105,43 @@ export class NpcDialoguePanel {
     window.clearTimeout(this.timer);
     this.timer = undefined;
     this.beats = [];
+    this.dialogue = null;
+    this.options = [];
+    this.nextOptions = null;
+    this.pending = false;
+    this.skipPendingQuestion = false;
     this.setLine(null);
     this.panel.hidden = true;
-    this.verbs.hidden = false;
+    this.controls.verbs.hidden = false;
     this.choices.replaceChildren();
+    this.setNotice();
     this.reply.textContent = '';
-    this.onModeChanged();
+    this.controls.onModeChanged?.();
+  }
+
+  private async select(option: DialogueOption): Promise<void> {
+    const dialogue = this.dialogue;
+    if (!dialogue || this.pending || this.timer !== undefined) return;
+    this.pending = true;
+    this.skipPendingQuestion = false;
+    this.setNotice();
+    this.setChoicesAvailable(false);
+    const result = await dialogue.choose(option);
+    if (this.dialogue !== dialogue) return;
+    this.pending = false;
+    if (result.selected) {
+      this.nextOptions = result.options;
+      this.exchange(dialogue.npc, result.selected);
+      if (this.skipPendingQuestion) this.advance();
+    } else if (result.options) {
+      this.showOptions(result.options, result.error ?? undefined);
+    } else {
+      this.setNotice(result.error ?? 'Diese Frage konnte nicht gestellt werden.');
+      this.setChoicesAvailable(true);
+    }
   }
 
   private exchange(npc: NpcPresence, option: DialogueOption): void {
-    if (this.timer !== undefined) return;
-    this.setChoicesAvailable(false);
     const questionTime = Math.min(3800, 950 + option.text.length * 32);
     this.beats = [
       { text: option.text, duration: questionTime },
@@ -104,6 +155,10 @@ export class NpcDialoguePanel {
   }
 
   private advance(): boolean {
+    if (this.pending) {
+      this.skipPendingQuestion = true;
+      return true;
+    }
     if (this.timer === undefined) return false;
     window.clearTimeout(this.timer);
     if (this.beats[0]?.text === undefined) this.beats.shift();
@@ -119,6 +174,12 @@ export class NpcDialoguePanel {
     if (beat) this.timer = window.setTimeout(() => this.playNext(), beat.duration);
     else {
       this.timer = undefined;
+      const next = this.nextOptions;
+      this.nextOptions = null;
+      if (next && (next.length !== this.options.length || next.some((option, index) => {
+        const previous = this.options[index];
+        return !previous || option.id !== previous.id || option.text !== previous.text || option.reply !== previous.reply;
+      }))) this.showOptions(next);
       this.setChoicesAvailable(true);
     }
   }
@@ -137,6 +198,6 @@ export class NpcDialoguePanel {
 
   private dismiss(): void {
     this.close();
-    this.talk.focus();
+    this.controls.returnFocus.focus();
   }
 }

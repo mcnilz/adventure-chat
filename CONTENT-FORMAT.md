@@ -60,7 +60,7 @@ Geplant sind optionale Raumangaben für Draufsicht und feste Figurengröße, hor
 | Weltformat | Raumformat | Unterstützung |
 | --- | --- | --- |
 | `1.0.0` | `legacy-1`, Raum-`version: 1` | Lesen und Schreiben |
-| `1.1.0`–`1.11.0` | `legacy-1`, Raum-`version: 1` | Lesen und Schreiben für jede ausdrücklich veröffentlichte Minor-Version |
+| `1.1.0`–`1.12.0` | `legacy-1`, Raum-`version: 1` | Lesen und Schreiben für jede ausdrücklich veröffentlichte Minor-Version |
 | andere | beliebig | ausdrücklich abgelehnt |
 
 Das Manifest verwendet `formatVersion`, `id`, `name`, `contentVersion`, `startRoom`, `startSpawn` und `roomFormat`. `rooms` und `assets/images` sind paketrelative Verzeichnisse. Dateiname und Raum-ID stimmen überein; Hintergründe sind vollständige PNG-Dateien mit passenden Abmessungen; PNG-Dateien sind auf 64 MiB, ihre dekodierten Bilddaten auf 128 MiB und einzelne YAML-Dateien auf 1 MiB begrenzt. Absolute Pfade, `..` und symbolische Links/Junctions werden abgewiesen. Der Editor schreibt ausschließlich `version: 1`, prüft vorhandene Dateien vor Überschreiben und behält beim normalen Speichern die Manifestversion bei. Schema-Bündel und ihre lokalen Referenzen bleiben nach Veröffentlichung unverändert. Die ursprünglichen Legacy-Dateien und das ursprüngliche Schema bleiben als Referenz erhalten. `1.0.0` ist die erstmalige Veröffentlichung des Weltvertrags, keine Umdeutung des ganzzahligen Raumversionsfeldes; daher ist kein früheres Weltformat umzuversionieren. Weitere Formatänderungen folgen den Regeln im Kompatibilitätsvertrag.
@@ -167,7 +167,7 @@ Nach Erfolg bleiben weiterhin gültige Wege bestehen. Ungültige Wege werden ab 
 
 Die Editorvorschau prüft Wege, Objektaktionen und Ausgänge mit denselben Serverregeln wie das Spiel. Bei einem interaktiven Objekt verwendet „Automatisch“ die Auswahlregel für „Benutzen“. Über die Verbauswahl lässt sich eine konkrete Aktion testen. Die Vorschau verwendet den Raumdraft beim Start und isolierte Objektzustände, die nach einem Raumwechsel erhalten bleiben. Ein Neustart der Vorschau setzt sie auf die Anfangszustände zurück. Synthetisches Beispiel: `tests/Fixtures/navigation`.
 
-Ältere Weltpakete behalten beim Speichern ihr Format. Für eine Aktualisierung auf 1.8.0, 1.9.0, 1.10.0 oder 1.11.0 wird das höhere Zielformat ausdrücklich im Editor gewählt. Vor dem Schreiben prüft der Server Manifest, vorhandene Räume und den Entwurf mit dem Zielvertrag. Speichern aktualisiert das Manifest und den bearbeiteten Raum. Übrige Raumdateien bleiben unverändert.
+Ältere Weltpakete behalten beim Speichern ihr Format. Für eine Aktualisierung auf 1.8.0, 1.9.0, 1.10.0, 1.11.0 oder 1.12.0 wird das höhere Zielformat ausdrücklich im Editor gewählt. Vor dem Schreiben prüft der Server Manifest, vorhandene Räume und den Entwurf mit dem Zielvertrag. Speichern aktualisiert das Manifest und den bearbeiteten Raum. Übrige Raumdateien bleiben unverändert.
 
 ### Sichtbare Objektübergänge ab 1.9.0
 
@@ -228,3 +228,25 @@ npcs:
 - NPCs werden in der Raum-YAML bearbeitet. Der Browsereditor erhält die Einträge beim Speichern und zeigt die Figur in der Raumvorschau.
 
 `npcs` ist optional. Die additive Erweiterung erscheint als Minor-Version mit eigenem Schema-Bündel unter `schemas/world/1.11.0/`.
+
+### Zustandsabhängige Gespräche ab 1.12.0
+
+Ein optionales `when` schaltet eine Frage frei, wenn ein interaktives Objekt im selben Raum den angegebenen Zustand hat. `object` und `state` verwenden die exakten IDs aus der Raumdefinition. Der Server prüft beide Verweise beim Laden und Speichern.
+
+```yaml
+options:
+  - id: introduction
+    text: Wer bist du?
+    reply: Ich bin Nela.
+    replies:
+      - when: { object: bell, state: rung }
+        reply: Ich bin Nela und helfe dir gern.
+  - id: bell
+    text: Hast du die Klingel gehört?
+    when: { object: bell, state: rung }
+    reply: Ja, ich habe deinen Ruf gehört.
+```
+
+`replies` enthält bei Bedarf eine bis acht Antwortvarianten. Die erste passende Variante in der angegebenen Reihenfolge ersetzt `reply`. Wenn keine Variante passt, gilt `reply`. Eine NPC-Definition enthält weiterhin zwei bis acht Fragen. Je nach Zustand können davon auch null sichtbar sein. Die Regeln werden in YAML bearbeitet. Der Raumeditor bewahrt sie beim Speichern und wertet sie in der getrennten Vorschau mit deren Objektzuständen aus.
+
+Das neue Schema-Bündel unter `schemas/world/1.12.0/` ergänzt optionale Felder. Vorhandene Fragen bleiben ohne diese Felder jederzeit verfügbar und behalten ihre Antwort.
