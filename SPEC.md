@@ -1,5 +1,5 @@
 # Spezifikation – begehbarer Adventure-Chat
-MVP abgenommen. Der tatsächliche Umsetzungsstand steht in active-state.md. Tickets 20–23 behandeln interaktive Raumobjekte. Das neue Epic für Figureninteraktionen und NPCs steht als Planungsentwurf in Tickets 24–32.
+MVP abgenommen. Der tatsächliche Umsetzungsstand steht in active-state.md. Tickets 20–23 behandeln interaktive Raumobjekte. Tickets 24–33 behandeln Figureninteraktionen und NPCs.
 
 ## Problem Statement
 Ein gewöhnliches Chatfenster vermittelt keinen gemeinsamen Ort. Der Benutzer möchte sich mit anderen Personen in einer Welt im Stil klassischer Lucasfilm-Adventures treffen, mit Figuren bewegen und schreiben können.
@@ -88,13 +88,15 @@ Dieser Planungsauftrag verändert keine Produktdateien, Weltinhalte oder Bilder,
 
 Zu jeder neuen Funktion gehört im selben Paket ein konkretes, vom normalen Einstieg aus gut auffindbares Beispiel in der Referenzwelt. Beispiele werden nach Möglichkeit in vorhandene Räume integriert und über kurze Wege erreichbar gemacht. Wenn eigene Räume sinnvoll sind, kann ein zentraler Startraum direkte Zugänge anbieten. Die konkrete Platzierung hängt von der Funktion ab. Die [Abnahmeregeln](PLAN.md#beispiele-in-der-referenzwelt) stehen im Umsetzungsplan.
 
-## Geplante Erweiterung: Figureninteraktionen und NPCs (24–32)
+## Erweiterung: Figureninteraktionen und NPCs (24–33)
 
 Autoren können Objektaktionen sichtbare Übergänge zwischen definierten Zuständen zuordnen. Sie können außerdem je Objektaktion einen Bedienpunkt, eine Blickrichtung und eine gehaltene Figurenpose oder eine kurze Animation festlegen. Die Zuordnung lässt sich an verschiedenen Objekten und für verschiedene Handlungen einsetzen. Eine sichtbare Objektwirkung kann auf die kurze Animation folgen.
 
 Mit „Spreche mit“ öffne ich bei einem NPC vorbereitete Gesprächsoptionen. Vorhandene Objektzustände können verfügbare Fragen oder Antworten im Verlauf ändern. Ein NPC kann im Raum einen vorgegebenen Weg ablaufen. Ein konfigurierbarer Aufenthaltsbereich mit wechselnden Zielen ist eine optionale Vertiefung.
 
 Ein NPC kann eine Führung anbieten. Nach Zustimmung folgt ihm die Figur des Besuchers über mehrere Räume und der Besucher erhält an Stationen Erläuterungen. Er kann jederzeit wieder selbst steuern. Als optionale Vertiefung können Autoren einer gezielten Objektaktion eine Reaktion eines NPC zuordnen, etwa das Ansteuern eines konfigurierten Ziels.
+
+Solange die Sprechblase einer Spielerfigur oder eines NPCs sichtbar ist, bewegen sich bei sichtbarem Gesicht die Lippen. NPCs können eine Äußerung mit einer kurzen Geste begleiten, etwa einer Handbewegung. Bei privaten Dialogen bleiben auch die zugehörigen Animationen auf die Gesprächsansicht beschränkt. Die Referenzwelt erhält eine eigene NPC-Grafik im Stil des Design Guides, die sich von den auswählbaren Spielerfiguren unterscheidet.
 
 Ein mögliches Gesamtbeispiel ist eine kurze Büroeinführung. Eine Klingel verändert das Empfangsgespräch und kann bei Umsetzung der optionalen Reaktion einen NPC zum Eingang rufen. Beim Rundgang fährt ein Schreibtisch per Taste zwischen zwei Höhen. Ein Sitzplatz und eine Tafel zeigen eine gehaltene Pose und eine kurze Geste mit sichtbarem Ergebnis.
 

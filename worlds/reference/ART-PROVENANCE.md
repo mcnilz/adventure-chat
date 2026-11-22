@@ -64,3 +64,9 @@ Die beiden Tafelbilder (82 × 56) und die Sitz- und Gestenbilder für Mara und B
 ## Klingel in der Startlounge · Ticket 28
 
 `lounge-bell-ready.png` und `lounge-bell-rung.png` sind lokal erstellte, transparente Pixelzeichnungen mit jeweils 32 × 51 Pixeln. Beide zeigen dieselbe Messingklingel auf einem Holzständer. Im gerufenen Zustand machen helle Striche den Wechsel sichtbar. Die fertigen PNGs gehören zum Weltpaket. Der Build benötigt keine zusätzlichen Werkzeuge.
+
+## Nela und die Sprechphasen · Ticket 33
+
+`nela.png` und `nela-wave.png` wurden lokal aus gezeichneten Pixelgruppen zusammengesetzt. Kupferfarbener Haarknoten, petrolfarbener Gehrock und Messinggürtel kennzeichnen Nela in Profil, Rückenansicht und Front. Die Gruppen sind direkt im 128er-Raster gezeichnet. Der gemeinsame Fußanker liegt auf derselben Linie wie bei den vorhandenen Figuren.
+
+Die separaten transparenten `*-speech.png`-Blätter setzen Mundpixel in das passende Frame, auch für die Draufsicht von Mara und Bruno. Die bestehenden Grundgrafiken bleiben als Originale erhalten. Alle fertigen PNGs liegen unter `assets/images/`. Der Build benötigt keine weiteren Werkzeuge oder Abhängigkeiten.

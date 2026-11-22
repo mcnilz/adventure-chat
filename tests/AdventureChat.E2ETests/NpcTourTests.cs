@@ -30,8 +30,13 @@ public class NpcTourTests
         await Assertions.Expect(Button(observer, StopLabel)).ToBeHiddenAsync();
         await observer.WaitForFunctionAsync($"{Game}.room.npcs.find(npc => npc.id === 'nela')?.motion?.route.length > 1");
         await ClickCanvas(observer, 160, 338);
-        await observer.WaitForFunctionAsync($"{Game}.character.position.y > 335");
+        await observer.WaitForFunctionAsync($"{Game}.character.position.y > 335 && {Game}.character.state === 'idle'");
         await Assertions.Expect(guest.Locator("#npc-tour-message")).ToContainTextAsync("An der Klingel");
+        object[] guideFace = ["#game-canvas", 188, 219, 38, 14, 400];
+        var guideFrames = await Task.WhenAll(guest.EvaluateAsync<int>(SpeechAnimationTests.Sample, guideFace),
+            observer.EvaluateAsync<int>(SpeechAnimationTests.Sample, guideFace));
+        Assert.That(guideFrames[0], Is.GreaterThan(1), "The guide speaks in the guest's view.");
+        Assert.That(guideFrames[1], Is.EqualTo(1), "The bystander sees a still guide during the station.");
         await guest.WaitForFunctionAsync($"{Game}.room.id === 'garden'");
         await Assertions.Expect(Button(guest, StopLabel)).ToBeVisibleAsync();
         await guest.EvaluateAsync($$"""

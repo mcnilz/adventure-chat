@@ -101,8 +101,8 @@ public class ReferenceWorldTests
               const room=await (await fetch('/api/worlds/reference/rooms/lounge')).json();
               const canvas=document.createElement('canvas');canvas.width=256;canvas.height=180;
               const ctx=canvas.getContext('2d'),renderer=new CharacterRenderer(),results=[];
-              const sheet=document.createElement('canvas');sheet.id='poses';sheet.width=1280;sheet.height=1440;document.body.replaceChildren(sheet);
-              const out=sheet.getContext('2d');out.fillStyle='#d0d8d8';out.fillRect(0,0,1280,1440);
+              const sheet=document.createElement('canvas');sheet.id='poses';sheet.width=1280;sheet.height=catalog.characters.length*4*180;document.body.replaceChildren(sheet);
+              const out=sheet.getContext('2d');out.fillStyle='#d0d8d8';out.fillRect(0,0,sheet.width,sheet.height);
               let row=0;
               for(const appearance of catalog.characters) for(const facing of ['right','left','up','down']) {
                 const image=new Image();image.src=appearance.imageUrl;await image.decode();
@@ -132,7 +132,10 @@ public class ReferenceWorldTests
         foreach (var sample in samples.EnumerateArray())
         {
             Assert.That(sample.GetProperty("maxY").GetInt32(), Is.EqualTo(159), sample.ToString());
-            Assert.That(sample.GetProperty("minY").GetInt32(), Is.EqualTo(35), "Delivered native art has 125 visible pixels and 3px top padding: " + sample);
+            if (sample.GetProperty("id").GetString() == "nela")
+                Assert.That(sample.GetProperty("minY").GetInt32(), Is.InRange(33, 35), "Nela's walk includes a two-pixel rise: " + sample);
+            else
+                Assert.That(sample.GetProperty("minY").GetInt32(), Is.EqualTo(35), "Delivered native art has 125 visible pixels and 3px top padding: " + sample);
             Assert.That(sample.GetProperty("nativeDifferences").GetInt32(), Is.Zero, "Native art must render pixel-for-pixel without scaling: " + sample);
             Assert.That(sample.GetProperty("minX").GetInt32(), Is.GreaterThan(70), sample.ToString());
             Assert.That(sample.GetProperty("maxX").GetInt32(), Is.LessThan(186), sample.ToString());

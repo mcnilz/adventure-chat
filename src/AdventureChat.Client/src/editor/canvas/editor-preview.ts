@@ -1,3 +1,4 @@
+import { expireSpeechBubble } from '../../state/speech-bubbles.js';
 import { loadCharacterCatalog } from '../../network/character-catalog.js';
 import { EditorApi, type PreviewLocation, type PreviewResult } from '../core/editor-api.js';
 import type { RoomView } from '../core/editor-types.js';
@@ -345,6 +346,7 @@ export class EditorPreview {
     if (this.previewRenderer && this.previewCharacter) {
       this.patrols.tick(now);
       this.cast.advance(dt);
+      expireSpeechBubble(this.previewCharacter, now);
       this.previewRenderer.render(this.previewCharacter, this.cast.characters);
     }
 

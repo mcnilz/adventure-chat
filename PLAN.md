@@ -1,5 +1,5 @@
 # Umsetzungsplan
-Status (22.11.2026): Tickets 01–23 und 25–32 sind menschlich abgenommen und done. Epic 24 steht auf draft. Tatsächliche Implementierungs- und Testbelege stehen im jeweiligen Ticket und in active-state.md.
+Status (22.11.2026): Tickets 01–23 und 25–32 sind menschlich abgenommen und done. Epic 24 steht auf draft, Ticket 33 auf ready-for-human. Tatsächliche Implementierungs- und Testbelege stehen im jeweiligen Ticket und in active-state.md.
 
 | Ticket | Vorführbares Ergebnis | Blocked by |
 | --- | --- | --- |
@@ -26,7 +26,7 @@ Status (22.11.2026): Tickets 01–23 und 25–32 sind menschlich abgenommen und 
 | [21 (done)](.scratch/adventure-chat/issues/21-state-dependent-navigation.md) | Tür-/Stuhlhindernisse und laufende Wege folgen sicher dem Zustand | 20 |
 | [22 (done)](.scratch/adventure-chat/issues/22-verbs-and-interaction-editor.md) | Verben mit Objektsatz und vollständige Konfiguration im Browsereditor | 20, 21, 18; 06, 15, 17 (done) |
 | [23 (done)](.scratch/adventure-chat/issues/23-interactive-reference-examples.md) | Tür, Stuhl und Schalter/Tor als erreichbare gemeinsame Referenzdemo | 20, 21, 22, 19 (done), menschlich abgenommen am 20.11.2026 |
-| [24 (draft)](.scratch/adventure-chat/issues/24-interactive-worlds-epic.md) | Epic für konfigurierbare Figureninteraktionen und NPCs | Planung frei, Umsetzung über 25–32 |
+| [24 (draft)](.scratch/adventure-chat/issues/24-interactive-worlds-epic.md) | Epic für konfigurierbare Figureninteraktionen und NPCs | Planung frei, Umsetzung über 25–33 |
 | [25 (done)](.scratch/adventure-chat/issues/25-object-state-transitions.md) | Sichtbare Übergänge zwischen konfigurierten Objektzuständen | 21, 22 (done), menschlich abgenommen am 20.11.2026 |
 | [26 (done)](.scratch/adventure-chat/issues/26-character-animations-for-object-actions.md) | Gehaltene Posen und kurze Figurenanimationen je Objektaktion | 21, 22 (done), einschließlich direkter Verbenbedienung am 21.11.2026 abgenommen |
 | [27 (done)](.scratch/adventure-chat/issues/27-npc-dialogue.md) | NPC mit „Spreche mit“ ansprechen und Antwort wählen | 22 |
@@ -35,6 +35,7 @@ Status (22.11.2026): Tickets 01–23 und 25–32 sind menschlich abgenommen und 
 | [30 (done)](.scratch/adventure-chat/issues/30-follow-npc.md) | Einem NPC freiwillig durch mehrere Räume folgen und abbrechen | 27, 29 |
 | [31 (done)](.scratch/adventure-chat/issues/31-combined-reference-scenario.md) | Objektinteraktionen, Dialog und Führung in einer Referenzszene erleben | 25, 26, 28, 30 |
 | [32 (done)](.scratch/adventure-chat/issues/32-object-triggered-npc-reactions.md) | Optional eine Objektaktion mit einer gezielten NPC-Reaktion verbinden | 20, 21, 29 |
+| [33 (ready-for-human)](.scratch/adventure-chat/issues/33-speaking-animations-and-npc-art.md) | Spielerfiguren und NPCs sichtbar sprechen lassen, NPC-Gesten und eigene Referenzgrafik | 26, 27, 30 (done) |
 
 Tickets 14–16 wurden am 04.11.2026 auf Benutzerauftrag als draft angelegt. Nur Planung beauftragt; andere Agenten übernehmen die spätere Umsetzung nach Bestätigung von Umfang und Testgrenzen. Verbindliche Reihenfolge laut anschließendem Benutzerauftrag: 14 → 15 → 16 → 13. Keine automatische Parallelbeauftragung. Formatversionen fortlaufend anhand des tatsächlichen Stands wählen; Ticket 13 ergänzt seine Demo-Anforderungen erst nach der neuen Referenzwelt.
 

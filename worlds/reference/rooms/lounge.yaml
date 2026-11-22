@@ -10,7 +10,7 @@ spawns:
 npcs:
   - id: nela
     name: Nela
-    characterId: bruno
+    characterId: nela
     position: { x: 112, y: 286 }
     talkPoint: { x: 146, y: 294 }
     followDistance: 48
@@ -25,6 +25,7 @@ npcs:
     options:
       - id: introduction
         text: Wer bist du?
+        gesture: wave
         reply: Ich bin Nela. Ich passe auf die Lounge auf.
         replies:
           - { when: { object: bell, state: rung }, reply: Ich bin Nela und helfe dir gern. }

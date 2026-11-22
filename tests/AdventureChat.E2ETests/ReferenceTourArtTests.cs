@@ -28,17 +28,18 @@ public class ReferenceTourArtTests
             async () => {
                 const {CharacterRenderer}=await import('/js/rendering/character-renderer.js');
                 const catalog=await (await fetch('/api/worlds/reference/characters')).json();
+                const mapFigures=catalog.characters.filter(appearance => appearance.topDownImageUrl);
                 const room=await (await fetch('/api/worlds/reference/rooms/tour-map')).json();
                 const canvas=document.createElement('canvas');canvas.width=128;canvas.height=180;
                 const ctx=canvas.getContext('2d'),renderer=new CharacterRenderer(),results=[];
                 // Keep this renderer alive while its real image requests complete.
-                for(const appearance of catalog.characters)
+                for(const appearance of mapFigures)
                     renderer.drawCharacter(ctx,{position:{x:64,y:160},facing:'down',state:'idle',walkFrame:0,name:'',appearance},true,room,false);
                 return () => {
                 const contact=document.createElement('canvas');contact.id='tour-poses';contact.width=640;contact.height=288;
                 const out=contact.getContext('2d');out.imageSmoothingEnabled=false;out.fillStyle='#dfe9eb';out.fillRect(0,0,640,288);
                 let row=0;
-                for(const appearance of catalog.characters) for(const facing of ['right','left','up','down']) {
+                for(const appearance of mapFigures) for(const facing of ['right','left','up','down']) {
                     const fingerprints=[];
                     for(let phase=0;phase<5;phase++) {
                         ctx.clearRect(0,0,128,180);ctx.imageSmoothingEnabled=false;

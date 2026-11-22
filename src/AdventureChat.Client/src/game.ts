@@ -1,3 +1,4 @@
+import { npcActorId } from './state/npc-cast.js';
 import { DEFAULT_ROOM, SPEECH_BUBBLE_DURATION } from './constants.js';
 import { withinExitReach } from './input/exit-hit.js';
 import { InputHandler } from './input/input-handler.js';
@@ -167,6 +168,13 @@ export class AdventureGame {
         this.state.pendingExit = null;
         this.dialogueFlow.cancel();
         this.onDialogueClosed?.();
+      }
+      if (status.speech) {
+        this.renderer.setDialogueBubble(npcActorId(status.speech.npcId), {
+          text: status.message, startTime: performance.now(), duration: status.speech.durationMs, spoken: true
+        }, false);
+      } else if (!status.active) {
+        this.renderer.setDialogueBubble('', null);
       }
       this.onTourStatus?.(status);
     }, snapshot => {
@@ -525,6 +533,7 @@ export class AdventureGame {
 
     this.update(deltaSeconds);
     this.state.npcCast.advance(deltaSeconds);
+    this.state.expireSpeechBubbles(timestamp);
     this.renderer.render(
       this.state.character,
       [...this.state.remotePlayers.values(), ...this.state.npcCast.characters],

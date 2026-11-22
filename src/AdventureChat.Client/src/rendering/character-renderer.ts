@@ -1,6 +1,11 @@
 import { actorHeightAt } from './depth-scale.js';
 import { drawTopDownFigure } from './top-down-figure.js';
-import type { Character, RoomDefinition } from '../types.js';
+import type { Character, RoomDefinition, SpeechGesture } from '../types.js';
+
+interface SpeechAnimation {
+  readonly elapsed: number;
+  readonly gesture: SpeechGesture | null;
+}
 
 export class CharacterRenderer {
   private readonly images = new Map<string, HTMLImageElement>();
@@ -44,92 +49,63 @@ export class CharacterRenderer {
     return true;
   }
 
-  public drawCharacter(ctx: CanvasRenderingContext2D, character: Character, isLocal: boolean, room?: RoomDefinition, showName = true): void {
-    const { position, facing, state, walkFrame } = character;
-
-    const appearance = character.appearance;
-    let sprite = this.characterSprite;
-    if (appearance) {
-      const imageUrl = room?.perspective === 'top-down' ? appearance.topDownImageUrl ?? appearance.imageUrl : appearance.imageUrl;
-      sprite = this.image(imageUrl);
-    }
-    const loaded = appearance ? sprite.complete && sprite.naturalWidth > 0 : this.spriteLoaded;
+  public drawCharacter(
+    ctx: CanvasRenderingContext2D, character: Character, isLocal: boolean, room?: RoomDefinition, showName = true,
+    speech?: SpeechAnimation
+  ): void {
+    const { appearance, position, facing, state, walkFrame } = character;
+    const topDown = room?.perspective === 'top-down';
+    const usesTopDownSheet = topDown && !!appearance?.topDownImageUrl;
+    const spriteUrl = usesTopDownSheet ? appearance?.topDownImageUrl : appearance?.imageUrl;
+    const sprite = spriteUrl ? this.image(spriteUrl) : this.characterSprite;
+    const loaded = spriteUrl ? sprite.complete && sprite.naturalWidth > 0 : this.spriteLoaded;
     const frameWidth = appearance?.frameWidth ?? 48;
     const frameHeight = appearance?.frameHeight ?? 64;
     const footX = Math.round(position.x);
     const footY = Math.round(position.y);
     const height = actorHeightAt(room, position.y);
-    if (this.drawActorAnimation(ctx, character, footX, footY, height)) {
-      if (showName) this.drawName(ctx, character, isLocal, room);
-      return;
-    }
 
-    // Frame calculation
-    let frameIndex = 0;
-    if (state === 'walk') {
-      frameIndex = walkFrame % 4;
-    }
-
-    let sourceY = 0;
-    let flipX = false;
-
-    if (facing === 'up') {
-      sourceY = frameHeight; // Row 1: Back view
-    } else if (facing === 'down') {
-      sourceY = frameHeight * 2; // Row 2: Front view
-    } else if (facing === 'left') {
-      sourceY = 0; // Row 0: Side view
-      flipX = true;
-    } else {
-      sourceY = 0; // Row 0: Side view
-      flipX = false;
-    }
-
-    ctx.save();
-
-    ctx.translate(footX, footY);
-    ctx.scale(height / frameHeight, height / frameHeight);
-    ctx.translate(-footX, -footY);
-    if (room?.perspective === 'top-down' && !appearance) {
+    if (!this.drawActorAnimation(ctx, character, footX, footY, height)) {
+      ctx.save();
       ctx.translate(footX, footY);
-      drawTopDownFigure(ctx, character);
-    } else if (loaded) {
-      if (flipX) {
-        ctx.translate(footX, footY);
-        ctx.scale(-1, 1);
-        ctx.drawImage(
-          sprite,
-          frameIndex * frameWidth,
-          sourceY,
-          frameWidth,
-          frameHeight,
-          -frameWidth / 2,
-          -frameHeight,
-          frameWidth,
-          frameHeight
-        );
-      } else {
-        ctx.drawImage(
-          sprite,
-          frameIndex * frameWidth,
-          sourceY,
-          frameWidth,
-          frameHeight,
-          footX - frameWidth / 2,
-          footY - frameHeight,
-          frameWidth,
-          frameHeight
-        );
-      }
-    } else {
-      // Fallback rectangle if sprite is still loading
-      ctx.fillStyle = isLocal ? '#3182ce' : '#38a169';
-      ctx.fillRect(footX - frameWidth / 2, footY - frameHeight, frameWidth, frameHeight);
-    }
+      const scale = height / frameHeight;
+      ctx.scale(scale, scale);
 
-    ctx.restore();
+      if (topDown && !appearance) {
+        drawTopDownFigure(ctx, character);
+      } else if (loaded) {
+        if (facing === 'left') ctx.scale(-1, 1);
+        const row = facing === 'up' ? 1 : facing === 'down' ? 2 : 0;
+        const frame = state === 'walk' ? walkFrame % 4 : 0;
+        const drawFrame = (image: HTMLImageElement, column: number): void => {
+          ctx.drawImage(image, column * frameWidth, row * frameHeight, frameWidth, frameHeight,
+            -frameWidth / 2, -frameHeight, frameWidth, frameHeight);
+        };
+
+        const wave = usesTopDownSheet ? null : this.readyImage(appearance?.waveImageUrl);
+        const mouth = this.readyImage(usesTopDownSheet ? appearance?.topDownSpeechImageUrl : appearance?.speechImageUrl);
+        if (wave && speech?.gesture === 'wave' && state === 'idle' && speech.elapsed < 840) {
+          drawFrame(wave, speech.elapsed >= 210 && speech.elapsed < 630 ? 2 : 1);
+        } else {
+          drawFrame(sprite, frame);
+        }
+        if (mouth && facing !== 'up' && speech && Math.floor(speech.elapsed / 135) % 2 === 0) {
+          drawFrame(mouth, frame);
+        }
+      } else {
+        ctx.fillStyle = isLocal ? '#3182ce' : '#38a169';
+        ctx.fillRect(-frameWidth / 2, -frameHeight, frameWidth, frameHeight);
+      }
+      ctx.restore();
+    }
 
     if (showName) this.drawName(ctx, character, isLocal, room);
+  }
+
+  private readyImage(url?: string | null): HTMLImageElement | null {
+    if (!url) return null;
+    const image = this.image(url);
+    return image.complete && image.naturalWidth > 0 ? image : null;
   }
 
   public drawName(ctx: CanvasRenderingContext2D, character: Character, isLocal: boolean, room?: RoomDefinition): void {

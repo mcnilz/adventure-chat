@@ -13,9 +13,11 @@ public class ReferenceTourArtTests
     public void ReferenceWorld_UsesPublishedNavigationFormatAndRevisedContentVersion()
     {
         var world = LoadWorld();
-        Assert.That(world.FormatVersion, Is.EqualTo("1.15.0"));
-        Assert.That(world.ContentVersion, Is.EqualTo("5.7.0"));
-        Assert.That(world.Characters.Select(c => c.Id), Is.EquivalentTo(new[] { "mara", "bruno" }));
+        Assert.That(world.FormatVersion, Is.EqualTo("1.16.0"));
+        Assert.That(world.ContentVersion, Is.EqualTo("5.8.0"));
+        Assert.That(world.Characters.Where(c => !c.NpcOnly).Select(c => c.Id), Is.EquivalentTo(new[] { "mara", "bruno" }));
+        Assert.That(world.Characters.Single(c => c.NpcOnly).Id, Is.EqualTo("nela"));
+        Assert.That(world.LoadRooms().Single(r => r.Id == "lounge").Npcs!.Single().CharacterId, Is.EqualTo("nela"));
     }
 
     private static IEnumerable<TestCaseData> TourRoutes()

@@ -44,7 +44,8 @@ export function participantFields(): {
   return {
     element,
     setCatalog: next => {
-      catalog = next; select.replaceChildren();
+      catalog = { ...next, characters: next.characters.filter(character => !character.npcOnly) };
+      select.replaceChildren();
       for (const character of catalog.characters) {
         const option = document.createElement('option'); option.value = character.id; option.textContent = character.name; select.append(option);
       }

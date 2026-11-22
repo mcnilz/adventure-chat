@@ -1,4 +1,5 @@
 import type { Character } from '../types.js';
+import { bubbleIsActive } from '../state/speech-bubbles.js';
 
 export interface SpeechLayout {
   readonly font: string;
@@ -39,13 +40,8 @@ export class SpeechBubbleRenderer {
     dialogue?: SpeechLayout
   ): void {
     const bubble = character.speechBubble;
-    if (!bubble) return;
-
+    if (!bubble || !bubbleIsActive(bubble, now)) return;
     const elapsed = now - bubble.startTime;
-    if (elapsed >= bubble.duration) {
-      character.speechBubble = null;
-      return;
-    }
 
     const footX = Math.round(character.position.x);
     const footY = Math.round(character.position.y);
@@ -81,7 +77,7 @@ export class SpeechBubbleRenderer {
     }
     const preferredY = baseAnchorY - bubbleHeight;
     const bubbleY = dialogue ? Math.max(8, Math.min(preferredY, ctx.canvas.height - bubbleHeight - 14))
-      : keepVisibleVertically ? Math.max(24, preferredY) : preferredY;
+      : keepVisibleVertically || bubble.spoken ? Math.max(24, preferredY) : preferredY;
 
     // Fade out in last 400ms
     const remaining = bubble.duration - elapsed;

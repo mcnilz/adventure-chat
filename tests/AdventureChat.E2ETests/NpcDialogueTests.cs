@@ -295,7 +295,7 @@ public class NpcDialogueTests
         return page;
     }
 
-    private static async Task Speak(IPage page, int x = 112, int y = 225, string name = "Nela")
+    internal static async Task Speak(IPage page, int x = 112, int y = 225, string name = "Nela")
     {
         await page.GetByRole(AriaRole.Button, new() { Name = "Spreche mit", Exact = true }).ClickAsync(new() { Timeout = 5000 });
         var canvas = page.Locator("#game-canvas");

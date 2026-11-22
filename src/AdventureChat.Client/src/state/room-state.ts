@@ -2,6 +2,7 @@ import { DEFAULT_ROOM, DEFAULT_SPEED, SPEECH_BUBBLE_DURATION } from '../constant
 import { applyActorAnimation, assignPathToCharacter } from '../simulation/movement.js';
 import { applyObjectAppearances } from './object-appearance.js';
 import { NpcCast } from './npc-cast.js';
+import { expireSpeechBubble } from './speech-bubbles.js';
 import type {
   Character,
   ChatMessageDto,
@@ -60,6 +61,11 @@ export class RoomState {
     };
   }
 
+  public expireSpeechBubbles(now: number): void {
+    expireSpeechBubble(this.character, now);
+    for (const player of this.remotePlayers.values()) expireSpeechBubble(player, now);
+  }
+
   public setSessionId(id: string): void {
     if (id !== this.sessionId) this.lastNavigationStopRevision = -1;
     this.sessionId = id;
@@ -67,6 +73,8 @@ export class RoomState {
   }
 
   public applySnapshot(snapshot: RoomSnapshotDto): void {
+    if (snapshot.roomId !== this.room.id || snapshot.yourSessionId !== this.sessionId)
+      this.character.speechBubble = null;
     if (snapshot.room) {
       this.room = snapshot.room;
       this.npcCast.setRoom(this.room);
@@ -190,6 +198,7 @@ export class RoomState {
 
     const bubble = {
       text: msg.text,
+      spoken: true,
       startTime: performance.now(),
       duration: SPEECH_BUBBLE_DURATION,
     };

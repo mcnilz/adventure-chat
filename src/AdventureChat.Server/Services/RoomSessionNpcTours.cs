@@ -2,7 +2,8 @@ using AdventureChat.Server.Models;
 
 namespace AdventureChat.Server.Services;
 
-internal sealed record NpcTourStatus(string SessionId, bool Active, string Message);
+internal sealed record NpcTourStatus(string SessionId, bool Active, string Message, NpcTourSpeech? Speech = null);
+internal sealed record NpcTourSpeech(string NpcId, int DurationMs);
 internal sealed record NpcTourUpdate(PlayerSession Guest, MoveResult? Move = null, NpcTourStatus? Status = null,
     string? LeftRoom = null);
 
@@ -198,9 +199,11 @@ public partial class RoomSessionManager
     {
         tour.Phase = TourPhase.Explain;
         var text = tour.Step.Text;
-        tour.DueAt = now.AddMilliseconds(text is null ? 700 : Math.Clamp(1000 + text.Length * 45, 2500, 12000));
+        var duration = text is null ? 700 : Math.Clamp(1000 + text.Length * 45, 2500, 12000);
+        tour.DueAt = now.AddMilliseconds(duration);
         if (text is not null)
-            _tourUpdates.Add(new(tour.Guest, Status: new(tour.Guest.SessionId, true, text)));
+            _tourUpdates.Add(new(tour.Guest, Status: new(tour.Guest.SessionId, true, text,
+                new(tour.Guide.Npc.Id, duration))));
     }
 
     private void TransferTour(NpcTour tour, RoomExit exit)

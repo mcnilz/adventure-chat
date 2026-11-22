@@ -60,7 +60,7 @@ Geplant sind optionale Raumangaben für Draufsicht und feste Figurengröße, hor
 | Weltformat | Raumformat | Unterstützung |
 | --- | --- | --- |
 | `1.0.0` | `legacy-1`, Raum-`version: 1` | Lesen und Schreiben |
-| `1.1.0`–`1.15.0` | `legacy-1`, Raum-`version: 1` | Lesen und Schreiben für jede ausdrücklich veröffentlichte Minor-Version |
+| `1.1.0`–`1.16.0` | `legacy-1`, Raum-`version: 1` | Lesen und Schreiben für jede ausdrücklich veröffentlichte Minor-Version |
 | andere | beliebig | ausdrücklich abgelehnt |
 
 Das Manifest verwendet `formatVersion`, `id`, `name`, `contentVersion`, `startRoom`, `startSpawn` und `roomFormat`. `rooms` und `assets/images` sind paketrelative Verzeichnisse. Dateiname und Raum-ID stimmen überein; Hintergründe sind vollständige PNG-Dateien mit passenden Abmessungen; PNG-Dateien sind auf 64 MiB, ihre dekodierten Bilddaten auf 128 MiB und einzelne YAML-Dateien auf 1 MiB begrenzt. Absolute Pfade, `..` und symbolische Links/Junctions werden abgewiesen. Der Editor schreibt ausschließlich `version: 1`, prüft vorhandene Dateien vor Überschreiben und behält beim normalen Speichern die Manifestversion bei. Schema-Bündel und ihre lokalen Referenzen bleiben nach Veröffentlichung unverändert. Die ursprünglichen Legacy-Dateien und das ursprüngliche Schema bleiben als Referenz erhalten. `1.0.0` ist die erstmalige Veröffentlichung des Weltvertrags, keine Umdeutung des ganzzahligen Raumversionsfeldes; daher ist kein früheres Weltformat umzuversionieren. Weitere Formatänderungen folgen den Regeln im Kompatibilitätsvertrag.
@@ -167,7 +167,7 @@ Nach Erfolg bleiben weiterhin gültige Wege bestehen. Ungültige Wege werden ab 
 
 Die Editorvorschau prüft Wege, Objektaktionen und Ausgänge mit denselben Serverregeln wie das Spiel. Bei einem interaktiven Objekt verwendet „Automatisch“ die Auswahlregel für „Benutzen“. Über die Verbauswahl lässt sich eine konkrete Aktion testen. Die Vorschau verwendet den Raumdraft beim Start und isolierte Objektzustände, die nach einem Raumwechsel erhalten bleiben. Ein Neustart der Vorschau setzt sie auf die Anfangszustände zurück. Synthetisches Beispiel: `tests/Fixtures/navigation`.
 
-Ältere Weltpakete behalten beim Speichern ihr Format. Für eine Aktualisierung auf 1.8.0 bis 1.15.0 wird das höhere unterstützte Zielformat ausdrücklich im Editor gewählt. Vor dem Schreiben prüft der Server Manifest, vorhandene Räume und den Entwurf mit dem Zielvertrag. Speichern aktualisiert das Manifest und den bearbeiteten Raum. Übrige Raumdateien bleiben unverändert.
+Ältere Weltpakete behalten beim Speichern ihr Format. Für eine Aktualisierung auf 1.8.0 bis 1.16.0 wird das höhere unterstützte Zielformat ausdrücklich im Editor gewählt. Vor dem Schreiben prüft der Server Manifest, vorhandene Räume und den Entwurf mit dem Zielvertrag. Speichern aktualisiert das Manifest und den bearbeiteten Raum. Übrige Raumdateien bleiben unverändert.
 
 ### Sichtbare Objektübergänge ab 1.9.0
 
@@ -295,3 +295,13 @@ Die NPC-ID muss exakt mit einem Eintrag in `npcs` übereinstimmen. Das Ziel muss
 Der Server prüft den Ruf nach dem erfolgreichen Abschluss der Aktion anhand der dann gültigen Geometrie. Ein Gespräch einschließlich Anlauf sowie eine Führung einschließlich Rückweg haben Vorrang. Während eines laufenden Rufs verfällt jeder weitere Ruf für diesen NPC. Ein zur Laufzeit unerreichbarer Ruf verfällt, die Objektaktion bleibt wirksam. Wenn ein Hindernis den begonnenen Weg unterbricht, berechnet der Server den Weg neu. Ist das Ziel jetzt unerreichbar, endet der Ruf an der aktuellen Position. Ein stationärer NPC bleibt nach Ankunft ansprechbar am Ziel, eine Patrouille setzt ihren Weg fort. Ein Gespräch kann den begonnenen Weg pausieren. Startet eine Führung, übernimmt sie an der aktuellen Position und der Guide kehrt anschließend zu seiner Ausgangsposition zurück.
 
 Das optionale Feld erscheint im neuen Schema-Bündel `schemas/world/1.15.0/`. Aktionen ohne Angabe behalten ihr Verhalten. Objektzustandsänderungen durch Verknüpfungen lösen keinen Ruf aus. Die isolierte Raumvorschau führt die Bewegung im gerade angezeigten Raum aus. Bei erneutem Betreten eines Raums in der Vorschau beginnen die NPCs wieder an ihren Ausgangspositionen.
+
+### Sprechphasen und NPC-Gesten ab 1.16.0
+
+Im Weltmanifest kann ein Katalogeintrag die optionalen Felder `speechImage`, `topDownSpeechImage`, `waveImage` und `npcOnly` angeben. Bildpfade zeigen auf transparente PNGs unter `assets/images/`. Jedes Blatt hat das Raster der Grundfigur mit vier Spalten und drei Reihen (Profil nach rechts, Rücken, Front). Das Profil nach links wird gespiegelt. Der Fußpunkt bleibt unten mittig. `npcOnly: true` reserviert eine Figur für NPCs. Die voreingestellte Spielerfigur muss auswählbar bleiben.
+
+- `speechImage` enthält die offene Mundphase als transparente Überlagerung. Die Quelle folgt Blickrichtung und jeweiliger Laufphase der Grundgrafik. Die geschlossene Phase ist Teil der Grundgrafik. Die Rückenreihe bleibt leer. Für ein eigenes `topDownImage` kann `topDownSpeechImage` die dazu passend ausgerichtete Überlagerung liefern.
+- `waveImage` enthält vollständige Körperphasen für ein kurzes Winken im Stand. Spalten zwei und drei liefern die zwei Phasen für jede Blickrichtung. Halte Gesicht und Fußpunkt auf derselben Position wie in der Standphase, damit die Mundüberlagerung passt. Für eine separate Draufsichtgrafik und für Objektposen verwendet der Renderer deren eigene Körpergrafik.
+- Unter `npcs[].options[]` aktiviert `gesture: wave` die Geste für den ersten sichtbaren Teil der NPC-Antwort, einschließlich passender bedingter Antwortvarianten dieser Option. Die Figur benötigt dafür ein `waveImage`. Beim Laufen bleibt das Laufbild erhalten. Ohne passendes Blatt bleibt die Sprechblase sichtbar. Raumchat und Führungserläuterungen verwenden Mundphasen. Ein lokaler Systemhinweis verwendet die normale Pose.
+
+Die Welt und die NPC-Antworten werden in YAML konfiguriert. Der Raumeditor kann sie speichern und in seiner isolierten Vorschau abspielen. Spieler- und NPC-Auswahl teilen sich den Katalog, während der Server den Spielereintritt auf spielbare Figuren beschränkt. **1.16.0 ist eine additive Minor-Version**. Die optionalen Felder stehen im eigenen Schema-Bündel und ältere Welten behalten ihre Grafiken und Dialoge.

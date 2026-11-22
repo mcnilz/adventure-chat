@@ -26,7 +26,15 @@ internal static class WorldContentEndpoints
             return world is null ? Results.NotFound() : Results.Ok(new
             {
                 world.DefaultCharacterId,
-                characters = world.Characters.Select(c => new { c.Id, c.Name, imageUrl = c.ImageUrl(world.Id), topDownImageUrl = c.TopDownImageUrl(world.Id), c.FrameWidth, c.FrameHeight })
+                characters = world.Characters.Select(c => new
+                {
+                    c.Id, c.Name, c.FrameWidth, c.FrameHeight, c.NpcOnly,
+                    imageUrl = c.ImageUrl(world.Id),
+                    topDownImageUrl = c.TopDownImageUrl(world.Id),
+                    speechImageUrl = CharacterDefinition.AssetUrl(world.Id, c.SpeechImage),
+                    topDownSpeechImageUrl = CharacterDefinition.AssetUrl(world.Id, c.TopDownSpeechImage),
+                    waveImageUrl = CharacterDefinition.AssetUrl(world.Id, c.WaveImage)
+                })
             });
         });
         app.MapGet("/api/worlds/{id}/start", (string id) =>

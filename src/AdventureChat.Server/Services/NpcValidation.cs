@@ -108,8 +108,12 @@ internal static partial class NpcValidation
     internal static void ValidateCharacters(IReadOnlyList<NpcDefinition>? npcs, IReadOnlyList<CharacterDefinition> characters)
     {
         foreach (var npc in npcs ?? [])
-            if (!characters.Any(character => character.Id == npc.CharacterId))
-                throw new InvalidOperationException($"NPC '{npc.Id}' references unknown character '{npc.CharacterId}'.");
+        {
+            var character = characters.FirstOrDefault(candidate => candidate.Id == npc.CharacterId)
+                ?? throw new InvalidOperationException($"NPC '{npc.Id}' references unknown character '{npc.CharacterId}'.");
+            if (character.WaveImage is null && npc.Options.Any(option => option.Gesture == "wave"))
+                throw new InvalidOperationException($"NPC '{npc.Id}' needs a waveImage on '{character.Id}' to use the wave gesture.");
+        }
     }
 
     private static bool AddId(HashSet<string> ids, string? id) => IsId(id) && ids.Add(id!);

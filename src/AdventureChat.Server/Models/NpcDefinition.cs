@@ -11,7 +11,7 @@ public sealed record ConditionalReply(DialogueCondition When, string Reply)
 }
 
 public sealed record DialogueOption(string Id, string Text, string Reply,
-    DialogueCondition? When = null, List<ConditionalReply>? Replies = null)
+    DialogueCondition? When = null, List<ConditionalReply>? Replies = null, string? Gesture = null)
 {
     public DialogueOption() : this("", "", "") { }
 }
@@ -36,7 +36,7 @@ public sealed record NpcPatrolCheckpoint(string Id, Point2D Position, int NextWa
     bool Blocked, string Direction, IReadOnlyList<Point2D> Route, Point2D? ReactionTarget = null);
 public sealed record PreviewNpcPatrols(IReadOnlyList<NpcPatrolCheckpoint> Checkpoints, int ElapsedMs = 0,
     string? PausedNpc = null, int? ResumeAfterMs = null);
-public sealed record AvailableDialogueOption(string Id, string Text, string Reply);
+public sealed record AvailableDialogueOption(string Id, string Text, string Reply, string? Gesture = null);
 public sealed record NpcDialogueRequest(string RoomId, string NpcId, AvailableDialogueOption? Choice = null,
     string? ApproachId = null, bool Prepare = false);
 public sealed record NpcDialogueResult(string? Error, IReadOnlyList<AvailableDialogueOption>? Options = null,

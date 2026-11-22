@@ -31,7 +31,7 @@ export class NpcTourFlow {
     this.changingRoom = false;
     if (this.active) this.update({
       sessionId: this.sessionId(), active: false,
-      message: 'Die Führung endete, weil die Verbindung unterbrochen wurde.',
+      message: 'Die Führung endete, weil die Verbindung unterbrochen wurde.', speech: null,
     });
   }
 }

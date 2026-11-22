@@ -51,7 +51,8 @@ interface DialogueCondition {
   readonly state: string;
 }
 
-interface AuthoredDialogueOption extends DialogueOption {
+interface AuthoredDialogueOption extends Omit<DialogueOption, 'gesture'> {
+  readonly gesture?: DialogueOption['gesture'];
   readonly when?: DialogueCondition | null;
   readonly replies?: readonly { readonly when: DialogueCondition; readonly reply: string }[] | null;
 }

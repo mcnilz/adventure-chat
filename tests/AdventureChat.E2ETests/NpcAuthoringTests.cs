@@ -3,12 +3,38 @@ using System.Text.Json;
 using AdventureChat.Server.Models;
 using AdventureChat.Server.Services;
 using NUnit.Framework;
+using YamlDotNet.RepresentationModel;
 using static AdventureChat.E2ETests.ReferenceWorkshopTests;
 
 namespace AdventureChat.E2ETests;
 
 public class NpcAuthoringTests
 {
+    [Test]
+    public async Task EditorRoundTripsWaveAndRejectsGesturesWithoutMatchingArtwork()
+    {
+        await using var server = CreateReferenceCopy();
+        await server.StartAsync();
+        using var client = new HttpClient { BaseAddress = new Uri(server.BaseUrl) };
+        const string roomUrl = "/api/editor/rooms/lounge?worldId=reference";
+        var status = await client.GetFromJsonAsync<JsonElement>("/api/editor/status?worldId=reference");
+        client.DefaultRequestHeaders.Add("X-Author-Token", status.GetProperty("token").GetString());
+        var draft = (await client.GetFromJsonAsync<RoomYamlDto>(roomUrl))!;
+        var npc = draft.Npcs!.Single();
+        using var untouchedSave = await client.PostAsJsonAsync(roomUrl, draft);
+        Assert.That(untouchedSave.IsSuccessStatusCode, Is.True, await untouchedSave.Content.ReadAsStringAsync());
+        npc.Options[1] = npc.Options[1] with { Gesture = "dance" };
+        using var invalid = await client.PostAsJsonAsync(roomUrl, draft);
+        Assert.That(invalid.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.BadRequest));
+        npc.Options[1] = npc.Options[1] with { Gesture = null };
+        draft.Npcs![0] = npc with { CharacterId = "mara" };
+        using var missing = await client.PostAsJsonAsync(roomUrl, draft);
+        Assert.That(await missing.Content.ReadAsStringAsync(), Does.Contain("waveImage"));
+        var saved = (await client.GetFromJsonAsync<RoomYamlDto>(roomUrl))!.Npcs!.Single();
+        Assert.That(saved.CharacterId, Is.EqualTo("nela"));
+        Assert.That(saved.Options.Select(option => option.Gesture), Is.EqualTo(new[] { "wave", null, null }));
+    }
+
     [Test]
     public async Task EditorSavesReactionAfterExplicitUpgradeAndRejectsUnknownNpc()
     {
@@ -18,9 +44,11 @@ public class NpcAuthoringTests
         var draft = serializer.Deserialize(File.ReadAllText(loungePath));
         var olderRoom = serializer.Deserialize(File.ReadAllText(loungePath));
         RemoveReactions(olderRoom);
+        RemoveSpeech(olderRoom);
+        RemoveSpeech(draft);
         File.WriteAllText(loungePath, serializer.Serialize(olderRoom));
         var manifest = Path.Combine(server.TempRoot, "world/world.yaml");
-        File.WriteAllText(manifest, File.ReadAllText(manifest).Replace("1.15.0", "1.14.0", StringComparison.Ordinal));
+        DowngradeManifest(manifest, "1.14.0");
         await server.StartAsync();
 
         using var client = new HttpClient { BaseAddress = new Uri(server.BaseUrl) };
@@ -92,6 +120,7 @@ public class NpcAuthoringTests
         var original = File.ReadAllText(lounge);
         var draft = serializer.Deserialize(original);
         RemoveReactions(draft);
+        RemoveSpeech(draft);
         draft.Npcs![0] = draft.Npcs[0] with { Tour = null, FollowDistance = null };
         var npc = draft.Npcs!.Single();
         npc.Options.RemoveAll(option => option.When is not null);
@@ -133,6 +162,7 @@ public class NpcAuthoringTests
         var loungePath = Path.Combine(server.TempRoot, "world/rooms/lounge.yaml");
         var draft = serializer.Deserialize(File.ReadAllText(loungePath));
         RemoveReactions(draft);
+        RemoveSpeech(draft);
         draft.Npcs![0] = draft.Npcs[0] with { Tour = null, FollowDistance = null };
         var olderRoom = serializer.Deserialize(File.ReadAllText(loungePath));
         var olderOptions = olderRoom.Npcs!.Single().Options;
@@ -191,16 +221,47 @@ public class NpcAuthoringTests
 
     private static void DowngradeReference(string manifest, string version, RoomYamlSerializer serializer)
     {
-        File.WriteAllText(manifest, File.ReadAllText(manifest).Replace("1.15.0", version, StringComparison.Ordinal));
+        DowngradeManifest(manifest, version);
         var loungePath = Path.Combine(Path.GetDirectoryName(manifest)!, "rooms/lounge.yaml");
         var lounge = serializer.Deserialize(File.ReadAllText(loungePath));
         RemoveReactions(lounge);
+        RemoveSpeech(lounge);
         if (lounge.Npcs is { Count: > 0 }) lounge.Npcs[0] = lounge.Npcs[0] with { Tour = null, FollowDistance = null };
         File.WriteAllText(loungePath, serializer.Serialize(lounge));
         var gardenPath = Path.Combine(Path.GetDirectoryName(manifest)!, "rooms/garden.yaml");
         var garden = serializer.Deserialize(File.ReadAllText(gardenPath));
         garden.Npcs = null;
         File.WriteAllText(gardenPath, serializer.Serialize(garden));
+    }
+
+    private static void DowngradeManifest(string manifest, string version)
+    {
+        var yaml = new YamlStream();
+        using (var input = File.OpenText(manifest)) yaml.Load(input);
+        var world = (YamlMappingNode)yaml.Documents.Single().RootNode;
+        world.Children[new YamlScalarNode("formatVersion")] = new YamlScalarNode(version);
+        var characters = (YamlSequenceNode)world.Children[new YamlScalarNode("characters")];
+        var npcOnly = new YamlScalarNode("npcOnly");
+        foreach (var character in characters.Children.Cast<YamlMappingNode>().ToArray())
+        {
+            if (character.Children.TryGetValue(npcOnly, out var value) && value is YamlScalarNode { Value: "true" })
+                characters.Children.Remove(character);
+            else
+                foreach (var field in new[] { "speechImage", "topDownSpeechImage", "waveImage" })
+                    character.Children.Remove(new YamlScalarNode(field));
+        }
+        using var output = File.CreateText(manifest);
+        yaml.Save(output, assignAnchors: false);
+    }
+
+    private static void RemoveSpeech(RoomYamlDto room)
+    {
+        if (room.Npcs is not { Count: > 0 } npcs) return;
+        npcs[0] = npcs[0] with
+        {
+            CharacterId = "bruno",
+            Options = npcs[0].Options.Select(option => option with { Gesture = null }).ToList()
+        };
     }
 
     private static void RemoveReactions(RoomYamlDto room)

@@ -61,7 +61,7 @@ public class DepthScaleTests
                 const ctx=canvas.getContext('2d'),renderer=new CharacterRenderer();
                 const sheet=document.createElement('canvas');sheet.width=512;sheet.height=360;sheet.id='overhead';document.body.replaceChildren(sheet);
                 let index=0;
-                for(const appearance of catalog.characters) for(const perspective of ['top-down','adventure']) {
+                for(const appearance of catalog.characters.filter(figure => !figure.npcOnly)) for(const perspective of ['top-down','adventure']) {
                     const imageUrl=perspective==='top-down'?appearance.topDownImageUrl:appearance.imageUrl;
                     const source=new Image();source.src=imageUrl;await source.decode();
                     const c={position:{x:128,y:160},name:'',facing:'down',state:'idle',walkFrame:0,appearance};

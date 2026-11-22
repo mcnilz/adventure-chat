@@ -78,7 +78,7 @@ public partial class RoomSessionManager
         return npc.Options
             .Where(option => option.When is null || Matches(option.When))
             .Select(option => new AvailableDialogueOption(option.Id, option.Text,
-                option.Replies?.FirstOrDefault(reply => Matches(reply.When))?.Reply ?? option.Reply))
+                option.Replies?.FirstOrDefault(reply => Matches(reply.When))?.Reply ?? option.Reply, option.Gesture))
             .ToList();
     }
 }

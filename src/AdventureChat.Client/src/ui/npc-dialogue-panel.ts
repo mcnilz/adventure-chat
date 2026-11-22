@@ -1,8 +1,8 @@
-import type { DialogueOption, NpcDialogueResult, NpcPresence, SpeechBubble } from '../types.js';
+import type { DialogueOption, NpcDialogueResult, NpcPresence, SpeechBubble, SpeechGesture } from '../types.js';
 
 const TURN_PAUSE_MS = 250;
 const REPLY_PAGE_LENGTH = 110;
-type DialogueBeat = { readonly duration: number; readonly text?: string; readonly npc?: NpcPresence };
+type DialogueBeat = { readonly duration: number; readonly text?: string; readonly npc?: NpcPresence; readonly gesture?: SpeechGesture | null };
 type Dialogue = { readonly npc: NpcPresence; readonly choose: (option: DialogueOption) => Promise<NpcDialogueResult> };
 interface DialogueControls {
   readonly verbs: HTMLElement;
@@ -149,7 +149,8 @@ export class NpcDialoguePanel {
       { text: option.text, duration: questionTime },
       { duration: TURN_PAUSE_MS },
       ...replyPages(option.reply).flatMap((text, index) => {
-        const line = { text, npc, duration: 1600 + text.length * 32 };
+        const line = { text, npc, duration: 1600 + text.length * 32,
+          gesture: index === 0 ? option.gesture : null };
         return index === 0 ? [line] : [{ duration: TURN_PAUSE_MS }, line];
       })
     ];
@@ -170,7 +171,9 @@ export class NpcDialoguePanel {
 
   private playNext(): void {
     const beat = this.beats.shift();
-    const bubble = beat?.text ? { text: beat.text, startTime: performance.now(), duration: beat.duration } : null;
+    const bubble = beat?.text ? {
+      text: beat.text, startTime: performance.now(), duration: beat.duration, spoken: true, gesture: beat.gesture ?? null
+    } : null;
     this.setLine(bubble, beat?.npc);
     this.reply.textContent = beat?.npc ? beat.text ?? '' : '';
     if (beat) this.timer = window.setTimeout(() => this.playNext(), beat.duration);
@@ -180,7 +183,7 @@ export class NpcDialoguePanel {
       this.nextOptions = null;
       if (next && (next.length !== this.options.length || next.some((option, index) => {
         const previous = this.options[index];
-        return !previous || option.id !== previous.id || option.text !== previous.text || option.reply !== previous.reply;
+        return !previous || option.id !== previous.id || option.text !== previous.text || option.reply !== previous.reply || option.gesture !== previous.gesture;
       }))) this.showOptions(next);
       this.setChoicesAvailable(true);
     }

@@ -1,11 +1,12 @@
-formatVersion: 1.15.0
+formatVersion: 1.16.0
 id: reference
 name: Referenzwelt
-contentVersion: 5.7.0
+contentVersion: 5.8.0
 startRoom: lounge
 startSpawn: entry
 roomFormat: legacy-1
 defaultCharacterId: mara
 characters:
-  - { id: mara, name: Mara, image: assets/images/mara.png, topDownImage: assets/images/mara-top-down.png, frameWidth: 128, frameHeight: 128 }
-  - { id: bruno, name: Bruno, image: assets/images/bruno.png, topDownImage: assets/images/bruno-top-down.png, frameWidth: 128, frameHeight: 128 }
+  - { id: mara, name: Mara, image: assets/images/mara.png, topDownImage: assets/images/mara-top-down.png, speechImage: assets/images/mara-speech.png, topDownSpeechImage: assets/images/mara-top-down-speech.png, frameWidth: 128, frameHeight: 128 }
+  - { id: bruno, name: Bruno, image: assets/images/bruno.png, topDownImage: assets/images/bruno-top-down.png, speechImage: assets/images/bruno-speech.png, topDownSpeechImage: assets/images/bruno-top-down-speech.png, frameWidth: 128, frameHeight: 128 }
+  - { id: nela, name: Nela, image: assets/images/nela.png, frameWidth: 128, frameHeight: 128, npcOnly: true, speechImage: assets/images/nela-speech.png, waveImage: assets/images/nela-wave.png }

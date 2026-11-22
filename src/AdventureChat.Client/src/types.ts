@@ -12,7 +12,11 @@ export type FacingDirection = 'left' | 'right' | 'up' | 'down';
 export type Direction = FacingDirection;
 export type CharacterState = 'idle' | 'walk';
 
+export type SpeechGesture = 'wave';
+
 export interface SpeechBubble {
+  readonly spoken?: boolean;
+  readonly gesture?: SpeechGesture | null;
   readonly text: string;
   readonly startTime: number;
   readonly duration: number; // in milliseconds (e.g. 6000ms = 6s)
@@ -22,7 +26,11 @@ export interface CharacterAppearance {
   readonly id: string;
   readonly name: string;
   readonly imageUrl: string;
-  readonly topDownImageUrl?: string | null;
+  readonly topDownImageUrl: string | null;
+  readonly npcOnly: boolean;
+  readonly speechImageUrl: string | null;
+  readonly topDownSpeechImageUrl: string | null;
+  readonly waveImageUrl: string | null;
   readonly frameWidth: number;
   readonly frameHeight: number;
 }
@@ -148,11 +156,13 @@ export interface NpcTourStatus {
   readonly sessionId: string;
   readonly active: boolean;
   readonly message: string;
+  readonly speech: { readonly npcId: string; readonly durationMs: number } | null;
 }
 export interface DialogueOption {
   readonly id: string;
   readonly text: string;
   readonly reply: string;
+  readonly gesture: SpeechGesture | null;
 }
 export interface NpcDialogueResult {
   readonly error: string | null;

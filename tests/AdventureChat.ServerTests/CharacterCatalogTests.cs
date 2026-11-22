@@ -38,6 +38,34 @@ public class CharacterCatalogTests
         var world = WorldPackage.Load(_root);
         Assert.DoesNotThrow(world.EnsureManifestUnchanged);
     }
+
+    [Test]
+    public void SpeechSheet_IsOptionalAndMustMatchTheCharacterRaster()
+    {
+        Manifest(Catalog.Replace("frameHeight: 64", "frameHeight: 64, speechImage: assets/images/actor.png"), "1.16.0");
+        Assert.DoesNotThrow(() => WorldPackage.Load(_root).EnsureManifestUnchanged());
+
+        Manifest(Catalog.Replace("frameHeight: 64", "frameHeight: 64, speechImage: assets/images/missing.png"), "1.16.0");
+        Assert.That(Assert.Throws<InvalidOperationException>(() => WorldPackage.Load(_root))!.Message,
+            Does.Contain("assets/images/missing.png"));
+
+        var reference = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../../worlds/reference"));
+        File.Copy(Path.Combine(reference, "assets/images/mara.png"), Path.Combine(_root, "assets/images/wrong.png"));
+        var wrongRaster = Catalog.Replace("frameHeight: 64", "frameHeight: 64, speechImage: assets/images/wrong.png");
+        Manifest(wrongRaster, "1.16.0");
+        Assert.That(Assert.Throws<InvalidOperationException>(() => WorldPackage.Load(_root))!.Message,
+            Does.Contain("assets/images/wrong.png"));
+    }
+
+    [TestCase("1.15.0", "speechImage: assets/images/actor.png", "speechImage")]
+    [TestCase("1.16.0", "npcOnly: true", "playable character")]
+    [TestCase("1.16.0", "topDownSpeechImage: assets/images/actor.png", "topDownImage")]
+    public void Manifest_RejectsUnsupportedSpeechFieldsOrAnNpcDefault(string version, string fields, string diagnostic)
+    {
+        Manifest(Catalog.Replace("frameHeight: 64", "frameHeight: 64, " + fields), version);
+        Assert.That(Assert.Throws<InvalidOperationException>(() => WorldPackage.Load(_root))!.Message,
+            Does.Contain(diagnostic));
+    }
     [TestCase("1.0.0")][TestCase("1.1.0")][TestCase("1.2.0")]
     public void OlderFormat_RejectsCatalog(string version)
     {
