@@ -1,5 +1,5 @@
 # Aktueller Stand
-Revision 86 · 22.11.2026.
+Revision 87 · 22.11.2026.
 
 ## Vorhanden
 - [x] Gespräch in Spezifikation, Architektur, Autorenformat und Tickets überführt.
@@ -32,7 +32,7 @@ Revision 86 · 22.11.2026.
 - [ ] Git-Repository und endgültiger Projektname festgelegt.
 
 ## Aktives Ticket
-- **Ticket 31: ready-for-human.** Umfang am 22.11.2026 mit „ja“ bestätigt. Die Führung verbindet Lounge, Tavernen-Garten und die Werkstattstationen Tafel, Stuhl und Hubtisch. Referenzinhalt 5.6.0, Format 1.14.0. Typcheck, Build und Vollsuite mit 390 bestandenen Tests (257 Server, 133 Browser). [Abnahmekopie](http://127.0.0.1:61176/) und [Prüfschritte](.scratch/adventure-chat/issues/31-combined-reference-scenario.md#manuelle-abnahme).
+- **Ticket 31: done.** Am 22.11.2026 ausdrücklich mit „sehr cool. abgenommen“ bestätigt. Die Führung verbindet Lounge, Tavernen-Garten und die Werkstattstationen Tafel, Stuhl und Hubtisch. Referenzinhalt 5.6.0, Format 1.14.0. Typcheck, Build und Vollsuite mit 390 bestandenen Tests (257 Server, 133 Browser). Umsetzungscommit `a44a0f0`. [Abnahmekopie](http://127.0.0.1:61176/) und [Ticket 31](.scratch/adventure-chat/issues/31-combined-reference-scenario.md).
 - **Ticket 30: done.** Am 22.11.2026 ausdrücklich mit „abgenommen“ bestätigt. Nela führt einen Gast nach Zustimmung von der Lounge in den Garten, hält 48 konfigurierbare Raumpixel Abstand und verlässt den Garten danach durch den Ausgang zur Lounge. Format 1.14.0, Referenzinhalt 5.5.0. Typcheck, Build und 389 bestandene Tests (257 Server, 132 Browser). Umsetzungscommit `011e24d`. [Lokale Abnahmekopie](http://127.0.0.1:51715/) und [Ticket 30](.scratch/adventure-chat/issues/30-follow-npc.md).
 - **Ticket 29: done.** Am 22.11.2026 ausdrücklich mit „Ticket 29 abgenommen.“ bestätigt. Ida läuft drei Wegpunkte im Tavernen-Garten ab und pausiert für Gespräche. Format 1.13.0, Referenzinhalt 5.4.0. Typcheck, Clientbuild und 384 bestandene Tests (256 Server, 128 Browser). Umsetzungscommit `9d4cfdb`. [Lokale Abnahmekopie](http://127.0.0.1:58827/) und [Ticket 29](.scratch/adventure-chat/issues/29-npc-movement.md).
 - **Ticket 28: done.** Am 22.11.2026 ausdrücklich mit „abgenommen“ bestätigt. Die Klingel in der Startlounge ändert Nelas Auswahl und eine Antwort. Die Vorschau verwendet eigene Objektzustände. Format 1.12.0, Referenzinhalt 5.3.0. Typcheck, Clientbuild und Vollsuite mit 378 bestandenen Tests. [Lokale Abnahmekopie](http://127.0.0.1:63299/) und [Ticket 28](.scratch/adventure-chat/issues/28-state-dependent-dialogue.md).
@@ -54,7 +54,7 @@ Revision 86 · 22.11.2026.
 - **Ticket 16: done.** Menschlich am 09.11.2026 ausdrücklich abgenommen („Ticket 16 neues design wurde umgesetzt, ist abgenommen“). Native128-Lieferung am 05.11.2026 eingebunden: gelieferte Mara-/Bruno-Sheets bytegleich, Raster 128 x 128 bei Raumhoehe 128, sichtbarer Koerper 125 Pixel; keine Vergroesserung mehr im Renderer. Inhalt 2.0.2, Format 1.4.0 unveraendert. Typcheck/Clientbuild und Vollsuite 234 Tests (0 Warnungen) bestanden; drei gezielte Browserfaelle und pixelgenauer Vergleich aller 40 Richtungs-/Phasenansichten gruen. Beide separaten Subagent-Reviewachsen gegen 382a83f ohne offene Befunde. Lieferquellen und Originale erhalten; Python-Lieferwerkzeug bleibt lokal/unversioniert und wird nicht benoetigt. Die bisher offene menschliche Sichtabnahme ist damit abgeschlossen. Aktuelle Screenshots und Details im Ticket 16; lokaler Commit Integrate native128 reference characters.
 - **Ticket 15: done.** Menschlich am 04.11.2026 nach Start der Testwelt foreground abgenommen („funktioniert“). Implementierungscommit e485525. Am 04.11.2026 mit „ok“ für Umfang, Datenvertrag und Testgrenzen bestätigt und umgesetzt: Vordergrundobjekte mit PNG-Alpha/Tiefenlinie, gemeinsamer Spiel-/Editorrenderer, Objektverwaltung/Upload/Alt-Klick. Format 1.4.0 additive Minor-Erweiterung; alte Schemas/Fixtures und Benutzerbilder unverändert. Typcheck/Build, Vollsuite 230 Tests (0 Warnungen), 14 gezielte Inhaltsfälle und drei Objekt-Browsertests einschließlich Reviewnachträgen erfolgreich. Beide Reviewachsen nach Korrekturen ohne offene Funktions-/Standardsbefunde. Abnahme und Details im Ticket 15.
 - **Ticket 14: `done`.** Menschlich am 04.11.2026 abgenommen („funktioniert“). Name/Figur vor Eintritt, Katalog 1.3.0, gemeinsamer Renderer und Editor umgesetzt. Typcheck/Build, 213 Tests (0 Warnungen), beide Reviewachsen ohne offene Befunde. Implementierungscommit `8761c42`. Details im Ticket 14. Ticket 15 ist done; Ticket 16 ist done.
-- **Reihenfolge:** Tickets 01–23 und 25–30 sind done. Epic 24 und Ticket 32 stehen auf draft.
+- **Reihenfolge:** Tickets 01–23 und 25–31 sind done. Epic 24 und Ticket 32 stehen auf draft.
 - **Benutzerdateien:** gelieferte Lounge-/Garten- und Figurenoriginale unverändert erhalten; Design-Guide-Integrationshinweise aktualisiert. Spielkopien und Tischmasken gesondert in Ticket 16 erzeugt. Alte Referenzwelt aus b3d0b83 unter `tests/Fixtures/reference-v1` bytegetreu erhalten. Benutzer-Arbeitskopie `.scratch/foreground-demo` unangetastet und nicht mitcommittiert.
 - **Ticket 12: `done`.** Benutzer hat am 04.11.2026 ausdrücklich klargestellt: „ticket 12 (scrolling) hatte ich schon abgenommen.“ Abnahme einschließlich dokumentiertem Randsprechblasen-Nachtrag nachgetragen. Implementierungscommits `6dd96c7` und `a046edb`. Horizontale Kamera, Format 1.2.0, Editor und Scrollwelt implementiert; abschließende Nachtrags-Vollsuite 192 Tests, 0 Warnungen; Typcheck/Build, beide Reviewachsen und Diffprüfung bestanden. Details im Ticket 12.
 
@@ -62,7 +62,7 @@ Revision 86 · 22.11.2026.
 - Ticket 10 ist `done`, ausdrücklich am 04.11.2026 abgenommen („abegnommen“), Implementierungscommit `28e3b7f`. Tickets 01–09 bleiben `done`; dokumentierte Reviewpunkte von Ticket 09 bleiben offen.
 
 ## Nächste Aktion
-Die menschliche Abnahme der [kombinierten Referenzszene aus Ticket 31](.scratch/adventure-chat/issues/31-combined-reference-scenario.md#manuelle-abnahme) steht aus.
+Bei der nächsten Paketauswahl das optionale [Ticket 32 – Gezielte NPC-Reaktion auf Objektaktionen](.scratch/adventure-chat/issues/32-object-triggered-npc-reactions.md) zur Freigabe vorschlagen.
 
 Lokaler Abnahmeeditor unter http://127.0.0.1:54235/editor.html?worldId=reference bleibt als bisherige Abnahmeumgebung dokumentiert (zuletzt protokollierter PID 71432; Programmkopie und Weltpfad im Ticket); für Ticket 20 weder neu gestartet noch erneut auf Erreichbarkeit geprüft. Gespeicherte Benutzeränderungen in dieser Kopie erhalten; .scratch/foreground-demo unangetastet.
 

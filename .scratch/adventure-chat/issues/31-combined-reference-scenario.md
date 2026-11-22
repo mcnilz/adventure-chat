@@ -4,7 +4,7 @@
 
 **Blocked by:** [25](25-object-state-transitions.md), [26](26-character-animations-for-object-actions.md), [28](28-state-dependent-dialogue.md), [30](30-follow-npc.md). Falls die Platzierung in die noch nicht abgenommene Gestaltung aus 19 eingreift, deren Freigabe vor der Integration berücksichtigen.
 
-**Status:** ready-for-human
+**Status:** done
 
 ## Acceptance criteria
 
@@ -27,7 +27,11 @@ Die Werkstatttür startet offen, damit Nela nach der Führung zu Fuß in die Lou
 - Der neue Browserablauf scheiterte vor der Erweiterung der Führung. Nach der Inhaltsänderung bestanden sieben gezielte Browserfälle zu Führung und Werkstatt. Zwei gezielte Fälle bestanden mit den abschließenden Prüfergänzungen. Sie beobachten die Einladung nach dem Klingeln, die drei Werkstattstationen, Nelas sichtbaren Rückweg samt erneutem Angebot und den zweiten Besucher mit Hubhöhe, Sitzpose und Tafelgeste. Die Editorvorschau zeigt Hubtisch, Sitzpose und beschriftete Tafel.
 - Die getrennten Reviews gegen `f19ccc7` prüften Coding Standards und Ticketumfang. Die Prüfhilfen werden wiederverwendet. Die Animationstests prüfen Bild und Dauer. Der Test zum natürlichen Abschluss prüft den sichtbaren Rückweg zur Tür, die Rückkehr in die Lounge und die erneute Einladung. Der Spec-Review fand keine blockierenden Abweichungen.
 - Typcheck, Clientbuild, Diffprüfung und die separate Abnahmekopie geprüft. Die Spielseite und der Zugriff auf die Lounge im Raumeditor lieferten HTTP 200. Veröffentlichte Schemas, ältere Referenzfixtures und Grafikdateien sind unverändert. Es gibt keine neuen Abhängigkeiten. Die Bildschirmaufnahme und lokalen Prüfprotokolle liegen unter `.scratch/adventure-chat/evidence/31`.
-- Die abschließende Vollsuite bestand mit 390 Tests (257 Server, 133 Browser), ohne Fehler oder übersprungene Tests. Die menschliche Abnahme steht aus.
+- Die abschließende Vollsuite bestand mit 390 Tests (257 Server, 133 Browser), ohne Fehler oder übersprungene Tests. Umsetzungscommit `a44a0f0`.
+
+## Menschliche Abnahme
+
+Am 22.11.2026 ausdrücklich mit „sehr cool. abgenommen“ bestätigt.
 
 ## Manuelle Abnahme
 
