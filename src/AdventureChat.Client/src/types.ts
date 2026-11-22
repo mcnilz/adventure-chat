@@ -143,6 +143,11 @@ export interface NpcMovementDto {
   readonly sample: number;
   readonly npcs: readonly NpcPresence[];
 }
+export interface NpcTourStatus {
+  readonly sessionId: string;
+  readonly active: boolean;
+  readonly message: string;
+}
 export interface DialogueOption {
   readonly id: string;
   readonly text: string;
@@ -154,6 +159,7 @@ export interface NpcDialogueResult {
   readonly tooFar: boolean;
   readonly selected: DialogueOption | null;
   readonly talkPoint?: Point | null;
+  readonly tourStarted: boolean;
 }
 export interface ObjectAppearance {
  readonly obstacles?: ReadonlyArray<{ readonly id: string; readonly points: ReadonlyArray<Point> }> | null;

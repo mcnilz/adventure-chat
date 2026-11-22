@@ -4,17 +4,19 @@ namespace AdventureChat.Server.Services;
 
 public partial class RoomSessionManager
 {
-    public NpcDialogueResult RequestNpcDialogue(string connectionId, NpcDialogueRequest request)
+    public NpcDialogueResult RequestNpcDialogue(string connectionId, NpcDialogueRequest request, bool allowTours = false)
     {
         lock (_lock)
         {
             ProcessActorActivities();
             if (!_sessionsByConnection.TryGetValue(connectionId, out var session) || session.RoomId != request.RoomId)
                 return new("Das Gespräch ist hier nicht mehr verfügbar.");
+            if (TourControlsPlayer(connectionId)) return new("Beende zuerst die Führung.");
 
             var room = _roomService.GetRoom(session.RoomId);
             var npc = room?.Npcs?.FirstOrDefault(candidate => candidate.Id == request.NpcId);
             if (room is null || npc is null) return new("Diese Figur ist nicht im Raum.");
+            if (GuideIsBusy(room.Id, npc.Id)) return new("Diese Figur ist gerade unterwegs. Sprich sie später wieder an.");
 
             var now = NpcNow;
             AdvanceMovement(session);
@@ -44,9 +46,11 @@ public partial class RoomSessionManager
             if (patrol is not null)
                 _npcApproaches[connectionId] = _npcApproaches[connectionId] with { ExpiresAt = double.PositiveInfinity };
             var options = GetAvailableOptions(room, npc);
+            if (allowTours && npc.Tour is not null) options.Add(TourOffer);
             if (request.Choice is not { } choice) return new(null, options);
 
             var selected = options.FirstOrDefault(option => option == choice);
+            if (selected == TourOffer) return StartTour(session, room, npc);
             return selected is null
                 ? new("Das Gespräch hat sich geändert. Wähle eine aktuelle Frage.", options)
                 : new(null, options, Selected: selected);

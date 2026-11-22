@@ -10,6 +10,45 @@ namespace AdventureChat.E2ETests;
 public class NpcAuthoringTests
 {
     [Test]
+    public async Task EditorRoundTripsTourAndRejectsAnUnknownExitOrUnreachableStation()
+    {
+        await using var server = CreateReferenceCopy();
+        await server.StartAsync();
+        using var client = new HttpClient { BaseAddress = new Uri(server.BaseUrl) };
+        const string roomUrl = "/api/editor/rooms/lounge?worldId=reference";
+        var status = await client.GetFromJsonAsync<JsonElement>("/api/editor/status?worldId=reference");
+        client.DefaultRequestHeaders.Add("X-Author-Token", status.GetProperty("token").GetString());
+        var lounge = (await client.GetFromJsonAsync<RoomYamlDto>(roomUrl))!;
+        var route = lounge.Npcs!.Single().Tour!;
+        route[2] = route[2] with { Text = "Willkommen im Garten." };
+        using var saved = await client.PostAsJsonAsync(roomUrl, lounge);
+        Assert.That(saved.IsSuccessStatusCode, Is.True, await saved.Content.ReadAsStringAsync());
+
+        var door = route[1];
+        route[1] = door with { Exit = "missing-exit" };
+        using var missing = await client.PostAsJsonAsync(roomUrl, lounge);
+        Assert.That(missing.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.BadRequest));
+        Assert.That(await missing.Content.ReadAsStringAsync(), Does.Contain("tour exit 'missing-exit'"));
+        route[1] = door;
+
+        route[2] = route[2] with { Position = new(350, 150) };
+        using var unreachable = await client.PostAsJsonAsync(roomUrl, lounge);
+        Assert.That(unreachable.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.BadRequest));
+        Assert.That(await unreachable.Content.ReadAsStringAsync(), Does.Contain("unreachable in room 'garden'"));
+        var reloaded = (await client.GetFromJsonAsync<RoomYamlDto>(roomUrl))!.Npcs!.Single().Tour!;
+        Assert.That(reloaded[1].Exit, Is.EqualTo("to-garden"));
+        Assert.That(reloaded[2], Is.EqualTo(new NpcTourStep(new(224, 294), "Willkommen im Garten.")));
+
+        const string gardenUrl = "/api/editor/rooms/garden?worldId=reference";
+        var garden = (await client.GetFromJsonAsync<RoomYamlDto>(gardenUrl))!;
+        garden.Exits!.RemoveAll(exit => exit.Id == "to-lounge");
+        using var oneWay = await client.PostAsJsonAsync(gardenUrl, garden);
+        Assert.That(oneWay.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.BadRequest));
+        Assert.That(await oneWay.Content.ReadAsStringAsync(), Does.Contain("tour has no walkable return route"));
+        Assert.That((await client.GetFromJsonAsync<RoomYamlDto>(gardenUrl))!.Exits!.Any(exit => exit.Id == "to-lounge"), Is.True);
+    }
+
+    [Test]
     public async Task EditorValidatesAndSavesNpcsAcrossAnExplicitFormatUpgrade()
     {
         await using var server = CreateReferenceCopy();
@@ -18,6 +57,7 @@ public class NpcAuthoringTests
         var serializer = new RoomYamlSerializer();
         var original = File.ReadAllText(lounge);
         var draft = serializer.Deserialize(original);
+        draft.Npcs![0] = draft.Npcs[0] with { Tour = null, FollowDistance = null };
         var npc = draft.Npcs!.Single();
         npc.Options.RemoveAll(option => option.When is not null);
         npc.Options[0] = npc.Options[0] with { Replies = null };
@@ -57,6 +97,7 @@ public class NpcAuthoringTests
         var serializer = new RoomYamlSerializer();
         var loungePath = Path.Combine(server.TempRoot, "world/rooms/lounge.yaml");
         var draft = serializer.Deserialize(File.ReadAllText(loungePath));
+        draft.Npcs![0] = draft.Npcs[0] with { Tour = null, FollowDistance = null };
         var olderRoom = serializer.Deserialize(File.ReadAllText(loungePath));
         var olderOptions = olderRoom.Npcs!.Single().Options;
         olderOptions.RemoveAll(option => option.When is not null);
@@ -114,7 +155,11 @@ public class NpcAuthoringTests
 
     private static void DowngradeReference(string manifest, string version, RoomYamlSerializer serializer)
     {
-        File.WriteAllText(manifest, File.ReadAllText(manifest).Replace("1.13.0", version, StringComparison.Ordinal));
+        File.WriteAllText(manifest, File.ReadAllText(manifest).Replace("1.14.0", version, StringComparison.Ordinal));
+        var loungePath = Path.Combine(Path.GetDirectoryName(manifest)!, "rooms/lounge.yaml");
+        var lounge = serializer.Deserialize(File.ReadAllText(loungePath));
+        if (lounge.Npcs is { Count: > 0 }) lounge.Npcs[0] = lounge.Npcs[0] with { Tour = null, FollowDistance = null };
+        File.WriteAllText(loungePath, serializer.Serialize(lounge));
         var gardenPath = Path.Combine(Path.GetDirectoryName(manifest)!, "rooms/garden.yaml");
         var garden = serializer.Deserialize(File.ReadAllText(gardenPath));
         garden.Npcs = null;

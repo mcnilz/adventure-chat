@@ -5,6 +5,7 @@ import { chooseWorld, loadWorlds, showStartupError } from './ui/world-picker.js'
 import { GameViewport } from './ui/game-viewport.js';
 import { VerbBar } from './ui/verb-bar.js';
 import { NpcDialoguePanel } from './ui/npc-dialogue-panel.js';
+import { NpcTourPanel } from './ui/npc-tour-panel.js';
 import { npcActorId } from './state/npc-cast.js';
 
 declare global {
@@ -68,12 +69,19 @@ async function initialize(): Promise<void> {
     chatUi.appendSystemMessage(`--- Raum gewechselt: ${room.name} ---`);
   };
 
-  game.onActionChanged = (text) => {
-    if (!dialogue.isOpen) chatUi.setActionText(text);
-  };
   const actionFeedback = document.getElementById('action-feedback');
   game.onActionFeedback = text => {
     if (actionFeedback) actionFeedback.textContent = text;
+  };
+  const tour = new NpcTourPanel(() => game.networkClient.cancelNpcTour(), text => game.onActionFeedback?.(text));
+  game.onActionChanged = text => {
+    if (!dialogue.isOpen && !tour.active) chatUi.setActionText(text);
+  };
+  game.onTourStatus = status => {
+    const modeChanged = tour.active !== status.active;
+    tour.show(status);
+    if (modeChanged && status.active) chatUi.setActionText('Führung läuft');
+    if (modeChanged && !status.active) game.inputHandler.updateVerb();
   };
 
   chatUi.setConnectionStatus(game.connectionStatus);

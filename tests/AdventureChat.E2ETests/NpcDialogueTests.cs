@@ -95,6 +95,7 @@ public class NpcDialogueTests
         var path = Path.Combine(server.TempRoot, "world/rooms/lounge.yaml");
         var serializer = new RoomYamlSerializer();
         var draft = serializer.Deserialize(File.ReadAllText(path));
+        draft.Npcs![0] = draft.Npcs[0] with { Tour = null, FollowDistance = null };
         var options = draft.Npcs!.Single().Options;
         var ready = new DialogueCondition("bell", "ready");
         for (var index = 0; index < options.Count; index++) options[index] = options[index] with { When = ready };

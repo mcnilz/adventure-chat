@@ -60,7 +60,7 @@ Geplant sind optionale Raumangaben für Draufsicht und feste Figurengröße, hor
 | Weltformat | Raumformat | Unterstützung |
 | --- | --- | --- |
 | `1.0.0` | `legacy-1`, Raum-`version: 1` | Lesen und Schreiben |
-| `1.1.0`–`1.13.0` | `legacy-1`, Raum-`version: 1` | Lesen und Schreiben für jede ausdrücklich veröffentlichte Minor-Version |
+| `1.1.0`–`1.14.0` | `legacy-1`, Raum-`version: 1` | Lesen und Schreiben für jede ausdrücklich veröffentlichte Minor-Version |
 | andere | beliebig | ausdrücklich abgelehnt |
 
 Das Manifest verwendet `formatVersion`, `id`, `name`, `contentVersion`, `startRoom`, `startSpawn` und `roomFormat`. `rooms` und `assets/images` sind paketrelative Verzeichnisse. Dateiname und Raum-ID stimmen überein; Hintergründe sind vollständige PNG-Dateien mit passenden Abmessungen; PNG-Dateien sind auf 64 MiB, ihre dekodierten Bilddaten auf 128 MiB und einzelne YAML-Dateien auf 1 MiB begrenzt. Absolute Pfade, `..` und symbolische Links/Junctions werden abgewiesen. Der Editor schreibt ausschließlich `version: 1`, prüft vorhandene Dateien vor Überschreiben und behält beim normalen Speichern die Manifestversion bei. Schema-Bündel und ihre lokalen Referenzen bleiben nach Veröffentlichung unverändert. Die ursprünglichen Legacy-Dateien und das ursprüngliche Schema bleiben als Referenz erhalten. `1.0.0` ist die erstmalige Veröffentlichung des Weltvertrags, keine Umdeutung des ganzzahligen Raumversionsfeldes; daher ist kein früheres Weltformat umzuversionieren. Weitere Formatänderungen folgen den Regeln im Kompatibilitätsvertrag.
@@ -167,7 +167,7 @@ Nach Erfolg bleiben weiterhin gültige Wege bestehen. Ungültige Wege werden ab 
 
 Die Editorvorschau prüft Wege, Objektaktionen und Ausgänge mit denselben Serverregeln wie das Spiel. Bei einem interaktiven Objekt verwendet „Automatisch“ die Auswahlregel für „Benutzen“. Über die Verbauswahl lässt sich eine konkrete Aktion testen. Die Vorschau verwendet den Raumdraft beim Start und isolierte Objektzustände, die nach einem Raumwechsel erhalten bleiben. Ein Neustart der Vorschau setzt sie auf die Anfangszustände zurück. Synthetisches Beispiel: `tests/Fixtures/navigation`.
 
-Ältere Weltpakete behalten beim Speichern ihr Format. Für eine Aktualisierung auf 1.8.0 bis 1.13.0 wird das höhere unterstützte Zielformat ausdrücklich im Editor gewählt. Vor dem Schreiben prüft der Server Manifest, vorhandene Räume und den Entwurf mit dem Zielvertrag. Speichern aktualisiert das Manifest und den bearbeiteten Raum. Übrige Raumdateien bleiben unverändert.
+Ältere Weltpakete behalten beim Speichern ihr Format. Für eine Aktualisierung auf 1.8.0 bis 1.14.0 wird das höhere unterstützte Zielformat ausdrücklich im Editor gewählt. Vor dem Schreiben prüft der Server Manifest, vorhandene Räume und den Entwurf mit dem Zielvertrag. Speichern aktualisiert das Manifest und den bearbeiteten Raum. Übrige Raumdateien bleiben unverändert.
 
 ### Sichtbare Objektübergänge ab 1.9.0
 
@@ -258,3 +258,21 @@ Ein NPC kann optional `waypoints` mit zwei bis 32 absoluten Raumkoordinaten in Y
 Der Abstand zwischen `position` und `talkPoint` gibt bei bewegten NPCs den Versatz des Gesprächspunkts an. Ist der versetzte Punkt versperrt, ist der Fußpunkt des NPCs das Gesprächsziel. Ein erreichbarer Gesprächsversuch hält den NPC bereits beim Herangehen an. Nach dem Ende des letzten Gesprächs setzt er seine Wegfolge fort. In der Raumvorschau laufen NPCs mit eigenen Objekt- und Bewegungszuständen.
 
 Das Schema-Bündel unter `schemas/world/1.13.0/` ergänzt das optionale Feld. NPCs ohne Wegpunkte bleiben an ihrem definierten Platz.
+
+### NPC-Führungen ab 1.14.0
+
+Ein NPC kann eine feste Führung als optionale Folge `tour` in seiner Raum-YAML definieren.
+
+```yaml
+followDistance: 48
+tour:
+  - { position: { x: 205, y: 326 }, text: In der Lounge treffen sich die Gäste. }
+  - { exit: to-garden }
+  - { position: { x: 224, y: 294 }, text: Hier ist der Tavernen-Garten. }
+```
+
+Die Route hat drei bis 32 Schritte. Sie beginnt und endet an einer Station und enthält mindestens eine Station in einem anderen Raum. Eine Station setzt absolute Raumkoordinaten in `position` und kann in `text` bis zu 300 Zeichen für den Gast anzeigen. Mindestens eine Station hat einen Text. Ein Schritt mit `exit` verwendet die ID eines Ausgangs im jeweils aktuellen Raum. Danach beziehen sich die folgenden Schritte auf dessen Zielraum und beginnen am Zielspawn. Beim Laden und Speichern prüft der Server die statischen Wege, Ausgangsverweise und Zielspawns. Ein Guide hat entweder eine Führung oder zyklische `waypoints`. Die optionale Angabe `followDistance` legt für eine Führung den gewünschten Abstand von 20 bis 96 Raumpixeln fest. Der Standard sind 42 Raumpixel. Kurze Wege und kleine Ausgangsradien können den tatsächlichen Abstand begrenzen.
+
+Im Spiel erscheint **Führung starten** im Gespräch, sofern der Guide frei ist. Der Server führt jeweils den zustimmenden Gast und prüft begehbare Wege, Ausgänge und Zielspawns anhand der aktuellen Objektzustände. Stationshinweise erscheinen beim Gast. Bei einem unpassierbaren Weg oder Übergang endet die Führung an der aktuellen Position. Nach Abschluss, Abbruch oder Verbindungsende geht der Guide allein über erreichbare Ausgänge zurück. Beim Laden und Speichern muss von jedem Zielspawn der Route ein Rückweg über die statische Raumgeometrie existieren. Solange aktuelle Objektzustände alle Rückwege sperren, bleibt der Guide sichtbar stehen. Sobald er an seiner Ausgangsposition angekommen ist, kann der Gast im Gespräch eine neue Führung beginnen. Die Raumvorschau zeigt den NPC und seine normalen Gesprächsoptionen. Der mehrraumige Führungsablauf läuft im verbundenen Spiel.
+
+Format 1.14.0 ergänzt die optionalen Felder in einem eigenen Schema-Bündel unter `schemas/world/1.14.0/`. NPCs ohne `tour` behalten ihre bisherigen Gesprächs- und Bewegungsregeln.

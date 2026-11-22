@@ -13,6 +13,11 @@ npcs:
     characterId: bruno
     position: { x: 112, y: 286 }
     talkPoint: { x: 146, y: 294 }
+    followDistance: 48
+    tour:
+      - { position: { x: 205, y: 326 }, text: In der Lounge treffen sich die Gäste. An der Klingel kannst du mich rufen. }
+      - { exit: to-garden }
+      - { position: { x: 224, y: 294 }, text: Hier ist der Tavernen-Garten. Am Tisch kannst du dich mit anderen Gästen unterhalten. }
     options:
       - id: introduction
         text: Wer bist du?

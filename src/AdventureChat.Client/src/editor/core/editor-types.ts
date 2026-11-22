@@ -59,6 +59,8 @@ interface AuthoredDialogueOption extends DialogueOption {
 interface AuthoredNpc extends Omit<import('../../types.js').NpcPresence, 'motion'> {
   readonly options: readonly AuthoredDialogueOption[];
   readonly waypoints?: readonly RoomPointDto[] | null;
+  readonly tour: readonly { readonly position: RoomPointDto | null; readonly text: string | null; readonly exit: string | null }[] | null;
+  readonly followDistance: number | null;
 }
 
 export interface RoomYamlDto {

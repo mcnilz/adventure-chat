@@ -135,7 +135,18 @@ body {
   background: #070a13;
   color: #eee1b1;
 }
-#verb-bar[hidden], #npc-dialogue[hidden] { display: none; }
+#verb-bar[hidden], #npc-dialogue[hidden], #npc-tour[hidden] { display: none; }
+#npc-tour {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  height: 68px;
+  padding: 6px 16px;
+  background: #070a13;
+  color: #eee1b1;
+}
+#npc-tour-message { max-height: 56px; overflow: auto; overflow-wrap: anywhere; }
 #npc-dialogue-bubble {
   position: absolute;
   z-index: 11;
@@ -158,7 +169,7 @@ body {
   gap: 4px;
 }
 #npc-dialogue-name { color: #ffe066; font-size: 14px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-#npc-dialogue button {
+#npc-dialogue button, #npc-tour button {
   border: 1px solid #856d40;
   background: #222b38;
   color: inherit;
@@ -167,7 +178,7 @@ body {
   text-align: left;
   overflow-wrap: anywhere;
 }
-#npc-dialogue button:focus-visible { outline: 2px solid #ffe066; outline-offset: 2px; }
+#npc-dialogue button:focus-visible, #npc-tour button:focus-visible { outline: 2px solid #ffe066; outline-offset: 2px; }
 #npc-dialogue button[aria-disabled="true"] { opacity: 0.65; cursor: default; }
 .npc-dialogue-body { display: grid; min-height: 0; grid-template-rows: auto minmax(0, 1fr); }
 #npc-dialogue-notice { grid-row: 1; margin: 3px; color: #ffe066; }

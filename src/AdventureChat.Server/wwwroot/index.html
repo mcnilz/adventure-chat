@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Adventure Chat</title>
   <link rel="stylesheet" href="css/world-picker.css">
-  <link rel="stylesheet" href="css/style.css?v=7">
+  <link rel="stylesheet" href="css/style.css?v=8">
 </head>
 <body>
   <div id="app">
@@ -39,6 +39,10 @@
         </div>
         <p id="npc-reply" class="visually-hidden" role="status"></p>
       </section>
+      <section id="npc-tour" aria-label="Führung" hidden>
+        <p id="npc-tour-message" role="status"></p>
+        <button type="button" id="npc-tour-stop">Führung beenden</button>
+      </section>
       <div id="chat-container">
         <div id="chat-messages" class="chat-messages">
           <div class="chat-system-message">Willkommen im Adventure Chat. Klicke auf den Boden, um dich zu bewegen.</div>
@@ -51,6 +55,6 @@
     </div>
   </div>
   <script src="js/lib/signalr.min.js?v=4"></script>
-  <script type="module" src="js/main.js?v=7"></script>
+  <script type="module" src="js/main.js?v=8"></script>
 </body>
 </html>

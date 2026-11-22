@@ -2,6 +2,7 @@ import { DEFAULT_ROOM, SPEECH_BUBBLE_DURATION } from './constants.js';
 import { withinExitReach } from './input/exit-hit.js';
 import { InputHandler } from './input/input-handler.js';
 import { NpcDialogueFlow, type ChooseDialogueOption } from './input/npc-dialogue-flow.js';
+import { NpcTourFlow } from './input/npc-tour-flow.js';
 import { npcAt } from './input/npc-hit.js';
 import { actionForVerb } from './input/object-action.js';
 import { ObjectActionFlow } from './input/object-action-flow.js';
@@ -16,6 +17,7 @@ import type {
   ChatMessageDto,
   DialogueOption,
   NpcPresence,
+  NpcTourStatus,
   Point,
   RoomDefinition,
   RoomExit,
@@ -42,6 +44,8 @@ export class AdventureGame {
   public onVerbSelected?: (verb: InteractionVerb) => void;
   public onDialogueOpened?: (npc: NpcPresence, options: readonly DialogueOption[], choose: ChooseDialogueOption) => void;
   public onDialogueClosed?: () => void;
+  public onTourStatus?: (status: NpcTourStatus) => void;
+  private readonly tour: NpcTourFlow;
   private verb: InteractionVerb = 'walk';
   private approach: { verb: InteractionVerb; objectId: string; actionId: string; state: string | undefined } | null = null;
   private readonly objectActionFlow: ObjectActionFlow;
@@ -100,6 +104,9 @@ export class AdventureGame {
       onChatMessageReceived: (dto) => this.dispatchRoomEvent(() => this.state.handleChatMessage(dto)),
       onObjectStatesChanged: (dto) => this.dispatchRoomEvent(() => this.state.handleObjectStates(dto)),
       onNpcMovement: dto => this.dispatchRoomEvent(() => this.state.handleNpcMovement(dto)),
+      onNpcTourStatus: status => this.tour.update(status),
+      onNpcTourRoomChanging: () => this.tour.beginRoomChange(),
+      onNpcTourRoomChanged: snapshot => this.tour.finishRoomChange(snapshot),
       onObjectActionFeedback: ({ roomId, message }) => {
         if (this.room.id !== roomId) return;
         this.speakLocally(message);
@@ -108,6 +115,8 @@ export class AdventureGame {
       onWorldReset: () => this.onWorldUnavailable?.('Die Welt wurde geändert und neu gestartet. Bitte erneut beitreten.'),
       onConnectionStatusChanged: (status) => {
         if (status !== 'connected') {
+          if (this.tour.changingRoom) this.pendingEvents.length = 0;
+          this.tour.interrupt();
           this.onDialogueClosed?.();
           if (this.dialogueFlow.cancel()) this.reportDialogueError('Die Verbindung wurde unterbrochen.');
         }
@@ -153,9 +162,22 @@ export class AdventureGame {
       id => { void this.networkClient.endNpcDialogue(id); }
     );
 
+    this.tour = new NpcTourFlow(() => this.state.sessionId, (status, starting) => {
+      if (starting) {
+        this.state.pendingExit = null;
+        this.dialogueFlow.cancel();
+        this.onDialogueClosed?.();
+      }
+      this.onTourStatus?.(status);
+    }, snapshot => {
+      this.applyRoomSnapshot(snapshot);
+      this.applyPendingRoomEvents();
+    });
+
     this.inputHandler = new InputHandler(
       this.canvas,
       {
+        canInteract: () => !this.tour.active,
         onHoverExitChanged: (exit, actionText) => {
           this.renderer.setHoveredExit(exit);
           this.onActionChanged?.(actionText);
@@ -231,6 +253,7 @@ export class AdventureGame {
   }
 
   public chooseVerb(verb: InteractionVerb): void {
+    if (this.tour.active) return;
     const interruptedDialogue = this.dialogueFlow.cancel();
     this.onDialogueClosed?.();
     if (this.approach && this.approach.verb !== verb) this.cancelObjectApproach();
@@ -356,12 +379,12 @@ export class AdventureGame {
       }
     } finally {
       this.changingRoom = false;
-      for (const event of this.pendingEvents.splice(0)) event();
+      this.applyPendingRoomEvents();
     }
   }
 
   public async changeRoom(exitId: string): Promise<boolean> {
-    if (this.changingRoom) return false;
+    if (this.changingRoom || this.tour.active) return false;
     this.changingRoom = true;
     try {
       const result = await this.networkClient.changeRoom(exitId);
@@ -372,13 +395,17 @@ export class AdventureGame {
       return false;
     } finally {
       this.changingRoom = false;
-      for (const event of this.pendingEvents.splice(0)) event();
+      this.applyPendingRoomEvents();
     }
   }
 
   private dispatchRoomEvent(event: () => void): void {
-    if (this.changingRoom) this.pendingEvents.push(event);
+    if (this.changingRoom || this.tour.changingRoom) this.pendingEvents.push(event);
     else event();
+  }
+
+  private applyPendingRoomEvents(): void {
+    for (const event of this.pendingEvents.splice(0)) event();
   }
 
   public applyRoomSnapshot(snapshot: RoomSnapshotDto): void {
@@ -391,13 +418,14 @@ export class AdventureGame {
   }
 
   public async sendChatMessage(text: string): Promise<SendChatMessageResultDto> {
-    return this.networkClient.sendChatMessage(text);
+    return this.networkClient.sendChatMessage(text, this.room.id);
   }
 
   // --- Movement & Target Navigation ---
   public async setTarget(
     target: Point
   ): Promise<{ accepted: boolean; waypoints?: Point[]; error?: string }> {
+    if (this.tour.active) return { accepted: false, error: 'Beende zuerst die Führung.' };
     const requestId = ++this.currentRequestId;
     const startPos = { ...this.state.character.position };
 

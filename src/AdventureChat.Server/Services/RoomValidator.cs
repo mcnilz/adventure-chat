@@ -38,6 +38,7 @@ public sealed partial class RoomValidator : IRoomValidator
     private readonly bool _supportsNpcs;
     private readonly bool _supportsDialogueConditions;
     private readonly bool _supportsNpcWaypoints;
+    private readonly bool _supportsNpcTours;
     private readonly IPathfindingService _pathfinder;
 
     public RoomValidator(string? schemaPath = null, IPathfindingService? pathfinder = null)
@@ -60,6 +61,7 @@ public sealed partial class RoomValidator : IRoomValidator
             _supportsNpcs = room?["npcs"] is not null;
             _supportsDialogueConditions = schema?["$defs"]?["dialogueCondition"] is not null;
             _supportsNpcWaypoints = schema?["$defs"]?["npcWaypoints"] is not null;
+            _supportsNpcTours = schema?["$defs"]?["npcTour"] is not null;
             _supportsStateNavigation = interaction?["states"]?["items"]?["properties"]?["obstacles"] is not null;
             _supportsViewport = room?["viewport"] is not null;
             _supportsDisplay = room?["perspective"] is not null;
@@ -207,6 +209,7 @@ public sealed partial class RoomValidator : IRoomValidator
         {
             var roomDef = dto.ToRoomDefinition();
             NpcValidation.Validate(roomDef, _supportsNpcs, _supportsDialogueConditions, _supportsNpcWaypoints, _pathfinder, errors);
+            NpcTourValidation.ValidateRoom(roomDef, _supportsNpcTours, errors);
             ObjectInteractionValidation.ValidateReachability(roomDef, _pathfinder, errors);
 
             // Obstacles must be inside outer boundary
@@ -347,7 +350,11 @@ public sealed partial class RoomValidator : IRoomValidator
             }
         }
 
-        if (errors.Count == 0) ObjectInteractionValidation.ValidateWorld(rooms, errors);
+        if (errors.Count == 0)
+        {
+            ObjectInteractionValidation.ValidateWorld(rooms, errors);
+            NpcTourValidation.ValidateWorld(rooms, _pathfinder, errors);
+        }
 
         // 2. Cross-room exit and spawn reference validation
         foreach (var room in rooms)

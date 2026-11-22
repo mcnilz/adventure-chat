@@ -11,9 +11,10 @@ internal static class EditorFormatUpgrade
     public const string NpcTarget = "1.11.0";
     public const string DialogueConditionsTarget = "1.12.0";
     public const string NpcWaypointsTarget = "1.13.0";
+    public const string NpcTourTarget = "1.14.0";
 
     public static bool CanUpgrade(string source, string target) =>
-        target is Target or TransitionTarget or ActorAnimationTarget or NpcTarget or DialogueConditionsTarget or NpcWaypointsTarget
+        target is Target or TransitionTarget or ActorAnimationTarget or NpcTarget or DialogueConditionsTarget or NpcWaypointsTarget or NpcTourTarget
         && Version.Parse(source) < Version.Parse(target);
 
     public static void Save(WorldPackage world, string sourceVersion, string targetVersion, string roomFile, RoomYamlDto room,

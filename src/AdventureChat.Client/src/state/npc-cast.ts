@@ -8,21 +8,15 @@ export function npcActorId(npcId: string): string {
 export class NpcCast {
   private actors: { npc: NpcPresence; character: Character }[] = [];
   private catalog?: CharacterCatalog;
+  private speed = 130;
 
   public get entries(): readonly { readonly npc: NpcPresence; readonly character: Character }[] { return this.actors; }
   public get characters(): Character[] { return this.actors.map(entry => entry.character).reverse(); }
 
   public setRoom(room: RoomDefinition): void {
-    const npcs = room.npcs ?? [];
-    this.actors = npcs.map(npc => ({
-      npc,
-      character: {
-        id: npcActorId(npc.id), name: npc.name, position: npc.position, characterId: npc.characterId,
-        appearance: this.catalog?.characters.find(character => character.id === npc.characterId),
-        facing: 'down', state: 'idle', target: null, waypoints: [], speed: room.walkSpeed ?? 130, walkFrame: 0, frameTimer: 0
-      }
-    }));
-    this.update(npcs);
+    this.speed = room.walkSpeed ?? 130;
+    this.actors = [];
+    this.update(room.npcs ?? []);
   }
 
   public setCatalog(catalog: CharacterCatalog): void {
@@ -32,15 +26,18 @@ export class NpcCast {
   }
 
   public update(npcs: readonly NpcPresence[]): void {
-    for (const entry of this.actors) {
-      const npc = npcs.find(candidate => candidate.id === entry.npc.id);
-      if (!npc) continue;
-      entry.npc = npc;
-      const character = entry.character;
+    const previous = new Map(this.actors.map(entry => [entry.npc.id, entry.character]));
+    this.actors = npcs.map(npc => {
+      const character: Character = previous.get(npc.id) ?? {
+        id: npcActorId(npc.id), name: npc.name, position: npc.position, characterId: npc.characterId,
+        appearance: this.catalog?.characters.find(character => character.id === npc.characterId),
+        facing: 'down', state: 'idle', target: null, waypoints: [], speed: this.speed, walkFrame: 0, frameTimer: 0
+      };
       character.position = npc.position;
       assignPathToCharacter(character, [...(npc.motion?.route ?? [])]);
       character.facing = npc.motion?.direction ?? 'down';
-    }
+      return { npc, character };
+    });
   }
 
   public advance(dt: number): void {

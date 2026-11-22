@@ -129,7 +129,9 @@ export class NpcDialoguePanel {
     const result = await dialogue.choose(option);
     if (this.dialogue !== dialogue) return;
     this.pending = false;
-    if (result.selected) {
+    if (result.tourStarted) {
+      this.close();
+    } else if (result.selected) {
       this.nextOptions = result.options;
       this.exchange(dialogue.npc, result.selected);
       if (this.skipPendingQuestion) this.advance();

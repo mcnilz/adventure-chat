@@ -13,6 +13,8 @@ import type {
   ObjectActionFeedbackDto,
   DialogueOption,
   NpcDialogueResult,
+  NpcTourStatus,
+  RoomSnapshotDto,
 } from '../types.js';
 import type { HubConnection } from '@microsoft/signalr';
 
@@ -29,6 +31,9 @@ export interface RoomClientEvents {
   onReconnected: () => Promise<void>;
   onObjectStatesChanged: (dto: ObjectStatesChangedDto) => void;
   onNpcMovement: (dto: import('../types.js').NpcMovementDto) => void;
+  onNpcTourStatus: (dto: NpcTourStatus) => void;
+  onNpcTourRoomChanging: () => void;
+  onNpcTourRoomChanged: (snapshot: RoomSnapshotDto) => void;
   onObjectActionFeedback: (dto: ObjectActionFeedbackDto) => void;
   onWorldReset: () => void;
 }
@@ -70,6 +75,9 @@ export class RoomNetworkClient {
       });
       this.hubConnection.on('ObjectStatesChanged', (dto: ObjectStatesChangedDto) => this.events.onObjectStatesChanged(dto));
       this.hubConnection.on('NpcMovement', (dto: import('../types.js').NpcMovementDto) => this.events.onNpcMovement(dto));
+      this.hubConnection.on('NpcTourStatus', this.events.onNpcTourStatus);
+      this.hubConnection.on('NpcTourRoomChanging', this.events.onNpcTourRoomChanging);
+      this.hubConnection.on('NpcTourRoomChanged', this.events.onNpcTourRoomChanged);
       this.hubConnection.on('ObjectActionFeedback', (dto: ObjectActionFeedbackDto) => this.events.onObjectActionFeedback(dto));
       this.hubConnection.on('WorldReset', () => this.events.onWorldReset());
 
@@ -187,10 +195,10 @@ export class RoomNetworkClient {
   public async requestNpcDialogue(roomId: string, npcId: string, choice?: DialogueOption,
     approachId?: string, prepare = false): Promise<NpcDialogueResult> {
     if (!this.hubConnection || this.connectionStatus !== 'connected') {
-      return { error: 'Nicht verbunden.', options: null, tooFar: false, selected: null };
+      return { error: 'Nicht verbunden.', options: null, tooFar: false, selected: null, tourStarted: false };
     }
     try { return await this.hubConnection.invoke<NpcDialogueResult>('RequestNpcDialogue', { roomId, npcId, choice, approachId, prepare }); }
-    catch { return { error: 'Das Gespräch konnte nicht geladen werden.', options: null, tooFar: false, selected: null }; }
+    catch { return { error: 'Das Gespräch konnte nicht geladen werden.', options: null, tooFar: false, selected: null, tourStarted: false }; }
   }
 
   public async endNpcDialogue(approachId: string): Promise<void> {
@@ -199,7 +207,17 @@ export class RoomNetworkClient {
     catch { /* Room departure or disconnection also releases the NPC. */ }
   }
 
-  public async sendChatMessage(text: string): Promise<SendChatMessageResultDto> {
+  public async cancelNpcTour(): Promise<boolean> {
+    if (!this.hubConnection || this.connectionStatus !== 'connected') return false;
+    try {
+      await this.hubConnection.invoke('CancelNpcTour');
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  public async sendChatMessage(text: string, roomId?: string): Promise<SendChatMessageResultDto> {
     if (!this.hubConnection || this.connectionStatus !== 'connected') {
       return { success: false, error: 'Nicht mit dem Server verbunden.', message: null };
     }
@@ -207,6 +225,7 @@ export class RoomNetworkClient {
     try {
       const result: SendChatMessageResultDto = await this.hubConnection.invoke('SendChatMessage', {
         text,
+        roomId,
       });
       return result;
     } catch (e) {

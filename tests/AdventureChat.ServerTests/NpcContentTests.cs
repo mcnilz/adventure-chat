@@ -6,6 +6,26 @@ namespace AdventureChat.ServerTests;
 
 public class NpcContentTests
 {
+    [Test]
+    public void ConfiguredTourSurvivesRoomSaveAndRejectsPriorFormat()
+    {
+        var serializer = new RoomYamlSerializer();
+        var yaml = serializer.Serialize(DynamicNavigationTests.Room()) + NpcYaml.Replace("    options:", """
+                followDistance: 48
+                tour:
+                  - { position: { x: 65, y: 50 }, text: Start }
+                  - { exit: next }
+                  - { position: { x: 70, y: 50 }, text: Ziel }
+                options:
+            """, StringComparison.Ordinal);
+        var room = serializer.Deserialize(yaml);
+        var saved = serializer.Serialize(RoomYamlDto.FromRoomDefinition(room.ToRoomDefinition()));
+        Assert.That(saved, Does.Contain("exit: next").And.Contain("text: Ziel").And.Contain("followDistance: 48"));
+        Assert.That(new RoomValidator(WorldPackage.FindSchema("room.schema.json", "1.14.0")).Validate(room).Errors, Is.Empty);
+        Assert.That(new RoomValidator(WorldPackage.FindSchema("room.schema.json", "1.13.0")).Validate(room).Errors,
+            Has.Some.Contains("tour"));
+    }
+
     private const string NpcYaml = """
 
             npcs:

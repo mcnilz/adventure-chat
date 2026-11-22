@@ -46,7 +46,10 @@ public partial class RoomSessionManager
             var updates = new List<NpcMovementDto>();
             var updateEmptyRooms = now >= _nextEmptyRoomUpdate;
             if (updateEmptyRooms) _nextEmptyRoomUpdate = now + NpcCorrectionIntervalMs;
-            foreach (var roomId in _npcPatrols.Keys)
+            var guideRooms = TourGuides().Select(guide => guide.Actor.RoomId);
+            var rooms = _npcPatrols.Keys.Concat(guideRooms).Concat(_tourNpcRooms).Distinct().ToArray();
+            _tourNpcRooms.Clear();
+            foreach (var roomId in rooms)
             {
                 var hasVisitors = occupied.Contains(roomId);
                 if (!hasVisitors && !updateEmptyRooms) continue;
@@ -57,7 +60,7 @@ public partial class RoomSessionManager
                     _npcBroadcasts.Remove(roomId);
                     continue;
                 }
-                var npcs = NpcPresences(room, now)!;
+                var npcs = NpcPresences(room, now) ?? [];
                 if (_npcBroadcasts.TryGetValue(roomId, out var previous) && SameNpcRoutes(previous.Npcs, npcs) &&
                     (now - previous.Timestamp < NpcCorrectionIntervalMs || !npcs.Any(npc => npc.Motion is { Route.Count: > 1 })))
                     continue;
@@ -71,6 +74,7 @@ public partial class RoomSessionManager
     private static bool SameNpcRoutes(IReadOnlyList<NpcPresence> previous, IReadOnlyList<NpcPresence> current) =>
         previous.Count == current.Count && previous.Zip(current).All(pair =>
         {
+            if (pair.First.Id != pair.Second.Id) return false;
             var before = pair.First.Motion;
             var after = pair.Second.Motion;
             if (before is null || after is null) return before == after;
@@ -81,11 +85,15 @@ public partial class RoomSessionManager
 
     private IReadOnlyList<NpcPresence>? NpcPresences(RoomDefinition room, double now)
     {
-        if (room.Npcs is null) return null;
+        var guides = TourGuides().Where(guide => guide.Actor.RoomId == room.Id).ToArray();
+        if (room.Npcs is null && guides.Length == 0) return null;
         var patrols = UpdateNpcPatrols(room, now);
         var geometry = _navigation.Geometry(room);
-        return room.Npcs.Select(npc => patrols.FirstOrDefault(patrol => patrol.Id == npc.Id)?.Presence(geometry) ??
-            new NpcPresence(npc.Id, npc.Name, npc.CharacterId, npc.Position, npc.TalkPoint)).ToList();
+        var npcs = (room.Npcs ?? []).Where(npc => !GuideIsBusy(room.Id, npc.Id))
+            .Select(npc => patrols.FirstOrDefault(patrol => patrol.Id == npc.Id)?.Presence(geometry) ??
+                new NpcPresence(npc.Id, npc.Name, npc.CharacterId, npc.Position, npc.TalkPoint)).ToList();
+        npcs.AddRange(guides.Select(guide => guide.Presence()));
+        return npcs;
     }
 
     private RoomDefinitionDto SnapshotRoom(RoomDefinition room)

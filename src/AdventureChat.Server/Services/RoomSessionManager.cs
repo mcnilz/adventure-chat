@@ -90,67 +90,48 @@ public partial class RoomSessionManager : IRoomSessionManager
     {
         lock (_lock)
         {
-        ProcessActorActivities();
-        if (!_sessionsByConnection.TryGetValue(connectionId, out var session))
-        {
-            return new ChangeRoomResult(false, "Player session not found.", null, null, null);
+            ProcessActorActivities();
+            if (!_sessionsByConnection.TryGetValue(connectionId, out var session))
+                return new(false, "Player session not found.", null, null, null);
+            if (TourControlsPlayer(connectionId))
+                return new(false, "Beende zuerst die Führung.", session.RoomId, session, null);
+            var oldRoomId = session.RoomId;
+            var error = TraverseExit(session, exitId);
+            if (error is not null) return new(false, error, oldRoomId, session, null);
+            CancelNpcApproach(connectionId);
+            return new(true, null, oldRoomId, session, GetSnapshot(connectionId));
         }
+    }
 
-        var currentRoom = _roomService.GetRoom(session.RoomId);
-        var exit = currentRoom?.Exits.FirstOrDefault(e => string.Equals(e.Id, exitId, StringComparison.OrdinalIgnoreCase));
-        if (exit is null)
-        {
-            return new ChangeRoomResult(false, "Exit not found.", session.RoomId, session, null);
-        }
-
-        if (!_navigation.ExitUsable(currentRoom!, exit))
-            return new ChangeRoomResult(false, "Der Ausgang oder sein Ziel ist derzeit gesperrt.", session.RoomId, session, null);
+    private string? TraverseExit(PlayerSession session, string exitId)
+    {
+        var room = _roomService.GetRoom(session.RoomId);
+        var exit = room?.Exits.FirstOrDefault(e => string.Equals(e.Id, exitId, StringComparison.OrdinalIgnoreCase));
+        if (room is null || exit is null) return "Exit not found.";
+        if (!_navigation.ExitUsable(room, exit)) return "Der Ausgang oder sein Ziel ist derzeit gesperrt.";
 
         AdvanceMovement(session);
         // Five pixels allow for small network and frame timing differences.
-        var dx = session.Position.X - exit.Position.X;
-        var dy = session.Position.Y - exit.Position.Y;
-        if (Math.Sqrt(dx * dx + dy * dy) > exit.Radius + 5)
-            return new ChangeRoomResult(false, "Exit is too far away.", session.RoomId, session, null);
-        var targetRoom = _roomService.GetRoom(exit.TargetRoomId);
-        var spawn = targetRoom?.Spawns.FirstOrDefault(s => string.Equals(s.Id, exit.TargetSpawnId, StringComparison.OrdinalIgnoreCase));
-        if (targetRoom is null || spawn is null || !targetRoom.Geometry.IsWalkable(spawn.Position))
-            return new ChangeRoomResult(false, "Exit destination is invalid.", session.RoomId, session, null);
+        if (session.Position.DistanceTo(exit.Position) > exit.Radius + 5) return "Exit is too far away.";
+        var target = _roomService.GetRoom(exit.TargetRoomId)!;
+        var spawn = target.Spawns.First(s => string.Equals(s.Id, exit.TargetSpawnId, StringComparison.OrdinalIgnoreCase));
+        PlaceInRoom(session, target.Id, spawn.Position);
+        return null;
+    }
 
-        var oldRoomId = session.RoomId;
-        var targetRoomId = targetRoom.Id;
-        var targetSpawnPos = spawn.Position;
-        if (!targetRoom.Geometry.IsWalkable(targetSpawnPos))
-        {
-            targetSpawnPos = targetRoom.SpawnPoint;
-        }
-
-        lock (_lock)
-        {
-            session.RoomId = targetRoomId;
-            CancelNpcApproach(connectionId);
-            session.Position = targetSpawnPos;
-            session.Direction = "down";
-            session.State = "idle";
-            session.ObjectAnimation = null;
-            session.AnimationApproach = null;
-            session.MovementRevision++;
-            session.NavigationStopped = false;
-            session.Target = null;
-            session.Waypoints.Clear();
-            session.LastActivity = DateTime.UtcNow;
-
-            foreach (var player in _sessionsByConnection.Values.Where(s => s.RoomId == targetRoomId))
-                AdvanceMovement(player);
-
-            var players = _sessionsByConnection.Values
-                .Where(s => s.RoomId == targetRoomId)
-                .Select(s => s.ToDto())
-                .ToList();
-
-            return new ChangeRoomResult(true, null, oldRoomId, session, GetSnapshot(connectionId));
-        }
-        }
+    private static void PlaceInRoom(PlayerSession session, string roomId, Point2D spawn)
+    {
+        session.RoomId = roomId;
+        session.Position = spawn;
+        session.Direction = "down";
+        session.State = "idle";
+        session.ObjectAnimation = null;
+        session.AnimationApproach = null;
+        session.MovementRevision++;
+        session.NavigationStopped = false;
+        session.Target = null;
+        session.Waypoints.Clear();
+        session.LastActivity = DateTime.UtcNow;
     }
 
     public PlayerSession? Leave(string connectionId)
@@ -160,6 +141,8 @@ public partial class RoomSessionManager : IRoomSessionManager
             ProcessActorActivities();
             _messageTimestampsByConnection.TryRemove(connectionId, out _);
             CancelNpcApproach(connectionId);
+            ReleaseTour(connectionId);
+            _tourTransfers.Remove(connectionId);
             if (_sessionsByConnection.TryRemove(connectionId, out var session))
             {
                 return session;
@@ -192,6 +175,10 @@ public partial class RoomSessionManager : IRoomSessionManager
             ProcessActorActivities();
             var result = save();
             if (!result.Success) return result;
+            foreach (var tour in _npcTours.Values.ToArray())
+                StopTour(tour, "Die Führung wurde beendet, weil sich die Welt geändert hat.");
+            foreach (var guide in _returningGuides.Values.ToArray())
+                FinishGuideReturn(guide);
             _interactions.Reset();
             _npcPatrols.Clear();
             _npcApproaches.Clear();
@@ -212,6 +199,7 @@ public partial class RoomSessionManager : IRoomSessionManager
         {
             ProcessActorActivities();
             if (!_sessionsByConnection.TryGetValue(connectionId, out var session)) return new(false, "Sitzung nicht gefunden.", []);
+            if (TourControlsPlayer(connectionId)) return new(false, "Beende zuerst die Führung.", []);
             CancelNpcApproach(connectionId);
             return StartObjectAction(session, request);
         }
@@ -237,6 +225,8 @@ public partial class RoomSessionManager : IRoomSessionManager
             ProcessActorActivities();
             if (!_sessionsByConnection.TryGetValue(connectionId, out var session))
                 return new MoveResult(false, "Player session not found.", null, null, null);
+            if (TourControlsPlayer(connectionId))
+                return new MoveResult(false, "Beende zuerst die Führung.", null, null, null);
             var room = _roomService.GetRoom(session.RoomId);
             if (room is null)
                 return new MoveResult(false, $"Room '{session.RoomId}' not found.", null, null, null);
@@ -263,7 +253,12 @@ public partial class RoomSessionManager : IRoomSessionManager
                 AnimationChange: canceledAnimation ? PublishAnimationView(room.Id) : null);
         }
 
-        var waypoints = pathResult.Waypoints!;
+        return BeginMovement(session, target, pathResult.Waypoints!, now);
+    }
+
+    private static MoveResult BeginMovement(PlayerSession session, Point2D target,
+        IReadOnlyList<Point2D> waypoints, DateTimeOffset now)
+    {
         session.Target = target;
         session.NavigationStopped = false;
         session.Waypoints = waypoints.ToList();
@@ -273,6 +268,7 @@ public partial class RoomSessionManager : IRoomSessionManager
         session.LastActivity = DateTime.UtcNow;
         if (waypoints.Count > 1)
         {
+            var start = session.Position;
             var next = waypoints[1];
             var dx = next.X - start.X;
             var dy = next.Y - start.Y;
@@ -333,7 +329,7 @@ public partial class RoomSessionManager : IRoomSessionManager
         }
     }
 
-    public SendChatMessageResult SendChatMessage(string connectionId, string text)
+    public SendChatMessageResult SendChatMessage(string connectionId, string text, string? expectedRoomId = null)
     {
         if (!_sessionsByConnection.TryGetValue(connectionId, out var session))
         {
@@ -369,27 +365,25 @@ public partial class RoomSessionManager : IRoomSessionManager
             timestamps.Enqueue(now);
         }
 
-        var message = new ChatMessageDto(
-            Guid.NewGuid().ToString("N"),
-            session.SessionId,
-            session.DisplayName,
-            trimmedText,
-            now,
-            session.RoomId
-        );
-
         lock (_lock)
         {
-            var history = _roomChatHistory.GetOrAdd(session.RoomId, _ => new List<ChatMessageDto>());
+            if (_sessionsByConnection.GetValueOrDefault(connectionId) != session)
+                return new(false, "Player session not found. Please join room first.", null);
+            var roomId = session.RoomId;
+            if (_tourTransfers.Contains(connectionId) ||
+                expectedRoomId is not null && !string.Equals(expectedRoomId, roomId, StringComparison.OrdinalIgnoreCase))
+                return new(false, "Der Raum hat sich geändert. Sende die Nachricht erneut.", null);
+            var message = new ChatMessageDto(Guid.NewGuid().ToString("N"), session.SessionId, session.DisplayName,
+                trimmedText, now, roomId);
+            var history = _roomChatHistory.GetOrAdd(roomId, _ => new List<ChatMessageDto>());
             history.Add(message);
             if (history.Count > MaxChatHistoryPerRoom)
             {
                 history.RemoveAt(0);
             }
             session.LastActivity = now;
+            return new(true, null, message);
         }
-
-        return new SendChatMessageResult(true, null, message);
     }
 
     private static string SanitizeDisplayName(string? name, string connectionId)

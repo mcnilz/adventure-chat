@@ -17,6 +17,7 @@ public class PlayerSession
     public bool NavigationStopped { get; set; }
     internal ActiveObjectAnimation? ObjectAnimation { get; set; }
     internal ObjectAnimationApproach? AnimationApproach { get; set; }
+    internal SemaphoreSlim RoomMembership { get; } = new(1, 1);
     public DateTime LastActivity { get; set; } = DateTime.UtcNow;
 
     public PlayerDto ToDto(DateTimeOffset? timestamp = null)
@@ -127,7 +128,8 @@ public record ChatMessageDto(
 );
 
 public record SendChatMessageRequestDto(
-    string Text
+    string Text,
+    string? RoomId = null
 );
 
 public record SendChatMessageResultDto(

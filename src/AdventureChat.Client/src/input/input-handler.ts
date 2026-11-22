@@ -13,6 +13,7 @@ export interface InputHandlerCallbacks {
   onUnavailableTarget: () => void;
   onCanvasAction: (objectId: string | undefined, leavingRoom?: boolean) => void;
   onTalk: (npc: NpcPresence) => Promise<void>;
+  canInteract?: () => boolean;
 }
 
 export class InputHandler {
@@ -88,6 +89,7 @@ export class InputHandler {
 
   public async handleCanvasClick(clientX: number, clientY: number): Promise<{ point: Point; exit: RoomExit | null }> {
     const logical = this.screenToLogical(clientX, clientY);
+    if (this.callbacks.canInteract?.() === false) return { point: logical, exit: null };
     if (this.getVerb() === 'talk') {
       this.callbacks.onCanvasAction(undefined);
       const npc = this.getNpcAt(logical);

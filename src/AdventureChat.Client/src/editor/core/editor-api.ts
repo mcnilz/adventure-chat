@@ -111,7 +111,7 @@ export class EditorApi {
   public static async previewDialogue(location: PreviewLocation, npcId: string,
     choice?: DialogueOption, prepare = false): Promise<PreviewDialogueResponse> {
     try { return await this.previewCommand<PreviewDialogueResponse>('dialogue', { location, npcId, choice, prepare }); }
-    catch (error) { return { dialogue: { error: String(error), options: null, tooFar: false, selected: null } }; }
+    catch (error) { return { dialogue: { error: String(error), options: null, tooFar: false, selected: null, tourStarted: false } }; }
   }
 
   private static async previewCommand<T = PreviewResult>(command: 'action' | 'exit' | 'snapshot' | 'dialogue', body: object): Promise<T> {

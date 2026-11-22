@@ -128,6 +128,7 @@ export class ChatUiController {
         if (this.onSendMessage) {
           const result = await this.onSendMessage(trimmed);
           if (!result.success) {
+            if (!input.value) input.value = rawText;
             this.appendSystemError(result.error || 'Nachricht konnte nicht gesendet werden.');
           }
         }

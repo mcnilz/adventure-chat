@@ -58,20 +58,8 @@ public class RoomHub : Hub
             return new ChangeRoomResultDto(false, result.Error ?? "Could not change room.", null);
         }
 
-        // 1. Leave old room group & notify old room participants
-        if (!string.IsNullOrEmpty(result.OldRoomId))
-        {
-            await Groups.RemoveFromGroupAsync(Context.ConnectionId, Group(result.OldRoomId));
-            await Clients.Group(Group(result.OldRoomId)).SendAsync("UserLeft", new UserLeftDto(result.Session.SessionId, result.Session.DisplayName, result.OldRoomId));
-        }
-
-        // 2. Join new room group & notify new room participants
-        await Groups.AddToGroupAsync(Context.ConnectionId, Group(result.Session.RoomId));
-        var snapshot = Sessions.GetSnapshot(Context.ConnectionId);
-        if (snapshot is null) return new ChangeRoomResultDto(false, "Session not found.", null);
-        await Clients.GroupExcept(Group(result.Session.RoomId), Context.ConnectionId).SendAsync("UserJoined", new UserJoinedDto(result.Session.ToDto(), result.Session.RoomId));
-
-        return new ChangeRoomResultDto(true, null, snapshot);
+        var snapshot = await RoomTransfer.Publish(Sessions, Groups, Clients, Group, result.Session, result.OldRoomId!);
+        return snapshot is null ? new(false, "Session not found.", null) : new(true, null, snapshot);
     }
 
     public async Task<MoveResultDto> RequestMove(RequestMoveDto request)
@@ -91,7 +79,7 @@ public class RoomHub : Hub
             return new MoveResultDto(false, moveResult.Error ?? "Move request rejected.");
         }
 
-        var message = new PlayerMovedDto(moveResult.SessionId!, moveResult.Target, moveResult.Waypoints, moveResult.RoomId!, moveResult.Revision);
+        var message = moveResult.ToMovementDto();
         await Clients.Group(Group(moveResult.RoomId!)).SendAsync("PlayerMoved", message);
 
         return new MoveResultDto(true, null);
@@ -99,24 +87,29 @@ public class RoomHub : Hub
 
     public async Task<SendChatMessageResultDto> SendChatMessage(SendChatMessageRequestDto request)
     {
-        var result = Sessions.SendChatMessage(Context.ConnectionId, request.Text);
-        if (!result.Success || result.Message is null)
+        var sessions = Sessions;
+        if (sessions.GetPlayer(Context.ConnectionId) is not { } player)
+            return new(false, "Player session not found. Please join room first.", null);
+        await player.RoomMembership.WaitAsync();
+        try
         {
-            return new SendChatMessageResultDto(false, result.Error ?? "Message rejected.", null);
+            var result = sessions.SendChatMessage(Context.ConnectionId, request.Text, request.RoomId);
+            if (!result.Success || result.Message is null)
+                return new(false, result.Error ?? "Message rejected.", null);
+            await Clients.Group(Group(result.Message.RoomId)).SendAsync("ChatMessageReceived", result.Message);
+            return new(true, null, result.Message);
         }
-
-        // Broadcast message to all clients in the same room
-        await Clients.Group(Group(result.Message.RoomId)).SendAsync("ChatMessageReceived", result.Message);
-
-        return new SendChatMessageResultDto(true, null, result.Message);
+        finally
+        {
+            player.RoomMembership.Release();
+        }
     }
 
     public async Task<ObjectActionResultDto> RequestObjectAction(ObjectActionRequestDto request)
     {
         var result = Sessions.RequestObjectAction(Context.ConnectionId, request);
         if (result.Move is { } move)
-            await Clients.Group(Group(move.RoomId!)).SendAsync("PlayerMoved",
-                new PlayerMovedDto(move.SessionId!, move.Target!, move.Waypoints!, move.RoomId!, move.Revision));
+            await Clients.Group(Group(move.RoomId!)).SendAsync("PlayerMoved", move.ToMovementDto());
         foreach (var change in result.Changes)
             await Clients.Group(Group(change.RoomId)).SendAsync("ObjectStatesChanged", change);
         return new ObjectActionResultDto(result.Success, result.Error, result.ErrorCode, result.Pending);
@@ -125,7 +118,9 @@ public class RoomHub : Hub
     public void CancelObjectApproach() => Sessions.CancelObjectApproach(Context.ConnectionId);
 
     public NpcDialogueResult RequestNpcDialogue(NpcDialogueRequest request) =>
-        Sessions.RequestNpcDialogue(Context.ConnectionId, request);
+        Sessions.RequestNpcDialogue(Context.ConnectionId, request, allowTours: CurrentWorld is not null);
+
+    public void CancelNpcTour() => Sessions.CancelNpcTour(Context.ConnectionId);
 
     public void EndNpcDialogue(string approachId) => Sessions.EndNpcDialogue(Context.ConnectionId, approachId);
 
@@ -143,12 +138,23 @@ public class RoomHub : Hub
 
     public async Task LeaveWorld()
     {
-        var left = Sessions.Leave(Context.ConnectionId);
-        if (left is not null)
+        var sessions = Sessions;
+        if (sessions.GetPlayer(Context.ConnectionId) is { } player)
         {
-            var userLeft = new UserLeftDto(left.SessionId, left.DisplayName, left.RoomId);
-            await Clients.Group(Group(left.RoomId)).SendAsync("UserLeft", userLeft);
-            await Groups.RemoveFromGroupAsync(Context.ConnectionId, Group(left.RoomId));
+            await player.RoomMembership.WaitAsync();
+            try
+            {
+                if (sessions.GetPlayer(Context.ConnectionId) == player && sessions.Leave(Context.ConnectionId) is { } left)
+                {
+                    var userLeft = new UserLeftDto(left.SessionId, left.DisplayName, left.RoomId);
+                    await Clients.Group(Group(left.RoomId)).SendAsync("UserLeft", userLeft);
+                    await Groups.RemoveFromGroupAsync(Context.ConnectionId, Group(left.RoomId));
+                }
+            }
+            finally
+            {
+                player.RoomMembership.Release();
+            }
         }
 
         Context.Items.Remove("world");

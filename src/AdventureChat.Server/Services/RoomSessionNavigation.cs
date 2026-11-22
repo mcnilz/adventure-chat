@@ -33,7 +33,9 @@ public partial class RoomSessionManager
                         if (!KeepsSafetyAnchor(room, patrol.Position, before, after, proposed))
                             return "Diese Änderung würde eine Figur ohne erreichbaren Sicherheitsanker einschließen.";
                     }
-                    foreach (var player in projected.Where(p => p.RoomId == room.Id))
+                    var guides = TourGuides().Where(guide => guide.Actor.RoomId == room.Id)
+                        .Select(guide => ProjectMovement(guide.Actor, now));
+                    foreach (var player in projected.Where(p => p.RoomId == room.Id).Concat(guides))
                     {
                         if (!after.IsWalkable(player.Position)) return "Diese Änderung würde eine Figur überdecken.";
                         if (!KeepsSafetyAnchor(room, player.Position, before, after, proposed))
@@ -46,13 +48,22 @@ public partial class RoomSessionManager
 
         // Commit movement at the exact timestamp used for every safety check.
         foreach (var player in _sessionsByConnection.Values) AdvanceMovement(player, now);
-        foreach (var player in _sessionsByConnection.Values.Where(p => navigationRooms.Contains(p.RoomId)))
+        foreach (var player in _sessionsByConnection.Values.Where(p => navigationRooms.Contains(p.RoomId) &&
+            !_npcTours.ContainsKey(p.ConnectionId)))
             RepairRoute(player, now);
         foreach (var roomId in navigationRooms)
         {
-            if (!_npcPatrols.TryGetValue(roomId, out var patrols)) continue;
             var geometry = _navigation.Geometry(_roomService.GetRoom(roomId)!);
-            foreach (var patrol in patrols) patrol.NavigationChanged(geometry);
+            foreach (var tour in _npcTours.Values.Where(tour => tour.Guide.Actor.RoomId == roomId))
+                RepairTourOnNavigationChange(tour, geometry, now);
+            foreach (var guide in _returningGuides.Values.Where(guide => guide.Actor.RoomId == roomId))
+            {
+                AdvanceMovement(guide.Actor, now);
+                RepairRoute(guide.Actor, now);
+                guide.RetryAt = now;
+            }
+            if (_npcPatrols.TryGetValue(roomId, out var patrols))
+                foreach (var patrol in patrols) patrol.NavigationChanged(geometry);
         }
         onApplied?.Invoke();
         EndInvalidObjectAnimations();
@@ -77,7 +88,7 @@ public partial class RoomSessionManager
         return new ObjectStatesChangedDto(roomId, _interactions.Revision(roomId), _interactions.States(room),
             dto.Geometry, dto.Exits, players.Select(p => p.ToDto(now)).ToList(),
             players.Where(p => p.NavigationStopped).Select(p => p.SessionId).ToList(),
-            _npcPatrols.ContainsKey(roomId) ? new(roomId, ++_npcSample,
+            _npcPatrols.ContainsKey(roomId) || TourGuides().Any(guide => guide.Actor.RoomId == roomId) ? new(roomId, ++_npcSample,
                 NpcPresences(room, now.ToUnixTimeMilliseconds())!) : null);
     }
 
@@ -122,7 +133,7 @@ public partial class RoomSessionManager
         if (player.Target is not { } target || player.State != "walk") return;
         var room = _roomService.GetRoom(player.RoomId)!;
         var geometry = _navigation.Geometry(room);
-        if (player.Waypoints.Zip(player.Waypoints.Skip(1)).All(pair => geometry.HasLineOfSight(pair.First, pair.Second))) return;
+        if (RouteIsUsable(player.Waypoints, geometry)) return;
         var route = _pathfinder.CalculatePath(geometry, player.Position, target);
         player.MovementRevision++;
         player.MovementUpdatedAt = now;
@@ -140,4 +151,8 @@ public partial class RoomSessionManager
         player.State = "idle";
         player.NavigationStopped = true;
     }
+
+    private static bool RouteIsUsable(IReadOnlyList<Point2D> route, RoomGeometry geometry) =>
+        route.All(geometry.IsWalkable) &&
+        route.Zip(route.Skip(1)).All(pair => geometry.HasLineOfSight(pair.First, pair.Second));
 }
