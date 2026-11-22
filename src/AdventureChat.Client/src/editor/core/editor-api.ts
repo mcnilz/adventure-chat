@@ -25,6 +25,7 @@ export interface PreviewNpcPatrols {
     readonly blocked: boolean;
     readonly direction: Direction;
     readonly route: readonly Point[];
+    readonly reactionTarget?: Point | null;
   }[];
   readonly elapsedMs?: number;
   readonly pausedNpc?: string | null;

@@ -54,7 +54,7 @@ objects:
         - { id: ready, name: Bereit, image: assets/images/lounge-bell-ready.png, position: { x: 187, y: 224 }, size: { width: 32, height: 51 }, depthY: 272 }
         - { id: rung, name: Gerufen, image: assets/images/lounge-bell-rung.png, position: { x: 187, y: 224 }, size: { width: 32, height: 51 }, depthY: 272 }
       actions:
-        - { id: ring, name: Drücken, from: ready, to: rung }
+        - { id: ring, name: Drücken, from: ready, to: rung, npcReaction: { npc: nela, position: { x: 160, y: 330 } } }
         - { id: reset, name: Drücken, from: rung, to: ready }
   - id: table
     image: assets/images/lounge-table.png

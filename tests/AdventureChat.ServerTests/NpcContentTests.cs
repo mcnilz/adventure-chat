@@ -6,6 +6,34 @@ namespace AdventureChat.ServerTests;
 
 public class NpcContentTests
 {
+    [TestCase("host", 150, 40, null)]
+    [TestCase("missing", 150, 40, "unknown NPC")]
+    [TestCase("host", 900, 40, "unreachable")]
+    [TestCase("host", 150, 450, "no reachable spawn in the initial state")]
+    public void ActionReactionRoundTripsAndValidatesItsLocalTarget(string npc, int x, int startX, string? error)
+    {
+        var serializer = new RoomYamlSerializer();
+        var yaml = System.Text.RegularExpressions.Regex.Replace(serializer.Serialize(DynamicNavigationTests.Room()),
+            @"(?m)^( +)to: open\r?$",
+            $"$0\n$1npcReaction: {{ npc: {npc}, position: {{ x: {x}, y: 50 }} }}") +
+            NpcYaml.Replace("x: 40, y: 50", $"x: {startX}, y: 50", StringComparison.Ordinal)
+                .Replace("x: 60, y: 50", $"x: {startX + 20}, y: 50", StringComparison.Ordinal);
+        Assert.That(yaml, Does.Contain("npcReaction:"));
+        var room = serializer.Deserialize(yaml);
+        var validator = new RoomValidator(WorldPackage.FindSchema("room.schema.json", "1.15.0"));
+        var result = validator.Validate(room);
+        if (error is not null)
+        {
+            Assert.That(result.Errors, Has.Some.Contains(error));
+            return;
+        }
+        Assert.That(result.Errors, Is.Empty);
+        var saved = serializer.Serialize(RoomYamlDto.FromRoomDefinition(room.ToRoomDefinition()));
+        Assert.That(saved, Does.Contain("npcReaction:").And.Contain("npc: host").And.Contain("x: 150"));
+        Assert.That(new RoomValidator(WorldPackage.FindSchema("room.schema.json", "1.14.0")).Validate(room).Errors,
+            Has.Some.Contains("npcReaction"));
+    }
+
     [Test]
     public void ConfiguredTourSurvivesRoomSaveAndRejectsPriorFormat()
     {

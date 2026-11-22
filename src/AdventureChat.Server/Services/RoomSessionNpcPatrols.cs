@@ -17,20 +17,42 @@ public partial class RoomSessionManager
 
     private double NpcNow => _clock.GetUtcNow().ToUnixTimeMilliseconds();
 
+    private static IEnumerable<ObjectNpcReaction> NpcReactions(RoomDefinition room) =>
+        (room.Objects ?? []).SelectMany(obj => obj.Interaction?.Actions ?? [])
+            .Select(action => action.NpcReaction).OfType<ObjectNpcReaction>();
+
+    private static IEnumerable<NpcDefinition> MovingNpcs(RoomDefinition room)
+    {
+        if (room.Npcs is not { Count: > 0 }) return [];
+        var calledNpcs = NpcReactions(room).Select(reaction => reaction.Npc).ToHashSet(StringComparer.Ordinal);
+        return room.Npcs.Where(npc => npc.Waypoints is not null || calledNpcs.Contains(npc.Id));
+    }
+
+    private bool NpcHasConversation(string roomId, string npcId, double now) =>
+        _npcApproaches.Values.Any(approach => approach.RoomId == roomId && approach.NpcId == npcId &&
+            approach.ExpiresAt > now);
+
+    private void StartNpcReaction(string roomId, ObjectNpcReaction reaction, double now)
+    {
+        if (_roomService.GetRoom(roomId) is not { } room ||
+            GuideIsBusy(room.Id, reaction.Npc) || NpcHasConversation(room.Id, reaction.Npc, now)) return;
+        var npc = UpdateNpcPatrols(room, now).FirstOrDefault(patrol => patrol.Id == reaction.Npc);
+        npc?.React(reaction.Position, _navigation.Geometry(room), _pathfinder);
+    }
+
     private NpcPatrol[] UpdateNpcPatrols(RoomDefinition room, double now)
     {
-        if (room.Npcs?.Any(npc => npc.Waypoints is not null) != true) return [];
         if (!_npcPatrols.TryGetValue(room.Id, out var patrols))
         {
-            patrols = room.Npcs.Where(npc => npc.Waypoints is not null).Select(npc => new NpcPatrol(npc, now)).ToArray();
+            patrols = MovingNpcs(room).Select(npc => new NpcPatrol(npc, now)).ToArray();
+            if (patrols.Length == 0) return [];
             _npcPatrols.Add(room.Id, patrols);
         }
         var geometry = _navigation.Geometry(room);
         foreach (var patrol in patrols)
         {
-            var paused = _npcApproaches.Values.Any(approach => approach.RoomId == room.Id && approach.NpcId == patrol.Id &&
-                approach.ExpiresAt > now);
-            patrol.Advance(now, geometry, room.WalkSpeed, _pathfinder, paused);
+            if (!GuideIsBusy(room.Id, patrol.Id))
+                patrol.Advance(now, geometry, room.WalkSpeed, _pathfinder, NpcHasConversation(room.Id, patrol.Id, now));
         }
         return patrols;
     }
@@ -132,7 +154,7 @@ public partial class RoomSessionManager
         var now = NpcNow;
         var start = now - Math.Clamp(preview.ElapsedMs, 0, 300_000);
         var resumeAt = preview.ResumeAfterMs is { } delay ? Math.Min(now, start + Math.Max(0, delay)) : (double?)null;
-        var patrols = (room.Npcs ?? []).Where(npc => npc.Waypoints is not null)
+        var patrols = MovingNpcs(room)
             .Select(npc => new NpcPatrol(npc, npc.Id == preview.PausedNpc ? resumeAt ?? start : start)).ToArray();
         if (preview.Checkpoints is null || preview.Checkpoints.Count != patrols.Length ||
             preview.Checkpoints.Any(checkpoint => checkpoint is null) ||
@@ -144,6 +166,9 @@ public partial class RoomSessionManager
         {
             var patrol = patrols.FirstOrDefault(patrol => patrol.Id == checkpoint.Id)
                 ?? throw new ArgumentException("Unknown preview NPC.");
+            if (checkpoint.ReactionTarget is { } target &&
+                !NpcReactions(room).Any(reaction => reaction.Npc == checkpoint.Id && reaction.Position == target))
+                throw new ArgumentException("Unknown preview NPC reaction target.");
             patrol.Restore(checkpoint, geometry);
             var paused = preview.PausedNpc == patrol.Id && resumeAt is null;
             patrol.Advance(now, geometry, room.WalkSpeed, _pathfinder, paused);

@@ -231,6 +231,7 @@ public sealed class RoomService : IRoomService
         ObjectAction ConvertAction(ObjectAction action) => new()
         {
             Id = action.Id, Name = action.Name, From = action.From, To = action.To, Effects = action.Effects,
+            NpcReaction = action.NpcReaction,
             ActorAnimation = action.ActorAnimation is not { } animation ? null : new()
             {
                 Point = animation.Point, Direction = animation.Direction, DurationMs = animation.DurationMs,

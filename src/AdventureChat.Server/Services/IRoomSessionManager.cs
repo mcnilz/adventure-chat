@@ -11,7 +11,10 @@ public record MoveResult(bool Success, string? Error, string? SessionId, PointDt
 }
 public record SendChatMessageResult(bool Success, string? Error, ChatMessageDto? Message);
 public record ObjectActionResult(bool Success, string? Error, IReadOnlyList<ObjectStatesChangedDto> Changes, string? ErrorCode = null,
-    bool Pending = false, MoveResult? Move = null);
+    bool Pending = false, MoveResult? Move = null)
+{
+    internal ObjectNpcReaction? NpcReaction { get; init; }
+}
 
 public interface IRoomSessionManager
 {

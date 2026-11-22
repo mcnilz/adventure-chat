@@ -1,5 +1,5 @@
 # Umsetzungsplan
-Status (22.11.2026): Tickets 01–23 und 25–31 sind menschlich abgenommen und done. Epic 24 und Ticket 32 stehen auf draft. Tatsächliche Implementierungs- und Testbelege stehen im jeweiligen Ticket und in active-state.md.
+Status (22.11.2026): Tickets 01–23 und 25–31 sind menschlich abgenommen und done. Ticket 32 ist ready-for-human. Epic 24 steht auf draft. Tatsächliche Implementierungs- und Testbelege stehen im jeweiligen Ticket und in active-state.md.
 
 | Ticket | Vorführbares Ergebnis | Blocked by |
 | --- | --- | --- |
@@ -34,7 +34,7 @@ Status (22.11.2026): Tickets 01–23 und 25–31 sind menschlich abgenommen und 
 | [29 (done)](.scratch/adventure-chat/issues/29-npc-movement.md) | NPC läuft eine zyklische Wegpunktfolge und pausiert für Gespräche | 21, 27 |
 | [30 (done)](.scratch/adventure-chat/issues/30-follow-npc.md) | Einem NPC freiwillig durch mehrere Räume folgen und abbrechen | 27, 29 |
 | [31 (done)](.scratch/adventure-chat/issues/31-combined-reference-scenario.md) | Objektinteraktionen, Dialog und Führung in einer Referenzszene erleben | 25, 26, 28, 30 |
-| [32 (draft)](.scratch/adventure-chat/issues/32-object-triggered-npc-reactions.md) | Optional eine Objektaktion mit einer gezielten NPC-Reaktion verbinden | 20, 21, 29 |
+| [32 (ready-for-human)](.scratch/adventure-chat/issues/32-object-triggered-npc-reactions.md) | Optional eine Objektaktion mit einer gezielten NPC-Reaktion verbinden | 20, 21, 29 |
 
 Tickets 14–16 wurden am 04.11.2026 auf Benutzerauftrag als draft angelegt. Nur Planung beauftragt; andere Agenten übernehmen die spätere Umsetzung nach Bestätigung von Umfang und Testgrenzen. Verbindliche Reihenfolge laut anschließendem Benutzerauftrag: 14 → 15 → 16 → 13. Keine automatische Parallelbeauftragung. Formatversionen fortlaufend anhand des tatsächlichen Stands wählen; Ticket 13 ergänzt seine Demo-Anforderungen erst nach der neuen Referenzwelt.
 

@@ -26,3 +26,7 @@ Der Server bestimmt den flüchtigen Zustand pro Weltinstanz und ordnet konkurrie
 Skripte oder automatische Ereignisketten würden mehr Ausdruckskraft bieten, bringen aber Ausführungsgrenzen, Fehlerbehandlung und wesentlich komplexere Mehrspielerreihenfolge mit. Freie Möbelphysik erfordert kontinuierliche Kollisionsregeln statt zwei klarer Endzustände. Persistenz würde zusätzliche Lebenszyklus-/Migrationspflichten erzeugen; der ausdrücklich akzeptierte Reset beim Weltneustart vermeidet sie. Diese Optionen sind kein Teil des bestätigten Einstiegs.
 
 Produktumfang und Auftrag stehen in [SPEC](../../SPEC.md), Reihenfolge und Status in [PLAN](../../PLAN.md); Einzelentscheidungen und Testgrenzen in Tickets 20–23. Es wird weder die Abnahme von 18/19 noch die Umsetzung der Erweiterung behauptet.
+
+## Nachtrag zu Ticket 32
+
+Eine erfolgreich abgeschlossene Objektaktion kann ausdrücklich einen NPC im selben Raum zu einem Ziel rufen. Der Server startet den Lauf nach der Zustandsübernahme mit der wirksamen Navigation. Ein abgewiesener oder unterbrochener Ruf hat keine Rückwirkung auf die Objektaktion. Der Ruf ändert keine Objektzustände und stellt keine Folgeaktionen in eine Warteschlange. Das optionale Feld folgt dem [Formatvertrag für 1.15.0](../../CONTENT-FORMAT.md#gezielte-npc-reaktionen-ab-1150).

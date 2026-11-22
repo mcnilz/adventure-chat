@@ -38,6 +38,12 @@ public sealed class ObjectAction
     public string To { get; set; } = "";
     public List<ObjectEffect>? Effects { get; set; }
     public ObjectActorAnimation? ActorAnimation { get; set; }
+    public ObjectNpcReaction? NpcReaction { get; set; }
+}
+
+public sealed record ObjectNpcReaction(string Npc, Point2D Position)
+{
+    public ObjectNpcReaction() : this("", new(double.NaN, double.NaN)) { }
 }
 
 public sealed class ObjectActorAnimation

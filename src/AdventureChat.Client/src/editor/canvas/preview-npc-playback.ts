@@ -42,8 +42,9 @@ export class PreviewNpcPlayback {
     const checkpoints = this.state?.checkpoints ?? [];
     const remaining = checkpoints
       .filter(checkpoint => !checkpoint.blocked && checkpoint.id !== this.state?.pausedNpc)
-      .map(checkpoint => checkpoint.waitMs ||
-        this.duration(this.npcs.find(npc => npc.id === checkpoint.id)?.motion?.route ?? []));
+      .map(checkpoint => this.duration(this.npcs.find(npc => npc.id === checkpoint.id)?.motion?.route ?? []) ||
+        checkpoint.waitMs)
+      .filter(duration => duration > 0);
     this.nextUpdate = this.sampledAt + Math.max(60, Math.min(...remaining));
   }
 

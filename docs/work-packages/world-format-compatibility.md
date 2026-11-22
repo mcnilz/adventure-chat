@@ -127,6 +127,7 @@ Ticket 20 erweitert die ausdrückliche Unterstützung um 1.6.0 und nach Benutzer
 | 28: Zustandsabhängige Gespräche | Format 1.12.0 | Optionale Bedingungen und Antwortvarianten mit Verweisen auf interaktive Objekte im selben Raum. Die Referenzwelt 5.3.0 ergänzt die Klingel in der Startlounge. |
 | 29: NPC-Wegpunkte | Format 1.13.0 | Optionale Wegpunkte. NPCs ohne Wegpunkte stehen weiterhin an ihrer definierten Position. Die Referenzwelt 5.4.0 ergänzt Ida im Tavernen-Garten. |
 | 30: NPC-Führungen | Format 1.14.0 | Optionale Route aus Stationen und Ausgangs-IDs. NPCs ohne Route behalten ihr Verhalten. Die Referenzwelt 5.5.0 ergänzt Nelas Führung von der Lounge in den Garten. |
+| 32: Gezielte NPC-Reaktionen | Format 1.15.0 | Optionale Reaktion je Objektaktion. Ohne Angabe gilt die bisherige Semantik. Die Referenzwelt 5.7.0 ergänzt Nelas Weg zum Lounge-Eingang nach dem Klingeln. |
 
 Versionsnummern bei Paketfreigabe gegen den tatsächlichen Stand prüfen. Eine spätere andere Reihenfolge darf keinen veröffentlichten Vertrag verändern. Bis Implementierung und Prüfung akzeptiert kein Server diese geplanten Versionen allein wegen dieses Dokuments.
 

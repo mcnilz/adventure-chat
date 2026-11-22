@@ -13,8 +13,8 @@ public class ReferenceTourArtTests
     public void ReferenceWorld_UsesPublishedNavigationFormatAndRevisedContentVersion()
     {
         var world = LoadWorld();
-        Assert.That(world.FormatVersion, Is.EqualTo("1.14.0"));
-        Assert.That(world.ContentVersion, Is.EqualTo("5.6.0"));
+        Assert.That(world.FormatVersion, Is.EqualTo("1.15.0"));
+        Assert.That(world.ContentVersion, Is.EqualTo("5.7.0"));
         Assert.That(world.Characters.Select(c => c.Id), Is.EquivalentTo(new[] { "mara", "bruno" }));
     }
 

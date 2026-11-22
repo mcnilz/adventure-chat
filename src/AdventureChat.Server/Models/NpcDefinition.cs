@@ -33,7 +33,7 @@ public sealed record NpcPresence(string Id, string Name, string CharacterId, Poi
 public sealed record NpcMotion(string Direction, IReadOnlyList<Point2D> Route);
 public sealed record NpcMovementDto(string RoomId, long Sample, IReadOnlyList<NpcPresence> Npcs);
 public sealed record NpcPatrolCheckpoint(string Id, Point2D Position, int NextWaypoint, double WaitMs,
-    bool Blocked, string Direction, IReadOnlyList<Point2D> Route);
+    bool Blocked, string Direction, IReadOnlyList<Point2D> Route, Point2D? ReactionTarget = null);
 public sealed record PreviewNpcPatrols(IReadOnlyList<NpcPatrolCheckpoint> Checkpoints, int ElapsedMs = 0,
     string? PausedNpc = null, int? ResumeAfterMs = null);
 public sealed record AvailableDialogueOption(string Id, string Text, string Reply);

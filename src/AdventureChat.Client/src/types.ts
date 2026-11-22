@@ -117,6 +117,7 @@ export interface ObjectAction {
  readonly to: string;
  readonly effects?: ReadonlyArray<{ readonly room: string; readonly object: string; readonly state: string }> | null;
  readonly actorAnimation?: ObjectActorAnimation | null;
+ readonly npcReaction?: { readonly npc: string; readonly position: Point } | null;
 }
 export interface ObjectActorAnimation {
  readonly point: number;

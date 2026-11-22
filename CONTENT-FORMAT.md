@@ -60,7 +60,7 @@ Geplant sind optionale Raumangaben für Draufsicht und feste Figurengröße, hor
 | Weltformat | Raumformat | Unterstützung |
 | --- | --- | --- |
 | `1.0.0` | `legacy-1`, Raum-`version: 1` | Lesen und Schreiben |
-| `1.1.0`–`1.14.0` | `legacy-1`, Raum-`version: 1` | Lesen und Schreiben für jede ausdrücklich veröffentlichte Minor-Version |
+| `1.1.0`–`1.15.0` | `legacy-1`, Raum-`version: 1` | Lesen und Schreiben für jede ausdrücklich veröffentlichte Minor-Version |
 | andere | beliebig | ausdrücklich abgelehnt |
 
 Das Manifest verwendet `formatVersion`, `id`, `name`, `contentVersion`, `startRoom`, `startSpawn` und `roomFormat`. `rooms` und `assets/images` sind paketrelative Verzeichnisse. Dateiname und Raum-ID stimmen überein; Hintergründe sind vollständige PNG-Dateien mit passenden Abmessungen; PNG-Dateien sind auf 64 MiB, ihre dekodierten Bilddaten auf 128 MiB und einzelne YAML-Dateien auf 1 MiB begrenzt. Absolute Pfade, `..` und symbolische Links/Junctions werden abgewiesen. Der Editor schreibt ausschließlich `version: 1`, prüft vorhandene Dateien vor Überschreiben und behält beim normalen Speichern die Manifestversion bei. Schema-Bündel und ihre lokalen Referenzen bleiben nach Veröffentlichung unverändert. Die ursprünglichen Legacy-Dateien und das ursprüngliche Schema bleiben als Referenz erhalten. `1.0.0` ist die erstmalige Veröffentlichung des Weltvertrags, keine Umdeutung des ganzzahligen Raumversionsfeldes; daher ist kein früheres Weltformat umzuversionieren. Weitere Formatänderungen folgen den Regeln im Kompatibilitätsvertrag.
@@ -167,7 +167,7 @@ Nach Erfolg bleiben weiterhin gültige Wege bestehen. Ungültige Wege werden ab 
 
 Die Editorvorschau prüft Wege, Objektaktionen und Ausgänge mit denselben Serverregeln wie das Spiel. Bei einem interaktiven Objekt verwendet „Automatisch“ die Auswahlregel für „Benutzen“. Über die Verbauswahl lässt sich eine konkrete Aktion testen. Die Vorschau verwendet den Raumdraft beim Start und isolierte Objektzustände, die nach einem Raumwechsel erhalten bleiben. Ein Neustart der Vorschau setzt sie auf die Anfangszustände zurück. Synthetisches Beispiel: `tests/Fixtures/navigation`.
 
-Ältere Weltpakete behalten beim Speichern ihr Format. Für eine Aktualisierung auf 1.8.0 bis 1.14.0 wird das höhere unterstützte Zielformat ausdrücklich im Editor gewählt. Vor dem Schreiben prüft der Server Manifest, vorhandene Räume und den Entwurf mit dem Zielvertrag. Speichern aktualisiert das Manifest und den bearbeiteten Raum. Übrige Raumdateien bleiben unverändert.
+Ältere Weltpakete behalten beim Speichern ihr Format. Für eine Aktualisierung auf 1.8.0 bis 1.15.0 wird das höhere unterstützte Zielformat ausdrücklich im Editor gewählt. Vor dem Schreiben prüft der Server Manifest, vorhandene Räume und den Entwurf mit dem Zielvertrag. Speichern aktualisiert das Manifest und den bearbeiteten Raum. Übrige Raumdateien bleiben unverändert.
 
 ### Sichtbare Objektübergänge ab 1.9.0
 
@@ -276,3 +276,22 @@ Die Route hat drei bis 32 Schritte. Sie beginnt und endet an einer Station und e
 Im Spiel erscheint **Führung starten** im Gespräch, sofern der Guide frei ist. Der Server führt jeweils den zustimmenden Gast und prüft begehbare Wege, Ausgänge und Zielspawns anhand der aktuellen Objektzustände. Stationshinweise erscheinen beim Gast. Bei einem unpassierbaren Weg oder Übergang endet die Führung an der aktuellen Position. Nach Abschluss, Abbruch oder Verbindungsende geht der Guide allein über erreichbare Ausgänge zurück. Beim Laden und Speichern muss von jedem Zielspawn der Route ein Rückweg über die statische Raumgeometrie existieren. Solange aktuelle Objektzustände alle Rückwege sperren, bleibt der Guide sichtbar stehen. Sobald er an seiner Ausgangsposition angekommen ist, kann der Gast im Gespräch eine neue Führung beginnen. Die Raumvorschau zeigt den NPC und seine normalen Gesprächsoptionen. Der mehrraumige Führungsablauf läuft im verbundenen Spiel.
 
 Format 1.14.0 ergänzt die optionalen Felder in einem eigenen Schema-Bündel unter `schemas/world/1.14.0/`. NPCs ohne `tour` behalten ihre bisherigen Gesprächs- und Bewegungsregeln.
+
+### Gezielte NPC-Reaktionen ab 1.15.0
+
+Eine Objektaktion kann optional genau einen NPC im selben Raum zu absoluten Raumkoordinaten rufen.
+
+```yaml
+actions:
+  - id: ring
+    name: Drücken
+    from: ready
+    to: rung
+    npcReaction: { npc: nela, position: { x: 160, y: 330 } }
+```
+
+Die NPC-ID muss exakt mit einem Eintrag in `npcs` übereinstimmen. Das Ziel muss über die statische Raumgeometrie von der Ausgangsposition des NPC erreichbar sein. Von dieser Ausgangsposition muss bei den anfänglichen Objektzuständen ein Raumspawn erreichbar sein. Der Objektaktionseditor bietet die lokale NPC-Auswahl und beide Zielkoordinaten an.
+
+Der Server prüft den Ruf nach dem erfolgreichen Abschluss der Aktion anhand der dann gültigen Geometrie. Ein Gespräch einschließlich Anlauf sowie eine Führung einschließlich Rückweg haben Vorrang. Während eines laufenden Rufs verfällt jeder weitere Ruf für diesen NPC. Ein zur Laufzeit unerreichbarer Ruf verfällt, die Objektaktion bleibt wirksam. Wenn ein Hindernis den begonnenen Weg unterbricht, berechnet der Server den Weg neu. Ist das Ziel jetzt unerreichbar, endet der Ruf an der aktuellen Position. Ein stationärer NPC bleibt nach Ankunft ansprechbar am Ziel, eine Patrouille setzt ihren Weg fort. Ein Gespräch kann den begonnenen Weg pausieren. Startet eine Führung, übernimmt sie an der aktuellen Position und der Guide kehrt anschließend zu seiner Ausgangsposition zurück.
+
+Das optionale Feld erscheint im neuen Schema-Bündel `schemas/world/1.15.0/`. Aktionen ohne Angabe behalten ihr Verhalten. Objektzustandsänderungen durch Verknüpfungen lösen keinen Ruf aus. Die isolierte Raumvorschau führt die Bewegung im gerade angezeigten Raum aus. Bei erneutem Betreten eines Raums in der Vorschau beginnen die NPCs wieder an ihren Ausgangspositionen.

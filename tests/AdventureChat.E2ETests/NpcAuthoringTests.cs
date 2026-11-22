@@ -10,6 +10,40 @@ namespace AdventureChat.E2ETests;
 public class NpcAuthoringTests
 {
     [Test]
+    public async Task EditorSavesReactionAfterExplicitUpgradeAndRejectsUnknownNpc()
+    {
+        await using var server = CreateReferenceCopy();
+        var serializer = new RoomYamlSerializer();
+        var loungePath = Path.Combine(server.TempRoot, "world/rooms/lounge.yaml");
+        var draft = serializer.Deserialize(File.ReadAllText(loungePath));
+        var olderRoom = serializer.Deserialize(File.ReadAllText(loungePath));
+        RemoveReactions(olderRoom);
+        File.WriteAllText(loungePath, serializer.Serialize(olderRoom));
+        var manifest = Path.Combine(server.TempRoot, "world/world.yaml");
+        File.WriteAllText(manifest, File.ReadAllText(manifest).Replace("1.15.0", "1.14.0", StringComparison.Ordinal));
+        await server.StartAsync();
+
+        using var client = new HttpClient { BaseAddress = new Uri(server.BaseUrl) };
+        const string roomUrl = "/api/editor/rooms/lounge?worldId=reference";
+        var status = await client.GetFromJsonAsync<JsonElement>("/api/editor/status?worldId=reference");
+        client.DefaultRequestHeaders.Add("X-Author-Token", status.GetProperty("token").GetString());
+        using var invalidVersion = await client.PostAsJsonAsync(roomUrl, draft);
+        Assert.That(invalidVersion.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.BadRequest));
+        using var upgrade = await client.PostAsJsonAsync(roomUrl + "&upgradeFrom=1.14.0&targetFormat=1.15.0", draft);
+        Assert.That(upgrade.IsSuccessStatusCode, Is.True, await upgrade.Content.ReadAsStringAsync());
+
+        Ring(draft).NpcReaction = new("missing", new(160, 330));
+        using var invalidNpc = await client.PostAsJsonAsync(roomUrl, draft);
+        Assert.That(invalidNpc.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.BadRequest));
+        Assert.That(await invalidNpc.Content.ReadAsStringAsync(), Does.Contain("unknown NPC 'missing'"));
+        var reloaded = (await client.GetFromJsonAsync<RoomYamlDto>(roomUrl))!;
+        Assert.That(Ring(reloaded).NpcReaction, Is.EqualTo(new ObjectNpcReaction("nela", new(160, 330))));
+
+        static ObjectAction Ring(RoomYamlDto room) =>
+            room.Objects!.Single(obj => obj.Id == "bell").Interaction!.Actions.Single(action => action.Id == "ring");
+    }
+
+    [Test]
     public async Task EditorRoundTripsTourAndRejectsAnUnknownExitOrUnreachableStation()
     {
         await using var server = CreateReferenceCopy();
@@ -57,6 +91,7 @@ public class NpcAuthoringTests
         var serializer = new RoomYamlSerializer();
         var original = File.ReadAllText(lounge);
         var draft = serializer.Deserialize(original);
+        RemoveReactions(draft);
         draft.Npcs![0] = draft.Npcs[0] with { Tour = null, FollowDistance = null };
         var npc = draft.Npcs!.Single();
         npc.Options.RemoveAll(option => option.When is not null);
@@ -97,6 +132,7 @@ public class NpcAuthoringTests
         var serializer = new RoomYamlSerializer();
         var loungePath = Path.Combine(server.TempRoot, "world/rooms/lounge.yaml");
         var draft = serializer.Deserialize(File.ReadAllText(loungePath));
+        RemoveReactions(draft);
         draft.Npcs![0] = draft.Npcs[0] with { Tour = null, FollowDistance = null };
         var olderRoom = serializer.Deserialize(File.ReadAllText(loungePath));
         var olderOptions = olderRoom.Npcs!.Single().Options;
@@ -155,14 +191,21 @@ public class NpcAuthoringTests
 
     private static void DowngradeReference(string manifest, string version, RoomYamlSerializer serializer)
     {
-        File.WriteAllText(manifest, File.ReadAllText(manifest).Replace("1.14.0", version, StringComparison.Ordinal));
+        File.WriteAllText(manifest, File.ReadAllText(manifest).Replace("1.15.0", version, StringComparison.Ordinal));
         var loungePath = Path.Combine(Path.GetDirectoryName(manifest)!, "rooms/lounge.yaml");
         var lounge = serializer.Deserialize(File.ReadAllText(loungePath));
+        RemoveReactions(lounge);
         if (lounge.Npcs is { Count: > 0 }) lounge.Npcs[0] = lounge.Npcs[0] with { Tour = null, FollowDistance = null };
         File.WriteAllText(loungePath, serializer.Serialize(lounge));
         var gardenPath = Path.Combine(Path.GetDirectoryName(manifest)!, "rooms/garden.yaml");
         var garden = serializer.Deserialize(File.ReadAllText(gardenPath));
         garden.Npcs = null;
         File.WriteAllText(gardenPath, serializer.Serialize(garden));
+    }
+
+    private static void RemoveReactions(RoomYamlDto room)
+    {
+        foreach (var action in room.Objects!.SelectMany(obj => obj.Interaction?.Actions ?? []))
+            action.NpcReaction = null;
     }
 }

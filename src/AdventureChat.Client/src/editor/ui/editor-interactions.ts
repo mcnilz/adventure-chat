@@ -3,7 +3,7 @@ import { EditorApi } from '../core/editor-api.js';
 import { hasEffectReference, referencesState } from '../core/editor-interaction-references.js';
 import type { EditorState } from '../core/editor-state.js';
 import type { RoomObjectDto, RoomView } from '../core/editor-types.js';
-import { editObjectAction } from './editor-action-fields.js';
+import { editNpcReaction, editObjectAction } from './editor-action-fields.js';
 import { editActorAnimation } from './editor-actor-animation-fields.js';
 import { editObjectState, unusedId } from './editor-state-fields.js';
 import { editObjectTransitions } from './editor-transition-fields.js';
@@ -243,6 +243,7 @@ export class EditorInteractions {
     const replace = (next: ObjectAction) => update({ ...interaction, actions: actions.map((item, i) => i === index ? next : item) });
     const report = (message: string, field: string) => this.report(message, field);
     editObjectAction(group, action, interaction, this.state.getRoom().id, object.id, this.rooms(), replace, report);
+    editNpcReaction(group, this.state.getRoom(), action, replace);
     editActorAnimation(group, action.actorAnimation, object.usePoints ?? (interaction.usePoint ? [interaction.usePoint] : []),
       actorAnimation => replace({ ...action, actorAnimation }), report);
     if (actions.length > 1 || interaction.transitions?.length) group.button('Aktion löschen', () =>

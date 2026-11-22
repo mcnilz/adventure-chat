@@ -28,7 +28,8 @@ public class CombinedReferenceScenarioTests
         await Assertions.Expect(Button(guest, "Führung beenden")).ToBeHiddenAsync();
         await Verb(guest, "Drücken", (203, 240));
         await Assertions.Expect(guest.Locator("#action-feedback")).ToHaveTextAsync("Aktion ausgeführt.");
-        await Verb(guest, "Spreche mit", (112, 234));
+        await guest.WaitForFunctionAsync("window.__ADVENTURE_GAME__.room.npcs.some(npc => npc.id === 'nela' && npc.position.x === 160 && !npc.motion?.route.length)");
+        await Verb(guest, "Spreche mit", (160, 269));
         await Button(guest, "Hast du die Klingel gehört?").ClickAsync();
         await guest.Keyboard.PressAsync(".");
         await Assertions.Expect(guest.Locator("#npc-reply")).ToContainTextAsync("den Garten und die Werkstatt zeigen");
@@ -68,7 +69,7 @@ public class CombinedReferenceScenarioTests
         await ClickCanvas(observer, 66, 220);
         await observer.WaitForFunctionAsync("""
             window.__ADVENTURE_GAME__.room.id === 'lounge' &&
-            window.__ADVENTURE_GAME__.room.npcs.some(npc => npc.id === 'nela' && !npc.motion)
+            window.__ADVENTURE_GAME__.room.npcs.some(npc => npc.id === 'nela' && npc.position.x === 112 && !npc.motion?.route.length)
             """);
         await Verb(observer, "Spreche mit", (112, 234));
         await Assertions.Expect(Button(observer, "Führung starten")).ToBeVisibleAsync();

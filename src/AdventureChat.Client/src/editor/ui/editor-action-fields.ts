@@ -69,3 +69,24 @@ export function editObjectAction(fields: InteractionFields, action: ObjectAction
     update({ ...action, effects: [...effects, { room: next.room.id, object: next.object.id, state: next.states[0]!.id }] });
   });
 }
+
+export function editNpcReaction(fields: InteractionFields, room: RoomView, action: ObjectAction,
+  update: (next: ObjectAction) => void): void {
+  const npcs = room.npcs ?? [];
+  const reaction = action.npcReaction;
+  if (!reaction && npcs.length === 0) return;
+
+  const group = fields.group('NPC-Reaktion');
+  const options: [string, string][] = [['', 'Keine'], ...npcs.map(npc => [npc.id, npc.name] as [string, string])];
+  if (reaction && !npcs.some(npc => npc.id === reaction.npc))
+    options.push([reaction.npc, `${reaction.npc} (fehlt)`]);
+  group.select('Reagierender NPC', reaction?.npc ?? '', options, id => {
+    const npc = npcs.find(candidate => candidate.id === id);
+    update({ ...action, npcReaction: npc ? { npc: npc.id, position: reaction?.position ?? npc.position } : null });
+  });
+  if (!reaction) return;
+  group.number('Laufziel X', reaction.position.x, x =>
+    update({ ...action, npcReaction: { ...reaction, position: { ...reaction.position, x } } }));
+  group.number('Laufziel Y', reaction.position.y, y =>
+    update({ ...action, npcReaction: { ...reaction, position: { ...reaction.position, y } } }));
+}

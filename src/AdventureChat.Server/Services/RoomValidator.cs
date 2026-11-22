@@ -39,6 +39,7 @@ public sealed partial class RoomValidator : IRoomValidator
     private readonly bool _supportsDialogueConditions;
     private readonly bool _supportsNpcWaypoints;
     private readonly bool _supportsNpcTours;
+    private readonly bool _supportsNpcReactions;
     private readonly IPathfindingService _pathfinder;
 
     public RoomValidator(string? schemaPath = null, IPathfindingService? pathfinder = null)
@@ -62,6 +63,7 @@ public sealed partial class RoomValidator : IRoomValidator
             _supportsDialogueConditions = schema?["$defs"]?["dialogueCondition"] is not null;
             _supportsNpcWaypoints = schema?["$defs"]?["npcWaypoints"] is not null;
             _supportsNpcTours = schema?["$defs"]?["npcTour"] is not null;
+            _supportsNpcReactions = schema?["$defs"]?["npcReaction"] is not null;
             _supportsStateNavigation = interaction?["states"]?["items"]?["properties"]?["obstacles"] is not null;
             _supportsViewport = room?["viewport"] is not null;
             _supportsDisplay = room?["perspective"] is not null;
@@ -210,6 +212,7 @@ public sealed partial class RoomValidator : IRoomValidator
             var roomDef = dto.ToRoomDefinition();
             NpcValidation.Validate(roomDef, _supportsNpcs, _supportsDialogueConditions, _supportsNpcWaypoints, _pathfinder, errors);
             NpcTourValidation.ValidateRoom(roomDef, _supportsNpcTours, errors);
+            NpcReactionValidation.Validate(roomDef, _supportsNpcReactions, _pathfinder, errors);
             ObjectInteractionValidation.ValidateReachability(roomDef, _pathfinder, errors);
 
             // Obstacles must be inside outer boundary

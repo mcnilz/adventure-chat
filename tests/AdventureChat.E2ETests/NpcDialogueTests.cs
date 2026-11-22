@@ -1,3 +1,4 @@
+using System.Text.Json;
 using AdventureChat.Server.Models;
 using AdventureChat.Server.Services;
 using Microsoft.Playwright;
@@ -28,6 +29,8 @@ public class NpcDialogueTests
         await visitor.GetByRole(AriaRole.Button, new() { Name = "Drücken", Exact = true }).ClickAsync();
         await ClickCanvas(visitor, 203, 240);
         await Assertions.Expect(visitor.Locator("#action-feedback")).ToHaveTextAsync("Aktion ausgeführt.", new() { Timeout = 5000 });
+        await visitor.WaitForFunctionAsync("window.__ADVENTURE_GAME__.room.objects.find(o => o.id === 'bell').image.endsWith('lounge-bell-rung.png')");
+        Assert.That(await visitor.EvaluateAsync<bool>("window.__ADVENTURE_GAME__.room.npcs.some(n => n.id === 'nela' && n.position.x === 112 && !n.motion?.route.length)"), Is.True);
 
         await introduction.ClickAsync();
         await Assertions.Expect(speaker.Locator("#npc-dialogue-notice")).ToContainTextAsync("Gespräch hat sich geändert");
@@ -65,17 +68,25 @@ public class NpcDialogueTests
         await editor.GotoAsync(server.BaseUrl + "/editor.html?worldId=reference");
         await editor.SelectOptionAsync("#room-select", "lounge");
         await Assertions.Expect(editor.Locator("#object-list option[value=bell]")).ToHaveCountAsync(1);
-        await editor.ClickAsync("#btn-toggle-mode");
+        await editor.RunAndWaitForResponseAsync(() => editor.ClickAsync("#btn-toggle-mode"),
+            response => response.Url.Contains("/preview-snapshot", StringComparison.Ordinal) && response.Ok);
         await Assertions.Expect(editor.Locator("#preview-result")).ToHaveTextAsync("Lounge");
 
         var canvas = editor.Locator("#editor-canvas");
         var bounds = (await canvas.BoundingBoxAsync())!;
         Task ClickPreview(int x, int y) => canvas.ClickAsync(new() { Position = new() { X = x * bounds.Width / 640, Y = y * bounds.Height / 360 } });
         await editor.SelectOptionAsync("#preview-verb", "push");
-        await ClickPreview(203, 240);
+        var arrival = await editor.RunAndWaitForResponseAsync(() => ClickPreview(203, 240),
+            response => response.Url.Contains("/preview-snapshot", StringComparison.Ordinal) && response.Ok);
+        using var preview = JsonDocument.Parse(await arrival.TextAsync());
+        var nela = preview.RootElement.GetProperty("snapshot").GetProperty("room").GetProperty("npcs")
+            .EnumerateArray().Single(npc => npc.GetProperty("id").GetString() == "nela");
+        Assert.That(nela.GetProperty("position").GetProperty("x").GetDouble(), Is.EqualTo(160));
+        Assert.That(nela.GetProperty("position").GetProperty("y").GetDouble(), Is.EqualTo(330));
+        Assert.That(nela.GetProperty("motion").GetProperty("route").GetArrayLength(), Is.Zero);
         await Assertions.Expect(editor.Locator("#preview-result")).ToHaveTextAsync("Aktion ausgeführt.");
         await editor.SelectOptionAsync("#preview-verb", "talk", new() { Timeout = 3000 });
-        await ClickPreview(112, 225);
+        await ClickPreview(160, 269);
         var question = new PageGetByRoleOptions { Name = "Hast du die Klingel gehört?" };
         await Assertions.Expect(editor.GetByRole(AriaRole.Button, question)).ToBeVisibleAsync();
         await editor.GetByRole(AriaRole.Button, question).ClickAsync();
@@ -273,7 +284,7 @@ public class NpcDialogueTests
         await Assertions.Expect(page.Locator("#npc-dialogue")).ToBeHiddenAsync();
     }
 
-    private static async Task<IPage> JoinWorld(IBrowser browser, string url, string character)
+    internal static async Task<IPage> JoinWorld(IBrowser browser, string url, string character)
     {
         var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1280, Height = 800 } });
         await page.GotoAsync(url);

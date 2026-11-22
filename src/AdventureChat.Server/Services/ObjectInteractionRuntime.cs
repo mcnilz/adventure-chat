@@ -137,7 +137,7 @@ internal sealed class ObjectInteractionRuntime(IRoomService rooms, TimeProvider 
             var affected = rooms.GetRoom(roomId)!;
             changes.Add(new ObjectStatesChangedDto(affected.Id, revision, States(affected)));
         }
-        return new ObjectActionResult(true, null, changes);
+        return new ObjectActionResult(true, null, changes) { NpcReaction = action.NpcReaction };
     }
 
     private long Now() => clock.GetUtcNow().ToUnixTimeMilliseconds();

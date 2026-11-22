@@ -50,6 +50,9 @@ public class NpcTourTests
         await Assertions.Expect(guest.Locator("#chat-input")).ToHaveValueAsync("Nachricht aus der vorigen Lounge");
         await Assertions.Expect(guest.Locator("#npc-tour-message")).ToContainTextAsync("Hier ist der Tavernen-Garten.");
         await guest.WaitForFunctionAsync($"{Game}.room.npcs.some(npc => npc.name === 'Nela')");
+        await Button(observer, "Drücken").ClickAsync();
+        await ClickCanvas(observer, 203, 240);
+        await Assertions.Expect(observer.Locator("#action-feedback")).ToHaveTextAsync("Aktion ausgeführt.");
         if (Environment.GetEnvironmentVariable("NPC_TOUR_EVIDENCE") is { Length: > 0 } directory)
         {
             Directory.CreateDirectory(directory);
@@ -64,6 +67,7 @@ public class NpcTourTests
         await Assertions.Expect(guest.Locator("#chat-messages")).ToContainTextAsync("Zurück im Raumchat");
         await Assertions.Expect(observer.Locator("#chat-messages")).Not.ToContainTextAsync("Zurück im Raumchat");
         Assert.That(await observer.EvaluateAsync<string>($"{Game}.room.id"), Is.EqualTo("lounge"));
+        await observer.WaitForFunctionAsync($"{Game}.room.npcs.some(npc => npc.id === 'nela' && npc.position.x === 112 && !npc.motion?.route.length)");
     }
 
     [Test]
@@ -107,7 +111,7 @@ public class NpcTourTests
         await guest.WaitForFunctionAsync($"{Game}.character.state === 'walk'");
         await Button(guest, StopLabel).ClickAsync();
         await Assertions.Expect(guest.Locator("#action-feedback")).ToHaveTextAsync("Führung beendet.");
-        await guest.WaitForFunctionAsync($"{Game}.character.state === 'idle' && {Game}.room.npcs.some(npc => npc.id === 'nela' && npc.position.x === 112 && !npc.motion)");
+        await guest.WaitForFunctionAsync($"{Game}.character.state === 'idle' && {Game}.room.npcs.some(npc => npc.id === 'nela' && npc.position.x === 112 && !npc.motion?.route.length)");
         await TalkToGuide(guest, 112, 234);
         await Button(guest, StartLabel).ClickAsync();
         await Assertions.Expect(Button(guest, StopLabel)).ToBeVisibleAsync();
@@ -117,7 +121,7 @@ public class NpcTourTests
         await Assertions.Expect(Button(guest, StopLabel)).ToBeHiddenAsync();
         await Assertions.Expect(guest.Locator("#action-feedback")).ToContainTextAsync("Verbindung unterbrochen");
         Assert.That(await guest.EvaluateAsync<string>($"{Game}.room.id"), Is.EqualTo("lounge"));
-        await observer.WaitForFunctionAsync($"{Game}.room.npcs.some(npc => npc.id === 'nela' && npc.position.x === 112 && !npc.motion)");
+        await observer.WaitForFunctionAsync($"{Game}.room.npcs.some(npc => npc.id === 'nela' && npc.position.x === 112 && !npc.motion?.route.length)");
         await TalkToGuide(observer, 112, 234);
         await Button(observer, StartLabel).ClickAsync();
         await Assertions.Expect(Button(observer, StopLabel)).ToBeVisibleAsync();
@@ -137,7 +141,7 @@ public class NpcTourTests
         await observer.WaitForFunctionAsync($"{Game}.room.npcs.some(npc => npc.name === 'Nela' && npc.motion?.route.at(-1)?.x === 66)");
         await observer.WaitForFunctionAsync($"!{Game}.room.npcs.some(npc => npc.name === 'Nela')");
         Assert.That(await observer.EvaluateAsync<string>($"{Game}.room.id"), Is.EqualTo("garden"));
-        await guest.WaitForFunctionAsync($"{Game}.room.npcs.some(npc => npc.id === 'nela' && npc.position.x === 112 && !npc.motion)");
+        await guest.WaitForFunctionAsync($"{Game}.room.npcs.some(npc => npc.id === 'nela' && npc.position.x === 112 && !npc.motion?.route.length)");
         await TalkToGuide(guest, 112, 234);
         await Assertions.Expect(Button(guest, StartLabel)).ToBeVisibleAsync();
     }

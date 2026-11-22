@@ -29,6 +29,7 @@ public partial class RoomSessionManager
                     var after = proposed.Geometry(room);
                     foreach (var patrol in UpdateNpcPatrols(room, npcNow))
                     {
+                        if (GuideIsBusy(room.Id, patrol.Id)) continue;
                         if (!after.IsWalkable(patrol.Position)) return "Diese Änderung würde eine Figur überdecken.";
                         if (!KeepsSafetyAnchor(room, patrol.Position, before, after, proposed))
                             return "Diese Änderung würde eine Figur ohne erreichbaren Sicherheitsanker einschließen.";
@@ -63,8 +64,9 @@ public partial class RoomSessionManager
                 guide.RetryAt = now;
             }
             if (_npcPatrols.TryGetValue(roomId, out var patrols))
-                foreach (var patrol in patrols) patrol.NavigationChanged(geometry);
+                foreach (var patrol in patrols) patrol.NavigationChanged(geometry, _pathfinder);
         }
+        if (result.NpcReaction is { } reaction) StartNpcReaction(actor.RoomId, reaction, npcNow);
         onApplied?.Invoke();
         EndInvalidObjectAnimations();
 

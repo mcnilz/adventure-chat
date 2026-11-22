@@ -43,6 +43,15 @@ public partial class RoomSessionManager
             return new("Beende zuerst die aktuelle Benutzung.");
         guest.AnimationApproach = null;
         var tour = new NpcTour(guest, room, npc);
+        var patrol = UpdateNpcPatrols(room, NpcNow).FirstOrDefault(candidate => candidate.Id == npc.Id);
+        if (patrol is not null)
+        {
+            tour.Guide.Actor.Position = patrol.Position;
+            patrol.HandOffToGuide();
+            foreach (var approach in _npcApproaches.Where(pair => pair.Value.RoomId == room.Id &&
+                pair.Value.NpcId == npc.Id).Select(pair => pair.Key).ToArray())
+                _npcApproaches.Remove(approach);
+        }
         _npcTours.Add(guest.ConnectionId, tour);
         _tourNpcRooms.Add(room.Id);
         _tourUpdates.Add(new(guest, Status: new(guest.SessionId, true, $"Folge {npc.Name}.")));
