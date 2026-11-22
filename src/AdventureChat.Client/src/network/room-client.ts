@@ -28,6 +28,7 @@ export interface RoomClientEvents {
   onConnectionStatusChanged: (status: 'connected' | 'connecting' | 'disconnected') => void;
   onReconnected: () => Promise<void>;
   onObjectStatesChanged: (dto: ObjectStatesChangedDto) => void;
+  onNpcMovement: (dto: import('../types.js').NpcMovementDto) => void;
   onObjectActionFeedback: (dto: ObjectActionFeedbackDto) => void;
   onWorldReset: () => void;
 }
@@ -68,6 +69,7 @@ export class RoomNetworkClient {
         this.events.onChatMessageReceived(dto);
       });
       this.hubConnection.on('ObjectStatesChanged', (dto: ObjectStatesChangedDto) => this.events.onObjectStatesChanged(dto));
+      this.hubConnection.on('NpcMovement', (dto: import('../types.js').NpcMovementDto) => this.events.onNpcMovement(dto));
       this.hubConnection.on('ObjectActionFeedback', (dto: ObjectActionFeedbackDto) => this.events.onObjectActionFeedback(dto));
       this.hubConnection.on('WorldReset', () => this.events.onWorldReset());
 
@@ -182,12 +184,19 @@ export class RoomNetworkClient {
     catch { /* A disconnected session has no pending approach. */ }
   }
 
-  public async requestNpcDialogue(roomId: string, npcId: string, choice?: DialogueOption): Promise<NpcDialogueResult> {
+  public async requestNpcDialogue(roomId: string, npcId: string, choice?: DialogueOption,
+    approachId?: string, prepare = false): Promise<NpcDialogueResult> {
     if (!this.hubConnection || this.connectionStatus !== 'connected') {
       return { error: 'Nicht verbunden.', options: null, tooFar: false, selected: null };
     }
-    try { return await this.hubConnection.invoke<NpcDialogueResult>('RequestNpcDialogue', { roomId, npcId, choice }); }
+    try { return await this.hubConnection.invoke<NpcDialogueResult>('RequestNpcDialogue', { roomId, npcId, choice, approachId, prepare }); }
     catch { return { error: 'Das Gespräch konnte nicht geladen werden.', options: null, tooFar: false, selected: null }; }
+  }
+
+  public async endNpcDialogue(approachId: string): Promise<void> {
+    if (this.connectionStatus !== 'connected' || !this.hubConnection) return;
+    try { await this.hubConnection.invoke('EndNpcDialogue', approachId); }
+    catch { /* Room departure or disconnection also releases the NPC. */ }
   }
 
   public async sendChatMessage(text: string): Promise<SendChatMessageResultDto> {

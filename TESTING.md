@@ -62,6 +62,8 @@ Für Ticket 27 wurden am 21.11.2026 die öffentlichen Inhalts- und Browsergrenze
 
 Für Ticket 28 wurden am 21.11.2026 Laden und Speichern mit Objekt- und Zustandsverweisen, unveränderte ältere Referenzfixtures, eine veraltete Auswahl nach der Aktion eines zweiten Besuchers sowie die getrennte Editorvorschau bestätigt. Die Browserprüfung deckt auch die Reihenfolge passender Antworten und den Ausstieg bei leerer Auswahl ab.
 
+Für Ticket 29 wurden am 22.11.2026 die öffentliche Lade- und Speichergrenze, unveränderte ältere Referenzfixtures und Browserabläufe mit zwei Besuchern sowie die isolierte Editorvorschau bestätigt. Die Fälle decken Wegpunktreihenfolge, Lauf- und Standphasen, späteren Eintritt, Wegsperre, Gespräche und anschließendes Weiterlaufen ab. Das Bewegungsgefühl wird bei der manuellen Abnahme geprüft.
+
 | Paket | Vorgeschlagene öffentliche Grenzen / Schwerpunkt | Ausdrückliche Grenze |
 | --- | --- | --- |
 | [20](.scratch/adventure-chat/issues/20-shared-object-actions.md) | Inhalts-Laden/Speichern, echte SignalR-Kommandos, Browser/Canvas: reversible Zustände, atomare direkte Wirkungen, Konkurrenz, Snapshots, Weltisolation, Neustart | Keine privaten Sperren/Zustandscontainer testen; keine Script-Ausführung oder Persistenz zusichern. |

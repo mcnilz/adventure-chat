@@ -7,7 +7,8 @@ internal static partial class NpcValidation
 {
     internal const double TalkDistance = 48;
 
-    internal static void Validate(RoomDefinition room, bool supported, bool supportsConditions, List<string> errors)
+    internal static void Validate(RoomDefinition room, bool supported, bool supportsConditions,
+        bool supportsWaypoints, IPathfindingService pathfinder, List<string> errors)
     {
         if (room.Npcs is null) return;
         if (!supported)
@@ -30,7 +31,31 @@ internal static partial class NpcValidation
                 !room.Geometry.HasLineOfSight(npc.TalkPoint, npc.Position, clearance: 0))
                 errors.Add($"NPC '{npc.Id}' requires a walkable talkPoint within {TalkDistance} pixels and a clear line to its position.");
             ValidateOptions(room, npc, supportsConditions, errors);
+            ValidateWaypoints(room, npc, supportsWaypoints, pathfinder, errors);
         }
+    }
+
+    private static void ValidateWaypoints(RoomDefinition room, NpcDefinition npc, bool supported,
+        IPathfindingService pathfinder, List<string> errors)
+    {
+        if (npc.Waypoints is not { } points) return;
+        if (!supported)
+        {
+            errors.Add($"NPC '{npc.Id}': waypoints require world format 1.13.0.");
+            return;
+        }
+        if (points.Count is < 2 or > 32 || points.Distinct().Count() < 2 ||
+            !points.All(room.Geometry.IsWalkable))
+        {
+            errors.Add($"NPC '{npc.Id}' requires 2 to 32 walkable waypoints with at least two distinct points.");
+            return;
+        }
+        var initialGeometry = new ObjectNavigation(new PreviewRoomService([room]), _ => []).Geometry(room);
+        if (!initialGeometry.IsWalkable(npc.Position))
+            errors.Add($"NPC '{npc.Id}' starts inside an obstacle.");
+        var cycle = points.Prepend(npc.Position).Append(points[0]).ToArray();
+        if (cycle.Zip(cycle.Skip(1)).Any(leg => !pathfinder.CalculatePath(room.Geometry, leg.First, leg.Second).Success))
+            errors.Add($"NPC '{npc.Id}' has waypoints disconnected by static geometry.");
     }
 
     private static void ValidateOptions(RoomDefinition room, NpcDefinition npc, bool supportsConditions, List<string> errors)

@@ -24,6 +24,7 @@ public interface IRoomSessionManager
     IReadOnlyList<ChatMessageDto> GetRecentMessages(string roomId);
     ObjectActionResult RequestObjectAction(string connectionId, ObjectActionRequestDto request);
     NpcDialogueResult RequestNpcDialogue(string connectionId, NpcDialogueRequest request);
+    void EndNpcDialogue(string connectionId, string approachId);
     void CancelObjectApproach(string connectionId);
     SaveRoomResult SaveRoomAndReset(Func<SaveRoomResult> save);
 }

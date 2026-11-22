@@ -136,6 +136,12 @@ export interface NpcPresence {
   readonly characterId: string;
   readonly position: Point;
   readonly talkPoint: Point;
+  readonly motion?: { readonly direction: Direction; readonly route: readonly Point[] } | null;
+}
+export interface NpcMovementDto {
+  readonly roomId: string;
+  readonly sample: number;
+  readonly npcs: readonly NpcPresence[];
 }
 export interface DialogueOption {
   readonly id: string;
@@ -147,6 +153,7 @@ export interface NpcDialogueResult {
   readonly options: readonly DialogueOption[] | null;
   readonly tooFar: boolean;
   readonly selected: DialogueOption | null;
+  readonly talkPoint?: Point | null;
 }
 export interface ObjectAppearance {
  readonly obstacles?: ReadonlyArray<{ readonly id: string; readonly points: ReadonlyArray<Point> }> | null;
@@ -177,6 +184,7 @@ export interface ObjectStatesChangedDto {
  readonly exits?: ReadonlyArray<RoomExit> | null;
  readonly players?: ReadonlyArray<PlayerDto> | null;
  readonly stoppedSessions?: ReadonlyArray<string> | null;
+ readonly npcMovement?: NpcMovementDto | null;
 }
 
 export interface DepthScale {
@@ -186,6 +194,7 @@ export interface DepthScale {
 
 export interface RoomDefinition {
   readonly npcs?: readonly NpcPresence[] | null;
+  readonly npcSample?: number;
   depthScale?: DepthScale | null;
   objects?: ReadonlyArray<RoomObject> | null;
   viewport?: RoomViewport | null;

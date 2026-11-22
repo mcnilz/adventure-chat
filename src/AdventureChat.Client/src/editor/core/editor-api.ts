@@ -4,20 +4,43 @@ import type {
   RoomYamlDto,
   RoomView
 } from './editor-types.js';
-import type { DialogueOption, NpcDialogueResult, ObjectActionResultDto, ObjectStateDto, Point, PreviewObjectStates, RoomSnapshotDto } from '../../types.js';
+import type { DialogueOption, Direction, NpcDialogueResult, NpcPresence, ObjectActionResultDto, ObjectStateDto, Point, PreviewObjectStates, RoomSnapshotDto } from '../../types.js';
 
-interface PreviewLocation {
+export interface PreviewLocation {
   room: RoomView;
   position: Point;
   roomId: string;
   states: readonly PreviewObjectStates[];
   targetFormat?: string;
   characterId?: string;
+  patrols?: PreviewNpcPatrols;
+}
+
+export interface PreviewNpcPatrols {
+  readonly checkpoints: readonly {
+    readonly id: string;
+    readonly position: Point;
+    readonly nextWaypoint: number;
+    readonly waitMs: number;
+    readonly blocked: boolean;
+    readonly direction: Direction;
+    readonly route: readonly Point[];
+  }[];
+  readonly elapsedMs?: number;
+  readonly pausedNpc?: string | null;
+  readonly resumeAfterMs?: number;
+}
+
+export interface PreviewDialogueResponse {
+  readonly dialogue: NpcDialogueResult;
+  readonly npcs?: readonly NpcPresence[] | null;
+  readonly patrols?: PreviewNpcPatrols | null;
 }
 
 export interface PreviewResult extends ObjectActionResultDto {
   snapshot: RoomSnapshotDto;
   states: PreviewObjectStates[];
+  patrols?: PreviewNpcPatrols | null;
 }
 
 export interface ValidationResponse {
@@ -85,9 +108,10 @@ export class EditorApi {
     return this.previewCommand('snapshot', location);
   }
 
-  public static async previewDialogue(location: PreviewLocation, npcId: string, choice?: DialogueOption): Promise<NpcDialogueResult> {
-    try { return await this.previewCommand<NpcDialogueResult>('dialogue', { location, npcId, choice }); }
-    catch (error) { return { error: String(error), options: null, tooFar: false, selected: null }; }
+  public static async previewDialogue(location: PreviewLocation, npcId: string,
+    choice?: DialogueOption, prepare = false): Promise<PreviewDialogueResponse> {
+    try { return await this.previewCommand<PreviewDialogueResponse>('dialogue', { location, npcId, choice, prepare }); }
+    catch (error) { return { dialogue: { error: String(error), options: null, tooFar: false, selected: null } }; }
   }
 
   private static async previewCommand<T = PreviewResult>(command: 'action' | 'exit' | 'snapshot' | 'dialogue', body: object): Promise<T> {

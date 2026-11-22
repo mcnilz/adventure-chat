@@ -5,7 +5,7 @@ import { chooseWorld, loadWorlds, showStartupError } from './ui/world-picker.js'
 import { GameViewport } from './ui/game-viewport.js';
 import { VerbBar } from './ui/verb-bar.js';
 import { NpcDialoguePanel } from './ui/npc-dialogue-panel.js';
-import { npcActorId } from './rendering/npc-cast.js';
+import { npcActorId } from './state/npc-cast.js';
 
 declare global {
   interface Window {
@@ -45,15 +45,15 @@ async function initialize(): Promise<void> {
       returnFocus: document.querySelector<HTMLElement>('#verb-bar button[data-verb="talk"]')!,
       onModeChanged: npcName => {
         if (npcName) chatUi.setActionText(`Spreche mit ${npcName}`);
-        else game.inputHandler.updateVerb();
+        else {
+          game.closeNpcDialogue();
+          game.inputHandler.updateVerb();
+        }
       }
     },
     (bubble, npcId) => game.renderer.setDialogueBubble(npcId ? npcActorId(npcId) : game.character.id, bubble)
   );
-  game.onDialogueOpened = (npc, options) => {
-    const roomId = game.room.id;
-    dialogue.open(npc, options, option => game.networkClient.requestNpcDialogue(roomId, npc.id, option));
-  };
+  game.onDialogueOpened = (npc, options, choose) => dialogue.open(npc, options, choose);
   game.onDialogueClosed = () => dialogue.close();
 
   game.onConnectionStatusChanged = (status) => {

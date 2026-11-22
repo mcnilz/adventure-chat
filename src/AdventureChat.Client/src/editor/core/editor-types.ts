@@ -56,8 +56,13 @@ interface AuthoredDialogueOption extends DialogueOption {
   readonly replies?: readonly { readonly when: DialogueCondition; readonly reply: string }[] | null;
 }
 
+interface AuthoredNpc extends Omit<import('../../types.js').NpcPresence, 'motion'> {
+  readonly options: readonly AuthoredDialogueOption[];
+  readonly waypoints?: readonly RoomPointDto[] | null;
+}
+
 export interface RoomYamlDto {
-  npcs?: (import('../../types.js').NpcPresence & { readonly options: readonly AuthoredDialogueOption[] })[] | null;
+  npcs?: AuthoredNpc[] | null;
   depthScale?: import('../../types.js').DepthScale | null;
   objects?: RoomObjectDto[] | null;
   viewport?: import('../../types.js').RoomViewport | null;

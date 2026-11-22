@@ -128,6 +128,7 @@ public partial class RoomSessionManager : IRoomSessionManager
         lock (_lock)
         {
             session.RoomId = targetRoomId;
+            CancelNpcApproach(connectionId);
             session.Position = targetSpawnPos;
             session.Direction = "down";
             session.State = "idle";
@@ -158,6 +159,7 @@ public partial class RoomSessionManager : IRoomSessionManager
         {
             ProcessActorActivities();
             _messageTimestampsByConnection.TryRemove(connectionId, out _);
+            CancelNpcApproach(connectionId);
             if (_sessionsByConnection.TryRemove(connectionId, out var session))
             {
                 return session;
@@ -179,7 +181,7 @@ public partial class RoomSessionManager : IRoomSessionManager
             var history = includeHistory && _roomChatHistory.TryGetValue(session.RoomId, out var messages)
                 ? messages.ToList() : new List<ChatMessageDto>();
             var now = _clock.GetUtcNow();
-            return new RoomSnapshotDto(session.RoomId, session.SessionId, players.Select(p => p.ToDto(now)).ToList(), history, _navigation.EffectiveRoom(room).ToDto(), _interactions.Revision(room.Id), _interactions.States(room));
+            return new RoomSnapshotDto(session.RoomId, session.SessionId, players.Select(p => p.ToDto(now)).ToList(), history, SnapshotRoom(room), _interactions.Revision(room.Id), _interactions.States(room));
         }
     }
 
@@ -191,6 +193,9 @@ public partial class RoomSessionManager : IRoomSessionManager
             var result = save();
             if (!result.Success) return result;
             _interactions.Reset();
+            _npcPatrols.Clear();
+            _npcApproaches.Clear();
+            _npcBroadcasts.Clear();
             _actorActivityUpdates.Clear();
             foreach (var player in _sessionsByConnection.Values)
             {
@@ -207,6 +212,7 @@ public partial class RoomSessionManager : IRoomSessionManager
         {
             ProcessActorActivities();
             if (!_sessionsByConnection.TryGetValue(connectionId, out var session)) return new(false, "Sitzung nicht gefunden.", []);
+            CancelNpcApproach(connectionId);
             return StartObjectAction(session, request);
         }
     }
@@ -236,7 +242,11 @@ public partial class RoomSessionManager : IRoomSessionManager
                 return new MoveResult(false, $"Room '{session.RoomId}' not found.", null, null, null);
             if (!target.IsFinite())
                 return new MoveResult(false, "Target coordinates must be finite numbers.", null, null, null);
-            return MovePlayer(session, room, target, _clock.GetUtcNow());
+            CancelNpcApproach(connectionId, movementTarget: target);
+            var result = MovePlayer(session, room, target, _clock.GetUtcNow());
+            if (result.Success) ExtendNpcApproach(session, room);
+            else CancelNpcApproach(connectionId);
+            return result;
         }
     }
 

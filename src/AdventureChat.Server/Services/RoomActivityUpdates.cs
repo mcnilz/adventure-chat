@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace AdventureChat.Server.Services;
 
-internal sealed class ObjectActorAnimationUpdates(WorldRuntimeCatalog worlds, IHubContext<RoomHub> hub) : BackgroundService
+internal sealed class RoomActivityUpdates(WorldRuntimeCatalog worlds, IHubContext<RoomHub> hub) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -23,6 +23,9 @@ internal sealed class ObjectActorAnimationUpdates(WorldRuntimeCatalog worlds, IH
                         await hub.Clients.Client(connectionId).SendAsync("ObjectActionFeedback",
                             new ObjectActionFeedbackDto(roomId, error), stoppingToken);
                 }
+                foreach (var movement in sessions.CollectNpcMovement())
+                    await hub.Clients.Group(RoomHub.WorldGroup(world.Package.Id, movement.RoomId))
+                        .SendAsync("NpcMovement", movement, stoppingToken);
             }
         }
     }

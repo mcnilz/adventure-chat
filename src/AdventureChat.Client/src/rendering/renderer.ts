@@ -2,8 +2,7 @@ import { actorHeightAt } from './depth-scale.js';
 import { ObjectRenderer, compareObjectDepth } from './object-renderer.js';
 import { HorizontalCamera, resizeCanvas, viewSize } from './camera.js';
 import { CLICK_MARKER_DURATION } from '../constants.js';
-import type { Character, CharacterCatalog, NpcPresence, ObjectActorAnimation, Point, RenderedRoom, RoomExit, RoomObject, SpeechBubble } from '../types.js';
-import { NpcCast } from './npc-cast.js';
+import type { Character, ObjectActorAnimation, Point, RenderedRoom, RoomExit, RoomObject, SpeechBubble } from '../types.js';
 import { CharacterRenderer } from './character-renderer.js';
 import { OverlayRenderer, type ClickMarker } from './overlay-renderer.js';
 import { SpeechBubbleRenderer, type SpeechLayout } from './speech-bubble-renderer.js';
@@ -24,15 +23,13 @@ export class RoomRenderer {
   private backgroundLoaded = false;
   private clickMarkers: ClickMarker[] = [];
   private hoveredExit: RoomExit | null = null;
-  private npcCast: NpcCast;
   private dialogueBubble: { speakerId: string; bubble: SpeechBubble; layout: SpeechLayout } | null = null;
   public showDebugOverlay = false;
 
   public constructor(
     private readonly canvas: HTMLCanvasElement,
     private room: RenderedRoom,
-    private readonly actorImageUrl = (path: string) => path,
-    private catalog?: CharacterCatalog
+    private readonly actorImageUrl = (path: string) => path
   ) {
     const context = this.canvas.getContext('2d');
     if (!context) {
@@ -42,7 +39,6 @@ export class RoomRenderer {
     this.ctx.imageSmoothingEnabled = false;
 
     this.characterRenderer = new CharacterRenderer();
-    this.npcCast = new NpcCast(room.npcs ?? [], this.catalog);
     this.preloadActorAnimations(room);
     this.speechBubbleRenderer = new SpeechBubbleRenderer();
     this.overlayRenderer = new OverlayRenderer();
@@ -61,7 +57,6 @@ export class RoomRenderer {
   public setRoom(newRoom: RenderedRoom): void {
     this.room = newRoom;
     this.dialogueBubble = null;
-    this.npcCast = new NpcCast(newRoom.npcs ?? [], this.catalog);
     this.preloadActorAnimations(newRoom);
     this.cameraInitialized = false;
     if (!this.backgroundImage.src.endsWith(newRoom.backgroundUrl)) {
@@ -96,16 +91,6 @@ export class RoomRenderer {
   public objectAt(point: Point): RoomObject | undefined {
     return this.objectsAtTime(performance.now()).reverse()
       .find(object => this.objects.containsVisiblePixel(object, point));
-  }
-
-  public setCharacterCatalog(catalog: CharacterCatalog): void {
-    this.catalog = catalog;
-    this.npcCast = new NpcCast(this.room.npcs ?? [], catalog);
-  }
-
-  public npcAt(point: Point): NpcPresence | undefined {
-    if (!this.npcCast.characters.length) return undefined;
-    return this.npcCast.at(this.room, point, this.objectAt(point)?.depthY ?? -Infinity);
   }
 
   public setDialogueBubble(speakerId: string, bubble: SpeechBubble | null): boolean {
@@ -162,7 +147,7 @@ export class RoomRenderer {
       this.overlayRenderer.drawExits(ctx, room);
     }
 
-    const allCharacters = [localCharacter, ...remoteCharacters, ...this.npcCast.characters];
+    const allCharacters = [localCharacter, ...remoteCharacters];
 
     // 2. Debug Overlay
     if (this.showDebugOverlay) {

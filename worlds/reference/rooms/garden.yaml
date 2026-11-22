@@ -4,6 +4,19 @@ name: Tavernen-Garten
 background: assets/images/garden-runtime.png
 size: { width: 640, height: 360 }
 actorHeight: 128
+npcs:
+  - id: ida
+    name: Ida
+    characterId: mara
+    position: { x: 126, y: 310 }
+    talkPoint: { x: 140, y: 329 }
+    waypoints:
+      - { x: 210, y: 310 }
+      - { x: 184, y: 328 }
+      - { x: 126, y: 310 }
+    options:
+      - { id: garden, text: Was machst du hier?, reply: Ich sehe nach dem Gartenweg. }
+      - { id: workshop, text: Wo ist die Werkstatt?, reply: Am Tor rechts vom Tisch. }
 spawns:
   - { id: from-depth-demos, position: { x: 540, y: 330 } }
   - { id: entry, position: { x: 112, y: 320 } }

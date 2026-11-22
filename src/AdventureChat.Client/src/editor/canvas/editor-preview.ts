@@ -1,5 +1,5 @@
 import { loadCharacterCatalog } from '../../network/character-catalog.js';
-import { EditorApi, type PreviewResult } from '../core/editor-api.js';
+import { EditorApi, type PreviewLocation, type PreviewResult } from '../core/editor-api.js';
 import type { RoomView } from '../core/editor-types.js';
 import { RoomRenderer } from '../../rendering/renderer.js';
 import { applyActorAnimation, assignPathToCharacter, updateCharacterMovement } from '../../simulation/movement.js';
@@ -11,14 +11,20 @@ import { exitAt, withinExitReach } from '../../input/exit-hit.js';
 import { objectUsePoints, nearestUsePoints } from '../../input/object-use-points.js';
 import { EditorPreviewControls } from '../ui/editor-preview-controls.js';
 import { NpcDialogueFlow } from '../../input/npc-dialogue-flow.js';
-import { npcActorId } from '../../rendering/npc-cast.js';
+import { NpcCast, npcActorId } from '../../state/npc-cast.js';
+import { npcAt } from '../../input/npc-hit.js';
 import { NpcDialoguePanel } from '../../ui/npc-dialogue-panel.js';
+import { PreviewNpcPlayback } from './preview-npc-playback.js';
 
 export class EditorPreview {
   private readonly controls = new EditorPreviewControls(() => this.cancelCommand());
   private readonly actionFlow: ObjectActionFlow;
   private readonly dialogue: NpcDialoguePanel;
   private readonly dialogueFlow: NpcDialogueFlow;
+  private readonly cast = new NpcCast();
+  private readonly patrols = new PreviewNpcPlayback(() => this.location(),
+    npcs => this.cast.update(npcs), message => this.tell(message));
+  private definition: RoomDefinition | null = null;
   private previewRenderer: RoomRenderer | null = null;
   private previewCharacter: Character | null = null;
   private previewAnimationId: number | null = null;
@@ -49,15 +55,16 @@ export class EditorPreview {
       async animation => this.previewRenderer?.prepareActorAnimation(animation)
     );
     this.dialogue = new NpcDialoguePanel(canvas, { verbs: this.controls.element, returnFocus: this.controls.verb,
-      advanceEvent: 'mousedown' }, (bubble, npcId) =>
+      advanceEvent: 'mousedown', onModeChanged: name => { if (!name) this.dialogueFlow.close(); } }, (bubble, npcId) =>
       this.previewRenderer?.setDialogueBubble(npcId ? npcActorId(npcId) : 'preview-player', bubble) ?? false);
     this.dialogueFlow = new NpcDialogueFlow(
       () => ({ roomId: this.room?.id ?? '', position: this.previewCharacter?.position ?? { x: 0, y: 0 },
         idle: this.previewCharacter?.state === 'idle', changingRoom: false }),
       point => this.walk(point),
-      (_, npcId) => EditorApi.previewDialogue(this.location(), npcId),
-      (npc, options) => this.dialogue.open(npc, options, option => EditorApi.previewDialogue(this.location(), npc.id, option)),
-      error => this.tell(error)
+      (_, ...request) => this.patrols.dialogue(...request),
+      (npc, options, choose) => this.dialogue.open(npc, options, choose),
+      error => this.tell(error),
+      id => this.patrols.release(id)
     );
   }
 
@@ -81,6 +88,8 @@ export class EditorPreview {
     this.objectStates = [{ roomId: roomDef.id, states: (roomDef.objects ?? []).flatMap(o =>
       o.interaction ? [{ objectId: o.id, stateId: o.interaction.initialState }] : []) }];
     this.previewRenderer = new RoomRenderer(this.canvas, { ...roomDef, exits: this.exits }, path => EditorApi.backgroundUrl(path));
+    this.definition = roomDef;
+    this.cast.setRoom(roomDef);
 
     // Initial character spawn
     const defaultSpawn = roomDef.spawnPoint ?? { x: 320, y: 300 };
@@ -106,7 +115,7 @@ export class EditorPreview {
     if (EditorApi.worldId) void loadCharacterCatalog(EditorApi.worldId).then(catalog => {
       if (this.previewCharacter === character && character) {
         character.appearance = catalog.characters.find(c => c.id === catalog.defaultCharacterId);
-        this.previewRenderer?.setCharacterCatalog(catalog);
+        this.cast.setCatalog(catalog);
       }
     }).catch(() => { /* Preview keeps its loading fallback if content is temporarily unavailable. */ });
     this.lastFrameTime = performance.now();
@@ -121,6 +130,7 @@ export class EditorPreview {
   public stop(): void {
     this.cancelCommand();
     this.clearAnimation();
+    this.patrols.reset();
     this.isRunning = false;
     this.controls.close();
     if (this.previewAnimationId !== null) {
@@ -128,6 +138,7 @@ export class EditorPreview {
       this.previewAnimationId = null;
     }
     this.previewRenderer = null;
+    this.definition = null;
     this.previewCharacter = null;
     this.room = this.draft = null;
     this.initialSnapshot = null;
@@ -142,7 +153,8 @@ export class EditorPreview {
     const point = { x: logicalX, y: logicalY };
     const verb = this.controls.selectedVerb();
     if (verb === 'talk') {
-      const npc = this.previewRenderer?.npcAt(point);
+      const npc = this.definition && npcAt(this.cast, this.definition, point,
+        this.previewRenderer?.objectAt(point)?.depthY ?? -Infinity);
       if (npc) await this.dialogueFlow.start(npc);
       else this.tell('Wähle eine Figur zum Ansprechen.');
       return;
@@ -212,9 +224,11 @@ export class EditorPreview {
     return this.objectStates.find(state => state.roomId === this.room?.id)?.states ?? [];
   }
 
-  private location() {
+  private location(): PreviewLocation {
+    const patrols = this.patrols.checkpoint;
     return {
       room: this.draft!, roomId: this.room!.id, position: this.previewCharacter!.position, states: this.objectStates,
+      ...(patrols ? { patrols } : {}),
       ...(this.previewCharacter?.appearance ? { characterId: this.previewCharacter.appearance.id } : {}),
       ...(this.targetFormat ? { targetFormat: this.targetFormat } : {})
     };
@@ -295,11 +309,14 @@ export class EditorPreview {
     const room = { ...definition, backgroundUrl: EditorApi.backgroundUrl(definition.backgroundUrl),
       objects: applyObjectAppearances(definition.objects ?? [], result.snapshot.objectStates ?? [])
         .map(object => ({ ...object, image: EditorApi.backgroundUrl(object.image) })) };
+    this.definition = room;
     if (crossedExit) {
       character.position = player?.position ?? room.spawnPoint;
       character.speed = room.walkSpeed ?? 130;
       this.previewRenderer?.setRoom(room);
+      this.cast.setRoom(room);
     } else this.previewRenderer?.updateRoomState(room);
+    this.patrols.apply(result.patrols, definition.npcs ?? [], room.walkSpeed ?? 130);
   }
 
   private tell(text: string): void {
@@ -326,7 +343,9 @@ export class EditorPreview {
     }
 
     if (this.previewRenderer && this.previewCharacter) {
-      this.previewRenderer.render(this.previewCharacter, []);
+      this.patrols.tick(now);
+      this.cast.advance(dt);
+      this.previewRenderer.render(this.previewCharacter, this.cast.characters);
     }
 
     this.previewAnimationId = requestAnimationFrame(this.loop);

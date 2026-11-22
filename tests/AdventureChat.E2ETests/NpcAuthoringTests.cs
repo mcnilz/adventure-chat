@@ -25,7 +25,7 @@ public class NpcAuthoringTests
         olderRoom.Npcs = null;
         File.WriteAllText(lounge, serializer.Serialize(olderRoom));
         var manifest = Path.Combine(world, "world.yaml");
-        File.WriteAllText(manifest, File.ReadAllText(manifest).Replace("1.12.0", "1.10.0", StringComparison.Ordinal));
+        DowngradeReference(manifest, "1.10.0", serializer);
         await server.StartAsync();
 
         using var client = new HttpClient { BaseAddress = new Uri(server.BaseUrl) };
@@ -63,7 +63,7 @@ public class NpcAuthoringTests
         olderOptions[0] = olderOptions[0] with { Replies = null };
         File.WriteAllText(loungePath, serializer.Serialize(olderRoom));
         var manifest = Path.Combine(server.TempRoot, "world/world.yaml");
-        File.WriteAllText(manifest, File.ReadAllText(manifest).Replace("1.12.0", "1.11.0", StringComparison.Ordinal));
+        DowngradeReference(manifest, "1.11.0", serializer);
         await server.StartAsync();
 
         using var client = new HttpClient { BaseAddress = new Uri(server.BaseUrl) };
@@ -82,5 +82,42 @@ public class NpcAuthoringTests
         Assert.That(await invalid.Content.ReadAsStringAsync(), Does.Contain("unknown state 'missing'"));
         Assert.That(serializer.Deserialize(File.ReadAllText(loungePath)).Npcs!.Single().Options[0].Replies![0].When.State,
             Is.EqualTo("rung"));
+    }
+
+    [Test]
+    public async Task EditorPreservesOrderedWaypointsAcrossUpgradeAndRejectsUnwalkableEdits()
+    {
+        await using var server = CreateReferenceCopy();
+        var serializer = new RoomYamlSerializer();
+        var path = Path.Combine(server.TempRoot, "world/rooms/garden.yaml");
+        var draft = serializer.Deserialize(File.ReadAllText(path));
+        DowngradeReference(Path.Combine(server.TempRoot, "world/world.yaml"), "1.12.0", serializer);
+        await server.StartAsync();
+
+        using var client = new HttpClient { BaseAddress = new Uri(server.BaseUrl) };
+        const string roomUrl = "/api/editor/rooms/garden?worldId=reference";
+        var status = await client.GetFromJsonAsync<JsonElement>("/api/editor/status?worldId=reference");
+        client.DefaultRequestHeaders.Add("X-Author-Token", status.GetProperty("token").GetString());
+        using var invalidVersion = await client.PostAsJsonAsync(roomUrl, draft);
+        Assert.That(invalidVersion.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.BadRequest));
+        using var upgrade = await client.PostAsJsonAsync(roomUrl + "&upgradeFrom=1.12.0&targetFormat=1.13.0", draft);
+        Assert.That(upgrade.IsSuccessStatusCode, Is.True, await upgrade.Content.ReadAsStringAsync());
+
+        var saved = (await client.GetFromJsonAsync<RoomYamlDto>(roomUrl))!;
+        var waypoints = saved.Npcs!.Single().Waypoints!;
+        Assert.That(waypoints, Is.EqualTo(new Point2D[] { new(210, 310), new(184, 328), new(126, 310) }));
+        waypoints[1] = new(800, 350);
+        using var invalidEdit = await client.PostAsJsonAsync(roomUrl, saved);
+        Assert.That(invalidEdit.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.BadRequest));
+        Assert.That((await client.GetFromJsonAsync<RoomYamlDto>(roomUrl))!.Npcs!.Single().Waypoints![1], Is.EqualTo(new Point2D(184, 328)));
+    }
+
+    private static void DowngradeReference(string manifest, string version, RoomYamlSerializer serializer)
+    {
+        File.WriteAllText(manifest, File.ReadAllText(manifest).Replace("1.13.0", version, StringComparison.Ordinal));
+        var gardenPath = Path.Combine(Path.GetDirectoryName(manifest)!, "rooms/garden.yaml");
+        var garden = serializer.Deserialize(File.ReadAllText(gardenPath));
+        garden.Npcs = null;
+        File.WriteAllText(gardenPath, serializer.Serialize(garden));
     }
 }

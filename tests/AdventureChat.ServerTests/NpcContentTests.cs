@@ -19,6 +19,24 @@ public class NpcContentTests
                   - { id: garden, text: Wo ist der Garten?, reply: Nebenan }
             """;
 
+    [TestCase("70", true)]
+    [TestCase("900", false)]
+    public void WaypointsRoundTripOnlyInFormat113AndMustBeWalkable(string x, bool valid)
+    {
+        var serializer = new RoomYamlSerializer();
+        var yaml = serializer.Serialize(DynamicNavigationTests.Room()) + NpcYaml.Replace(
+            "    options:", $"    waypoints: [{{ x: 40, y: 50 }}, {{ x: {x}, y: 60 }}]\n    options:",
+            StringComparison.Ordinal);
+        var room = serializer.Deserialize(yaml);
+        var result = new RoomValidator(WorldPackage.FindSchema("room.schema.json", "1.13.0")).Validate(room);
+        Assert.That(result.IsValid, Is.EqualTo(valid), string.Join(Environment.NewLine, result.Errors));
+        if (!valid) return;
+        var saved = serializer.Serialize(RoomYamlDto.FromRoomDefinition(room.ToRoomDefinition()));
+        Assert.That(saved, Does.Contain("waypoints:"));
+        Assert.That(new RoomValidator(WorldPackage.FindSchema("room.schema.json", "1.12.0")).Validate(room).Errors,
+            Has.Some.Contains("waypoints"));
+    }
+
     [Test]
     public void StationaryNpcRoundTripsOnlyInTheNewFormat()
     {

@@ -1,7 +1,8 @@
 import { DEFAULT_ROOM, SPEECH_BUBBLE_DURATION } from './constants.js';
 import { withinExitReach } from './input/exit-hit.js';
 import { InputHandler } from './input/input-handler.js';
-import { NpcDialogueFlow } from './input/npc-dialogue-flow.js';
+import { NpcDialogueFlow, type ChooseDialogueOption } from './input/npc-dialogue-flow.js';
+import { npcAt } from './input/npc-hit.js';
 import { actionForVerb } from './input/object-action.js';
 import { ObjectActionFlow } from './input/object-action-flow.js';
 import { nearestUsePoints, objectUsePoints } from './input/object-use-points.js';
@@ -39,7 +40,7 @@ export class AdventureGame {
   public onWorldUnavailable?: (message: string) => void;
   public onObjectsChanged?: () => void;
   public onVerbSelected?: (verb: InteractionVerb) => void;
-  public onDialogueOpened?: (npc: NpcPresence, options: readonly DialogueOption[]) => void;
+  public onDialogueOpened?: (npc: NpcPresence, options: readonly DialogueOption[], choose: ChooseDialogueOption) => void;
   public onDialogueClosed?: () => void;
   private verb: InteractionVerb = 'walk';
   private approach: { verb: InteractionVerb; objectId: string; actionId: string; state: string | undefined } | null = null;
@@ -66,7 +67,8 @@ export class AdventureGame {
     private readonly characterCatalog?: CharacterCatalog
   ) {
     this.state = new RoomState(initialRoom, playerName);
-    this.renderer = new RoomRenderer(this.canvas, this.state.room, undefined, characterCatalog);
+    this.renderer = new RoomRenderer(this.canvas, this.state.room);
+    if (characterCatalog) this.state.npcCast.setCatalog(characterCatalog);
 
     this.state.onRoomChanged = (room) => {
       this.objectWalkToken++;
@@ -97,6 +99,7 @@ export class AdventureGame {
       onPlayerMoved: (dto) => this.dispatchRoomEvent(() => this.state.handlePlayerMoved(dto)),
       onChatMessageReceived: (dto) => this.dispatchRoomEvent(() => this.state.handleChatMessage(dto)),
       onObjectStatesChanged: (dto) => this.dispatchRoomEvent(() => this.state.handleObjectStates(dto)),
+      onNpcMovement: dto => this.dispatchRoomEvent(() => this.state.handleNpcMovement(dto)),
       onObjectActionFeedback: ({ roomId, message }) => {
         if (this.room.id !== roomId) return;
         this.speakLocally(message);
@@ -141,12 +144,13 @@ export class AdventureGame {
       () => ({ roomId: this.room.id, position: this.character.position,
         idle: this.character.state === 'idle', changingRoom: this.changingRoom }),
       point => this.setTarget(point),
-      (room, npc) => this.networkClient.requestNpcDialogue(room, npc),
-      (npc, options) => {
+      (...request) => this.networkClient.requestNpcDialogue(...request),
+      (npc, options, choose) => {
         this.selectVerb('walk');
-        this.onDialogueOpened?.(npc, options);
+        this.onDialogueOpened?.(npc, options, choose);
       },
-      text => this.reportDialogueError(text)
+      text => this.reportDialogueError(text),
+      id => { void this.networkClient.endNpcDialogue(id); }
     );
 
     this.inputHandler = new InputHandler(
@@ -213,7 +217,7 @@ export class AdventureGame {
       () => this.verb,
       point => this.renderer.objectAt(point),
       id => this.state.objectStates.get(id),
-      point => this.renderer.npcAt(point)
+      point => npcAt(this.state.npcCast, this.room, point, this.renderer.objectAt(point)?.depthY ?? -Infinity)
     );
   }
 
@@ -254,8 +258,11 @@ export class AdventureGame {
   public get room(): RoomDefinition {
     return this.state.room;
   }
+
+  public closeNpcDialogue(): void { this.dialogueFlow.close(); }
   public set room(val: RoomDefinition) {
     this.state.room = val;
+    this.state.npcCast.setRoom(val);
     this.renderer.setRoom(val);
   }
 
@@ -489,9 +496,10 @@ export class AdventureGame {
     this.lastTimestamp = timestamp;
 
     this.update(deltaSeconds);
+    this.state.npcCast.advance(deltaSeconds);
     this.renderer.render(
       this.state.character,
-      Array.from(this.state.remotePlayers.values()),
+      [...this.state.remotePlayers.values(), ...this.state.npcCast.characters],
       this.networkClient.connectionStatus
     );
     this.inputHandler.refreshHover();

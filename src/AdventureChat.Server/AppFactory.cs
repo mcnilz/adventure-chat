@@ -64,7 +64,7 @@ public static class AppFactory
             sp.GetRequiredService<IContentPathProvider>(), sp.GetRequiredService<IRoomYamlSerializer>(),
             sp.GetRequiredService<IRoomValidator>(), world));
         builder.Services.AddHostedService<RoomStartupValidation>();
-        builder.Services.AddHostedService<ObjectActorAnimationUpdates>();
+        builder.Services.AddHostedService<RoomActivityUpdates>();
         builder.Services.AddSingleton<IRoomSessionManager, RoomSessionManager>();
         builder.Services.AddSingleton(sp => new WorldRuntimeCatalog(worlds,
             sp.GetRequiredService<IRoomService>(), sp.GetRequiredService<IRoomSessionManager>(),
@@ -339,7 +339,7 @@ public static class AppFactory
                     });
                 }
 
-                if (runtime?.Package.FormatVersion is "1.6.0" or "1.7.0" or "1.8.0" or "1.9.0" or "1.10.0" or "1.11.0" or "1.12.0")
+                if (runtime is not null && Version.Parse(runtime.Package.FormatVersion) >= new Version(1, 6, 0))
                     foreach (var room in runtime.Rooms.GetAllRooms())
                         await hub.Clients.Group($"world:{runtime.Package.Id}:room:{room.Id.ToLowerInvariant()}").SendAsync("WorldReset");
 

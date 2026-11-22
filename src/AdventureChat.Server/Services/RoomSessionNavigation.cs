@@ -11,6 +11,7 @@ public partial class RoomSessionManager
         Action? onApplied = null, Point2D? actionPoint = null)
     {
         var now = _clock.GetUtcNow();
+        var npcNow = (double)now.ToUnixTimeMilliseconds();
         var projected = _sessionsByConnection.Values.Select(p => ProjectMovement(p, now)).ToList();
         var projectedActor = projected.Single(p => p.ConnectionId == actor.ConnectionId);
         if (actionPoint is { } point) projectedActor.Position = point;
@@ -24,15 +25,18 @@ public partial class RoomSessionManager
                         !room.Exits.Any(e => assignedRooms.Contains(e.TargetRoomId, StringComparer.OrdinalIgnoreCase))) continue;
                     if (SameNavigation(room, proposed)) continue;
                     navigationRooms.Add(room.Id);
+                    var before = _navigation.Geometry(room);
+                    var after = proposed.Geometry(room);
+                    foreach (var patrol in UpdateNpcPatrols(room, npcNow))
+                    {
+                        if (!after.IsWalkable(patrol.Position)) return "Diese Änderung würde eine Figur überdecken.";
+                        if (!KeepsSafetyAnchor(room, patrol.Position, before, after, proposed))
+                            return "Diese Änderung würde eine Figur ohne erreichbaren Sicherheitsanker einschließen.";
+                    }
                     foreach (var player in projected.Where(p => p.RoomId == room.Id))
                     {
-                        var after = proposed.Geometry(room);
                         if (!after.IsWalkable(player.Position)) return "Diese Änderung würde eine Figur überdecken.";
-                        var beforeAnchors = Anchors(room, _navigation)
-                            .Where(a => _pathfinder.CalculatePath(_navigation.Geometry(room), player.Position, a.Point).Success).ToList();
-                        var afterAnchors = Anchors(room, proposed).ToDictionary(a => a.Id, a => a.Point);
-                        if (!beforeAnchors.Any(a => afterAnchors.TryGetValue(a.Id, out var point) &&
-                            _pathfinder.CalculatePath(after, player.Position, point).Success))
+                        if (!KeepsSafetyAnchor(room, player.Position, before, after, proposed))
                             return "Diese Änderung würde eine Figur ohne erreichbaren Sicherheitsanker einschließen.";
                     }
                 }
@@ -44,6 +48,12 @@ public partial class RoomSessionManager
         foreach (var player in _sessionsByConnection.Values) AdvanceMovement(player, now);
         foreach (var player in _sessionsByConnection.Values.Where(p => navigationRooms.Contains(p.RoomId)))
             RepairRoute(player, now);
+        foreach (var roomId in navigationRooms)
+        {
+            if (!_npcPatrols.TryGetValue(roomId, out var patrols)) continue;
+            var geometry = _navigation.Geometry(_roomService.GetRoom(roomId)!);
+            foreach (var patrol in patrols) patrol.NavigationChanged(geometry);
+        }
         onApplied?.Invoke();
         EndInvalidObjectAnimations();
 
@@ -66,7 +76,9 @@ public partial class RoomSessionManager
         var now = _clock.GetUtcNow();
         return new ObjectStatesChangedDto(roomId, _interactions.Revision(roomId), _interactions.States(room),
             dto.Geometry, dto.Exits, players.Select(p => p.ToDto(now)).ToList(),
-            players.Where(p => p.NavigationStopped).Select(p => p.SessionId).ToList());
+            players.Where(p => p.NavigationStopped).Select(p => p.SessionId).ToList(),
+            _npcPatrols.ContainsKey(roomId) ? new(roomId, ++_npcSample,
+                NpcPresences(room, now.ToUnixTimeMilliseconds())!) : null);
     }
 
     private bool SameNavigation(RoomDefinition room, ObjectNavigation proposed)
@@ -82,6 +94,15 @@ public partial class RoomSessionManager
         var geometry = navigation.Geometry(room);
         foreach (var spawn in room.Spawns.Where(s => geometry.IsWalkable(s.Position))) yield return ($"spawn:{spawn.Id}", spawn.Position);
         foreach (var exit in room.Exits.Where(e => navigation.ExitUsable(room, e))) yield return ($"exit:{exit.Id}", exit.Position);
+    }
+
+    private bool KeepsSafetyAnchor(RoomDefinition room, Point2D position, RoomGeometry before, RoomGeometry after,
+        ObjectNavigation proposed)
+    {
+        var afterAnchors = Anchors(room, proposed).ToDictionary(anchor => anchor.Id, anchor => anchor.Point);
+        return Anchors(room, _navigation).Any(anchor => afterAnchors.TryGetValue(anchor.Id, out var point) &&
+            _pathfinder.CalculatePath(before, position, anchor.Point).Success &&
+            _pathfinder.CalculatePath(after, position, point).Success);
     }
 
     private PlayerSession ProjectMovement(PlayerSession player, DateTimeOffset now)
@@ -108,11 +129,13 @@ public partial class RoomSessionManager
         player.Waypoints = route.Success ? route.Waypoints!.ToList() : [];
         if (route.Success)
         {
+            ExtendNpcApproach(player, room);
             if (player.AnimationApproach is { } approach)
                 player.AnimationApproach = approach with { ArrivesAt = ArrivalAt(player, room) };
             return;
         }
         player.AnimationApproach = null;
+        CancelNpcApproach(player.ConnectionId);
         player.Target = null;
         player.State = "idle";
         player.NavigationStopped = true;

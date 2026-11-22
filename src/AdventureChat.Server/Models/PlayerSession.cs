@@ -93,7 +93,8 @@ public record RoomDefinitionDto(
     RoomViewport? Viewport = null,
     IReadOnlyList<RoomObject>? Objects = null,
     RoomDepthScale? DepthScale = null,
-    IReadOnlyList<NpcPresence>? Npcs = null
+    IReadOnlyList<NpcPresence>? Npcs = null,
+    long NpcSample = 0
 );
 
 public record RoomSnapshotDto(
@@ -110,7 +111,8 @@ public record ObjectTransitionDto(string From, long StartedAtMs, int DurationMs,
 public record ObjectStateDto(string ObjectId, string StateId, ObjectTransitionDto? Transition = null);
 public record ObjectStatesChangedDto(string RoomId, long Revision, IReadOnlyList<ObjectStateDto> States,
     RoomGeometryDto? Geometry = null, IReadOnlyList<RoomExitDto>? Exits = null,
-    IReadOnlyList<PlayerDto>? Players = null, IReadOnlyList<string>? StoppedSessions = null);
+    IReadOnlyList<PlayerDto>? Players = null, IReadOnlyList<string>? StoppedSessions = null,
+    NpcMovementDto? NpcMovement = null);
 public record ObjectActionRequestDto(string RoomId, string ObjectId, string ActionId, long ExpectedRevision, bool Approach = false);
 public record ObjectActionResultDto(bool Success, string? Error, string? ErrorCode = null, bool Pending = false);
 public record ObjectActionFeedbackDto(string RoomId, string Message);

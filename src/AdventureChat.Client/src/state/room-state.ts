@@ -1,6 +1,7 @@
 import { DEFAULT_ROOM, DEFAULT_SPEED, SPEECH_BUBBLE_DURATION } from '../constants.js';
 import { applyActorAnimation, assignPathToCharacter } from '../simulation/movement.js';
 import { applyObjectAppearances } from './object-appearance.js';
+import { NpcCast } from './npc-cast.js';
 import type {
   Character,
   ChatMessageDto,
@@ -12,6 +13,7 @@ import type {
   RoomSnapshotDto,
   ObjectStateDto,
   ObjectStatesChangedDto,
+  NpcMovementDto,
 } from '../types.js';
 
 export class RoomState {
@@ -20,6 +22,7 @@ export class RoomState {
   public playerName: string;
   public readonly character: Character;
   public readonly remotePlayers: Map<string, Character> = new Map();
+  public readonly npcCast = new NpcCast();
   public readonly chatMessages: ChatMessageDto[] = [];
   public pendingExit: RoomExit | null = null;
   private readonly movementRevisions = new Map<string, number>();
@@ -41,6 +44,7 @@ export class RoomState {
     if (roomParam) {
       this.room = { ...this.room, id: roomParam };
     }
+    this.npcCast.setRoom(this.room);
 
     this.character = {
       id: this.sessionId,
@@ -65,6 +69,7 @@ export class RoomState {
   public applySnapshot(snapshot: RoomSnapshotDto): void {
     if (snapshot.room) {
       this.room = snapshot.room;
+      this.npcCast.setRoom(this.room);
     }
     this.objectRevision = snapshot.objectRevision ?? 0;
     this.applyObjectStates(snapshot.objectStates ?? []);
@@ -104,6 +109,7 @@ export class RoomState {
     this.applyObjectStates(dto.states);
     if (dto.geometry) this.room = { ...this.room, geometry: dto.geometry };
     if (dto.exits) this.room = { ...this.room, exits: dto.exits };
+    if (dto.npcMovement) this.handleNpcMovement(dto.npcMovement);
     for (const player of dto.players ?? []) {
       this.handlePlayerMoved({ roomId: dto.roomId, sessionId: player.sessionId, revision: player.movementRevision,
         target: player.target ?? player.position, waypoints: player.waypoints.length > 0 ? player.waypoints : [player.position] }, player);
@@ -119,6 +125,12 @@ export class RoomState {
         startTime: performance.now(), duration: SPEECH_BUBBLE_DURATION };
     }
     this.onObjectsChanged?.();
+  }
+
+  public handleNpcMovement({ roomId, npcs, sample }: NpcMovementDto): void {
+    if (roomId !== this.room.id || sample <= (this.room.npcSample ?? 0)) return;
+    this.room = { ...this.room, npcs, npcSample: sample };
+    this.npcCast.update(npcs);
   }
 
   private applyObjectStates(states: ReadonlyArray<ObjectStateDto>): void {

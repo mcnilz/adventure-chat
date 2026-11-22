@@ -60,7 +60,7 @@ Geplant sind optionale Raumangaben für Draufsicht und feste Figurengröße, hor
 | Weltformat | Raumformat | Unterstützung |
 | --- | --- | --- |
 | `1.0.0` | `legacy-1`, Raum-`version: 1` | Lesen und Schreiben |
-| `1.1.0`–`1.12.0` | `legacy-1`, Raum-`version: 1` | Lesen und Schreiben für jede ausdrücklich veröffentlichte Minor-Version |
+| `1.1.0`–`1.13.0` | `legacy-1`, Raum-`version: 1` | Lesen und Schreiben für jede ausdrücklich veröffentlichte Minor-Version |
 | andere | beliebig | ausdrücklich abgelehnt |
 
 Das Manifest verwendet `formatVersion`, `id`, `name`, `contentVersion`, `startRoom`, `startSpawn` und `roomFormat`. `rooms` und `assets/images` sind paketrelative Verzeichnisse. Dateiname und Raum-ID stimmen überein; Hintergründe sind vollständige PNG-Dateien mit passenden Abmessungen; PNG-Dateien sind auf 64 MiB, ihre dekodierten Bilddaten auf 128 MiB und einzelne YAML-Dateien auf 1 MiB begrenzt. Absolute Pfade, `..` und symbolische Links/Junctions werden abgewiesen. Der Editor schreibt ausschließlich `version: 1`, prüft vorhandene Dateien vor Überschreiben und behält beim normalen Speichern die Manifestversion bei. Schema-Bündel und ihre lokalen Referenzen bleiben nach Veröffentlichung unverändert. Die ursprünglichen Legacy-Dateien und das ursprüngliche Schema bleiben als Referenz erhalten. `1.0.0` ist die erstmalige Veröffentlichung des Weltvertrags, keine Umdeutung des ganzzahligen Raumversionsfeldes; daher ist kein früheres Weltformat umzuversionieren. Weitere Formatänderungen folgen den Regeln im Kompatibilitätsvertrag.
@@ -167,7 +167,7 @@ Nach Erfolg bleiben weiterhin gültige Wege bestehen. Ungültige Wege werden ab 
 
 Die Editorvorschau prüft Wege, Objektaktionen und Ausgänge mit denselben Serverregeln wie das Spiel. Bei einem interaktiven Objekt verwendet „Automatisch“ die Auswahlregel für „Benutzen“. Über die Verbauswahl lässt sich eine konkrete Aktion testen. Die Vorschau verwendet den Raumdraft beim Start und isolierte Objektzustände, die nach einem Raumwechsel erhalten bleiben. Ein Neustart der Vorschau setzt sie auf die Anfangszustände zurück. Synthetisches Beispiel: `tests/Fixtures/navigation`.
 
-Ältere Weltpakete behalten beim Speichern ihr Format. Für eine Aktualisierung auf 1.8.0, 1.9.0, 1.10.0, 1.11.0 oder 1.12.0 wird das höhere Zielformat ausdrücklich im Editor gewählt. Vor dem Schreiben prüft der Server Manifest, vorhandene Räume und den Entwurf mit dem Zielvertrag. Speichern aktualisiert das Manifest und den bearbeiteten Raum. Übrige Raumdateien bleiben unverändert.
+Ältere Weltpakete behalten beim Speichern ihr Format. Für eine Aktualisierung auf 1.8.0 bis 1.13.0 wird das höhere unterstützte Zielformat ausdrücklich im Editor gewählt. Vor dem Schreiben prüft der Server Manifest, vorhandene Räume und den Entwurf mit dem Zielvertrag. Speichern aktualisiert das Manifest und den bearbeiteten Raum. Übrige Raumdateien bleiben unverändert.
 
 ### Sichtbare Objektübergänge ab 1.9.0
 
@@ -250,3 +250,11 @@ options:
 `replies` enthält bei Bedarf eine bis acht Antwortvarianten. Die erste passende Variante in der angegebenen Reihenfolge ersetzt `reply`. Wenn keine Variante passt, gilt `reply`. Eine NPC-Definition enthält weiterhin zwei bis acht Fragen. Je nach Zustand können davon auch null sichtbar sein. Die Regeln werden in YAML bearbeitet. Der Raumeditor bewahrt sie beim Speichern und wertet sie in der getrennten Vorschau mit deren Objektzuständen aus.
 
 Das neue Schema-Bündel unter `schemas/world/1.12.0/` ergänzt optionale Felder. Vorhandene Fragen bleiben ohne diese Felder jederzeit verfügbar und behalten ihre Antwort.
+
+### NPC-Wegpunkte ab 1.13.0
+
+Ein NPC kann optional `waypoints` mit zwei bis 32 absoluten Raumkoordinaten in YAML angeben. Mindestens zwei Punkte müssen verschieden sein. Alle Punkte und die Verbindungen vom Startpunkt zum ersten Ziel sowie zwischen den Zielen einschließlich Rückweg müssen mit der statischen Raumgeometrie begehbar sein. Der Startpunkt muss auch mit den anfänglichen Objektzuständen begehbar sein. Der NPC startet an `position`, läuft mit der Raumgeschwindigkeit zum ersten Wegpunkt, hält an jedem Ziel eine Sekunde und läuft nach dem letzten Wegpunkt wieder zum ersten. Bei einer dynamischen Sperre kann er einen begehbaren Umweg nehmen. Gibt es keinen, wartet er auf eine Änderung der begehbaren Fläche und versucht dasselbe Ziel erneut.
+
+Der Abstand zwischen `position` und `talkPoint` gibt bei bewegten NPCs den Versatz des Gesprächspunkts an. Ist der versetzte Punkt versperrt, ist der Fußpunkt des NPCs das Gesprächsziel. Ein erreichbarer Gesprächsversuch hält den NPC bereits beim Herangehen an. Nach dem Ende des letzten Gesprächs setzt er seine Wegfolge fort. In der Raumvorschau laufen NPCs mit eigenen Objekt- und Bewegungszuständen.
+
+Das Schema-Bündel unter `schemas/world/1.13.0/` ergänzt das optionale Feld. NPCs ohne Wegpunkte bleiben an ihrem definierten Platz.
