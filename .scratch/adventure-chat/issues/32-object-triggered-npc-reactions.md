@@ -4,7 +4,7 @@
 
 **Blocked by:** [20](20-shared-object-actions.md), [21](21-state-dependent-navigation.md), [29](29-npc-movement.md).
 
-**Status:** ready-for-human
+**Status:** done
 
 ## Acceptance criteria
 
@@ -36,3 +36,7 @@ Die getrennte Programmkopie liegt unter `.scratch/adventure-chat/evidence/32/rev
 - Gezielt geprüft wurden Laden und Speichern einschließlich ausdrücklichem Formatwechsel, eine abgelehnte veraltete Aktion, Wiederholung während des Laufs, unterbrochene Patrouille, zwei gleichzeitig klingelnde Besucher, Vorrang von Gespräch und Führung sowie die isolierte Vorschau. Eine Arbeitskopie ruft die Wache durch Betätigung eines Stuhls. Ihre Reaktion berücksichtigt eine zwischenzeitlich geschlossene Tür. Für eine Sperre während eines Gesprächs ist geprüft, dass der alte Ruf auch nach Wiederöffnen verfällt.
 - Standards- und Spezifikationsreview mit getrennter Nachprüfung abgeschlossen. Dabei wurden die anfängliche Spawn-Erreichbarkeit und der sofortige Abbruch eines unerreichbar gewordenen Rufs abgesichert. Beide Nachprüfungen ergaben keine offenen Befunde.
 - Das neue Schema-Bündel ergänzt 1.15.0. Die veröffentlichten älteren Schemas und Referenzfixtures sind im Dateivergleich unverändert. Die Vollsuite prüft das Laden und Verhalten älterer Welten. Keine neuen Abhängigkeiten.
+
+## Menschliche Abnahme
+
+Am 22.11.2026 mit „abgenommen“ ausdrücklich bestätigt. Umsetzungscommit `489924a`.
