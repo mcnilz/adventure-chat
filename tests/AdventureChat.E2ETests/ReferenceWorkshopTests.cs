@@ -23,6 +23,8 @@ public class ReferenceWorkshopTests
         var mara = await JoinWorkshop(browser, server.BaseUrl, "mara");
         var bruno = await JoinWorkshop(browser, server.BaseUrl, "bruno");
         await mara.WaitForFunctionAsync("window.__ADVENTURE_GAME__.remotePlayers.size === 1");
+        await Verb(mara, "Schließen", ReturnDoor);
+        await ExpectObjectImage(bruno, "door", "closed");
         Assert.That(await TryWalk(bruno, 49, 118), Is.False, "Closed return door blocks its sill.");
         Assert.That(await TryWalk(bruno, 168, 205), Is.False, "Chair at the table occupies its footprint.");
         await Walk(bruno, 106, 236);
@@ -111,8 +113,8 @@ public class ReferenceWorkshopTests
         var mara = await JoinWorkshop(browser, server.BaseUrl, "mara");
         await Verb(mara, "Ziehen", ChairAtTable);
         await ExpectObjectX(mara, "chair", 204);
-        await Verb(mara, "Öffnen", ReturnDoor);
-        await ExpectObjectImage(mara, "door", "open");
+        await Verb(mara, "Schließen", ReturnDoor);
+        await ExpectObjectImage(mara, "door", "closed");
         await Verb(mara, "Benutzen", SwitchPanel);
         await ExpectGate(mara, true);
         await FollowExit(mara, GateOpening, "garden");
@@ -135,14 +137,14 @@ public class ReferenceWorkshopTests
         await server.StopAsync();
         await server.StartAsync();
         var fresh = await JoinWorkshop(browser, server.BaseUrl, "mara");
-        await ExpectObjectImage(fresh, "door", "closed");
+        await ExpectObjectImage(fresh, "door", "open");
         await ExpectObjectX(fresh, "chair", 148);
         await ExpectGate(fresh, false);
     }
 
     private static async Task ExpectChangedState(IPage page)
     {
-        await ExpectObjectImage(page, "door", "open");
+        await ExpectObjectImage(page, "door", "closed");
         await ExpectObjectX(page, "chair", 204);
         await ExpectGate(page, true);
     }
@@ -205,13 +207,13 @@ public class ReferenceWorkshopTests
             }
             """, new { x, y });
 
-    private static async Task Verb(IPage page, string name, (int X, int Y) target)
+    internal static async Task Verb(IPage page, string name, (int X, int Y) target)
     {
         await page.GetByRole(AriaRole.Button, new() { Name = name, Exact = true }).ClickAsync();
         await ClickCanvas(page, target.X, target.Y);
     }
 
-    private static Task ExpectObjectX(IPage page, string id, int x) => page.WaitForFunctionAsync(
+    internal static Task ExpectObjectX(IPage page, string id, int x) => page.WaitForFunctionAsync(
         "({id, x}) => window.__ADVENTURE_GAME__.room.objects.find(object => object.id === id)?.position.x === x", new { id, x });
 
     private static Task ExpectObjectImage(IPage page, string id, string state) => page.WaitForFunctionAsync(

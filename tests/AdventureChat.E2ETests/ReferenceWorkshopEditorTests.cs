@@ -43,6 +43,7 @@ public class ReferenceWorkshopEditorTests
         await editor.ClickAsync("#btn-toggle-mode");
         await editor.ClickAsync("#btn-toggle-mode");
         await PreviewAction(editor, "pull", ChairAtTable);
+        await PreviewAction(editor, "close", ReturnDoor);
         await PreviewAction(editor, "open", ReturnDoor);
         await editor.GetByLabel("Vorschauverb").SelectOptionAsync("walk");
         await ClickCanvas(editor, ReturnDoor.X, ReturnDoor.Y);
@@ -63,7 +64,7 @@ public class ReferenceWorkshopEditorTests
         var live = await JoinWorkshop(browser, server.BaseUrl, "mara");
         await ExpectGate(live, false);
         Assert.That(await live.EvaluateAsync<string>("window.__ADVENTURE_GAME__.room.objects.find(o => o.id === 'door').image"),
-            Does.EndWith("door-closed.png"));
+            Does.EndWith("door-open.png"));
     }
 
     private static async Task SelectWorkshop(IPage page)

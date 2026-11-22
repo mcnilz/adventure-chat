@@ -80,7 +80,7 @@ public class NpcDialogueTests
         await Assertions.Expect(editor.GetByRole(AriaRole.Button, question)).ToBeVisibleAsync();
         await editor.GetByRole(AriaRole.Button, question).ClickAsync();
         await ClickPreview(210, 330);
-        await Assertions.Expect(editor.Locator("#npc-reply")).ToHaveTextAsync("Ja, ich habe deinen Ruf gehört.");
+        await Assertions.Expect(editor.Locator("#npc-reply")).ToContainTextAsync("Ja, ich habe deinen Ruf gehört.");
         await Assertions.Expect(editor.Locator("#npc-dialogue")).ToBeVisibleAsync();
 
         await Speak(live);

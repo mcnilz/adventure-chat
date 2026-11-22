@@ -119,6 +119,14 @@ public class ObjectActorAnimationTests
 
         await editor.ClickAsync("#btn-toggle-mode");
         await editor.GetByLabel("Vorschauverb").SelectOptionAsync("use");
+        await ClickCanvas(editor, 495, 77);
+        await HasPixel(editor, 551, 132, 1, 3, 232, 177, 91);
+        await editor.GetByLabel("Vorschauverb").SelectOptionAsync("pull");
+        await ClickCanvas(editor, 169, 194);
+        await Assertions.Expect(editor.Locator("#preview-result")).ToHaveTextAsync("Aktion ausgeführt.");
+        await editor.GetByLabel("Vorschauverb").SelectOptionAsync("use");
+        await ClickCanvas(editor, 224, 214);
+        await HasPixel(editor, 204, 198, 30, 26, 229, 189, 148);
         await ClickCanvas(editor, 132, 52);
         await HasPixel(editor, 188, 67, 13, 13, 229, 189, 148);
         await HasPixel(editor, 118, 30, 38, 21, 240, 220, 164);

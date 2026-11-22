@@ -99,13 +99,13 @@ objects:
             sprites: { mara: assets/images/workshop-mara-gesture.png, bruno: assets/images/workshop-bruno-gesture.png }
         - { id: clear-plan, name: Benutzen, from: written, to: empty }
   - id: door
-    image: assets/images/workshop-door-closed.png
+    image: assets/images/workshop-door-open.png
     position: { x: 29, y: 8 }
     size: { width: 40, height: 100 }
     depthY: 108
     interaction:
       name: Tür
-      initialState: closed
+      initialState: open
       usePoint: { x: 72, y: 136 }
       useRadius: 16
       states:

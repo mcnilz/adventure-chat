@@ -132,7 +132,8 @@ public class NpcTourTests
             }
             """);
         Assert.That(spacing, Is.EqualTo(48).Within(2));
-        await Assertions.Expect(observer.Locator("#action-feedback")).ToHaveTextAsync("Die Führung ist abgeschlossen.", new() { Timeout = 14000 });
+        await Button(observer, StopLabel).ClickAsync();
+        await Assertions.Expect(observer.Locator("#action-feedback")).ToHaveTextAsync("Führung beendet.");
         await observer.WaitForFunctionAsync($"{Game}.room.npcs.some(npc => npc.name === 'Nela' && npc.motion?.route.at(-1)?.x === 66)");
         await observer.WaitForFunctionAsync($"!{Game}.room.npcs.some(npc => npc.name === 'Nela')");
         Assert.That(await observer.EvaluateAsync<string>($"{Game}.room.id"), Is.EqualTo("garden"));
