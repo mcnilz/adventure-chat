@@ -4,7 +4,7 @@
 
 **Blocked by:** [26 – Figurenanimationen](26-character-animations-for-object-actions.md), [27 – NPC-Dialog](27-npc-dialogue.md), [30 – NPC-Führung](30-follow-npc.md) (alle `done`).
 
-**Status:** ready-for-human
+**Status:** done
 
 ## Acceptance criteria
 
@@ -41,4 +41,4 @@ Am 22.11.2026 bestätigte der Benutzer Nela als einzige neu gestaltete Figur, di
 
 ## Menschliche Abnahme
 
-Ausstehend. Erkennbarkeit und Natürlichkeit der Bewegung in Spielgröße sowie die Stiltreue von Nela werden manuell bewertet.
+Am 22.11.2026 ausdrücklich mit „abgenommen“ bestätigt. Umsetzungscommit `490711b`.
