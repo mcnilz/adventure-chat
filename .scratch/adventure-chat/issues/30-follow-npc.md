@@ -4,7 +4,7 @@
 
 **Blocked by:** [27](27-npc-dialogue.md), [29](29-npc-movement.md).
 
-**Status:** ready-for-human
+**Status:** done
 
 ## Acceptance criteria
 
@@ -44,4 +44,6 @@ Die optionalen Felder `tour` und `followDistance` erweitern das [Autorenformat](
 2. **Führung starten** wählen. Die Figur folgt Nela mit Abstand. Je eine Erklärung erscheint in der Lounge und im Tavernen-Garten. Im Garten **Führung beenden** wählen und anschließend wieder auf den Boden klicken und eine Chatnachricht senden.
 3. Die Lounge in einem zweiten Browserfenster betreten. Eine erneute Führung bis zum Abschluss laufen lassen und prüfen, dass sich die zweite Figur jederzeit frei steuern lässt. Im Garten bleibt der Gast nach **„Die Führung ist abgeschlossen.“** stehen. Nela geht durch die linke Tür und bietet nach ihrer Rückkehr in der Lounge eine neue Führung an.
 
-Die ausdrückliche menschliche Abnahme steht aus.
+## Abnahme
+
+Am 22.11.2026 ausdrücklich mit „abgenommen“ bestätigt. Lokaler Umsetzungscommit `011e24d`.
