@@ -4,7 +4,7 @@
 
 **Blocked by:** [20](20-shared-object-actions.md), [27](27-npc-dialogue.md).
 
-**Status:** ready-for-human
+**Status:** done
 
 ## Acceptance criteria
 
@@ -35,6 +35,10 @@ Format **1.12.0** ist eine additive Minor-Version mit dem optionalen `when` für
 
 ## Manuelle Abnahme
 
-1. [Lokale Abnahmekopie](http://127.0.0.1:56074/) öffnen und die Referenzwelt betreten. **Spreche mit** wählen und Nela links vom Einstieg anklicken. **Wer bist du?** zeigt im Grundzustand „Ich bin Nela.“ und „Ich passe auf die Lounge auf.“
+1. [Lokale Abnahmekopie](http://127.0.0.1:63299/) öffnen und die Referenzwelt betreten. **Spreche mit** wählen und Nela links vom Einstieg anklicken. **Wer bist du?** zeigt im Grundzustand „Ich bin Nela.“ und „Ich passe auf die Lounge auf.“
 2. Das Gespräch offen lassen. In einem zweiten Browserfenster die Referenzwelt mit einem anderen Namen betreten. **Drücken** wählen und die kleine Messingklingel auf dem Holzständer rechts neben Nela anklicken. Im ersten Fenster **Wer bist du?** wählen. Die Fragenliste aktualisiert sich und ein Hinweis erscheint. **Wer bist du?** erneut wählen und die geänderte Antwort prüfen. **Hast du die Klingel gehört?** ist jetzt sichtbar.
-3. Optional im [Raumeditor](http://127.0.0.1:56074/editor.html?worldId=reference) **Lounge → Raum-Vorschau** öffnen. Dort die Klingel drücken und mit Nela sprechen. Die Auswahl in der Vorschau richtet sich nach deren eigener Klingel.
+3. Optional im [Raumeditor](http://127.0.0.1:63299/editor.html?worldId=reference) **Lounge → Raum-Vorschau** öffnen. Dort die Klingel drücken und mit Nela sprechen. Die Auswahl in der Vorschau richtet sich nach deren eigener Klingel.
+
+## Abnahme
+
+Am 22.11.2026 hat der Benutzer Ticket 28 mit „abgenommen“ bestätigt. Die lokale Kopie für diese Abnahme lief unter Port 63299. Implementierungscommit `79652de`.
