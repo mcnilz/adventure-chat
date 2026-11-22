@@ -4,7 +4,7 @@
 
 **Blocked by:** [21](21-state-dependent-navigation.md), [27](27-npc-dialogue.md).
 
-**Status:** ready-for-human
+**Status:** done
 
 ## Acceptance criteria
 
@@ -40,4 +40,6 @@ Format **1.13.0** ist eine additive Minor-Version. Das optionale Feld `waypoints
 2. **Spreche mit** wählen und Ida unterwegs anklicken. In einem zweiten Browserfenster ebenfalls in den Garten gehen. Ida steht dort an derselben Stelle. In beiden Fenstern mit ihr sprechen. Das erste Gespräch mit **Gespräch beenden** oder **Esc** schließen. Erst nach dem Schließen des zweiten Gesprächs geht Ida weiter.
 3. Im [Raumeditor](http://127.0.0.1:58827/editor.html?worldId=reference) **Tavernen-Garten → Raum-Vorschau** öffnen. Ida dort ansprechen und prüfen, dass sie im Spielfenster unabhängig davon weiterläuft.
 
-Menschliche Abnahme ausstehend. Lokaler Umsetzungscommit `Implement NPC waypoint patrols (ticket 29)`.
+## Abnahme
+
+Am 22.11.2026 hat der Benutzer Ticket 29 mit „Ticket 29 abgenommen.“ ausdrücklich bestätigt. Lokaler Umsetzungscommit `9d4cfdb`.
